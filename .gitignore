@@ -9,6 +9,11 @@ dist/
 .axiomap/cache/
 # NOT .axiomap/review.json — that is meant to be shared
 
+# Generated perf fixture — `node fixtures/large/generate.mjs` reproduces it
+# byte-identically from a fixed seed. ~8 MB of derived Solidity; the generator
+# is the fixture, not its output.
+fixtures/large/generated/
+
 # Never
 fixtures/client/
 *.sol.private

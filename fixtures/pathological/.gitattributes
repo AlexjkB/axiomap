@@ -1,0 +1,4 @@
+# Crlf.sol is a fixture *because* of its line endings. Git must not normalise
+# them on checkin or checkout, on any platform, or the byte-offset test it
+# exists to guard becomes a no-op.
+src/Crlf.sol -text

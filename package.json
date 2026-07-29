@@ -14,10 +14,12 @@
     "check": "pnpm build && pnpm test && pnpm lint",
     "check:network": "node scripts/check-no-network-deps.mjs",
     "clean": "turbo run clean && rm -rf node_modules/.cache .turbo",
-    "prepare": "husky"
+    "prepare": "husky",
+    "bench:parser": "node scripts/bench-parser.mjs"
   },
   "devDependencies": {
     "@eslint/js": "^9.18.0",
+    "@openzeppelin/contracts": "^5.6.1",
     "@types/node": "^22.10.5",
     "eslint": "^9.18.0",
     "husky": "^9.1.7",

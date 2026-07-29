@@ -1,0 +1,216 @@
+{
+  "size": {
+    "files": 911,
+    "sloc": 200129
+  },
+  "rows": [
+    {
+      "label": "single-cold",
+      "parserId": "antlr",
+      "median": 72140.573602,
+      "min": 72075.39168899998,
+      "max": 72289.721042,
+      "samples": [
+        72289.721042,
+        72140.573602,
+        72075.39168899998
+      ],
+      "inline": false,
+      "workers": 1,
+      "cacheHits": 0,
+      "contracts": 2719,
+      "functions": 13542
+    },
+    {
+      "label": "parallel-cold",
+      "parserId": "antlr",
+      "median": 27777.54870100002,
+      "min": 25927.673791999987,
+      "max": 28649.03129100002,
+      "samples": [
+        25927.673791999987,
+        27777.54870100002,
+        28649.03129100002
+      ],
+      "inline": false,
+      "workers": 7,
+      "cacheHits": 0,
+      "contracts": 2719,
+      "functions": 13542
+    },
+    {
+      "label": "parallel-warm",
+      "parserId": "antlr",
+      "median": 611.9590120000066,
+      "min": 610.7127740000142,
+      "max": 649.1175499999663,
+      "samples": [
+        610.7127740000142,
+        611.9590120000066,
+        649.1175499999663
+      ],
+      "inline": false,
+      "workers": 7,
+      "cacheHits": 911,
+      "contracts": 2719,
+      "functions": 13542
+    },
+    {
+      "label": "single-cold",
+      "parserId": "treesitter",
+      "median": 4544.81165800005,
+      "min": 4491.6280910000205,
+      "max": 4896.428740000003,
+      "samples": [
+        4896.428740000003,
+        4544.81165800005,
+        4491.6280910000205
+      ],
+      "inline": false,
+      "workers": 1,
+      "cacheHits": 0,
+      "contracts": 2719,
+      "functions": 13542
+    },
+    {
+      "label": "parallel-cold",
+      "parserId": "treesitter",
+      "median": 1924.8275300000096,
+      "min": 1909.0198450000025,
+      "max": 2076.7380709999707,
+      "samples": [
+        1909.0198450000025,
+        1924.8275300000096,
+        2076.7380709999707
+      ],
+      "inline": false,
+      "workers": 7,
+      "cacheHits": 0,
+      "contracts": 2719,
+      "functions": 13542
+    },
+    {
+      "label": "parallel-warm",
+      "parserId": "treesitter",
+      "median": 612.2251079999842,
+      "min": 602.7986640000017,
+      "max": 644.2225420000032,
+      "samples": [
+        644.2225420000032,
+        612.2251079999842,
+        602.7986640000017
+      ],
+      "inline": false,
+      "workers": 7,
+      "cacheHits": 911,
+      "contracts": 2719,
+      "functions": 13542
+    }
+  ],
+  "symbols": {
+    "antlr": {
+      "minimal": {
+        "contracts": 5,
+        "functions": 14,
+        "modifiers": 1,
+        "stateVariables": 8,
+        "events": 2,
+        "errors": 2,
+        "types": 3,
+        "filesWithErrors": 0
+      },
+      "inheritance": {
+        "contracts": 38,
+        "functions": 274,
+        "modifiers": 3,
+        "stateVariables": 37,
+        "events": 7,
+        "errors": 41,
+        "types": 10,
+        "filesWithErrors": 0
+      },
+      "defi": {
+        "contracts": 9,
+        "functions": 37,
+        "modifiers": 2,
+        "stateVariables": 15,
+        "events": 6,
+        "errors": 15,
+        "types": 0,
+        "filesWithErrors": 0
+      },
+      "pathological": {
+        "contracts": 11,
+        "functions": 32,
+        "modifiers": 1,
+        "stateVariables": 16,
+        "events": 1,
+        "errors": 1,
+        "types": 0,
+        "filesWithErrors": 1
+      }
+    },
+    "treesitter": {
+      "minimal": {
+        "contracts": 5,
+        "functions": 14,
+        "modifiers": 1,
+        "stateVariables": 8,
+        "events": 2,
+        "errors": 2,
+        "types": 3,
+        "filesWithErrors": 0
+      },
+      "inheritance": {
+        "contracts": 38,
+        "functions": 274,
+        "modifiers": 3,
+        "stateVariables": 37,
+        "events": 7,
+        "errors": 41,
+        "types": 10,
+        "filesWithErrors": 0
+      },
+      "defi": {
+        "contracts": 9,
+        "functions": 37,
+        "modifiers": 2,
+        "stateVariables": 15,
+        "events": 6,
+        "errors": 15,
+        "types": 0,
+        "filesWithErrors": 0
+      },
+      "pathological": {
+        "contracts": 14,
+        "functions": 36,
+        "modifiers": 1,
+        "stateVariables": 18,
+        "events": 1,
+        "errors": 1,
+        "types": 0,
+        "filesWithErrors": 1
+      }
+    }
+  },
+  "recoveries": {
+    "antlr": {
+      "contracts": 0,
+      "functions": 0,
+      "diagnostics": 1
+    },
+    "treesitter": {
+      "contracts": 3,
+      "functions": 4,
+      "diagnostics": 2
+    }
+  },
+  "runs": 3,
+  "host": {
+    "cpu": "Intel(R) Core(TM) i5-8350U CPU @ 1.70GHz",
+    "cores": 8,
+    "node": "v22.15.0",
+    "platform": "linux 6.8.0-124-generic"
+  },
+  "measuredAt": "2026-07-29T13:12:40.777Z"
+}

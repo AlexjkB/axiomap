@@ -7,7 +7,7 @@
       "outputs": ["dist/**", "*.tsbuildinfo"]
     },
     "test": {
-      "dependsOn": ["^build"],
+      "dependsOn": ["build"],
       "outputs": []
     },
     "clean": {
