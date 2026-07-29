@@ -1,0 +1,15 @@
+# Build
+node_modules/
+dist/
+*.tsbuildinfo
+.turbo/
+
+# Axiomap's own output
+.axiomap/graph.json
+.axiomap/cache/
+# NOT .axiomap/review.json — that is meant to be shared
+
+# Never
+fixtures/client/
+*.sol.private
+.env*

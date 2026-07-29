@@ -1,0 +1,33 @@
+{
+  "name": "axiomap",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "packageManager": "pnpm@9.15.4",
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "build": "turbo run build",
+    "test": "turbo run test && vitest run --passWithNoTests",
+    "lint": "eslint .",
+    "check": "pnpm build && pnpm test && pnpm lint",
+    "check:network": "node scripts/check-no-network-deps.mjs",
+    "clean": "turbo run clean && rm -rf node_modules/.cache .turbo",
+    "prepare": "husky"
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.18.0",
+    "@types/node": "^22.10.5",
+    "eslint": "^9.18.0",
+    "husky": "^9.1.7",
+    "lint-staged": "^15.3.0",
+    "turbo": "^2.3.3",
+    "typescript": "^5.7.3",
+    "typescript-eslint": "^8.20.0",
+    "vitest": "^2.1.8"
+  },
+  "lint-staged": {
+    "*.{ts,tsx,mjs,js}": "eslint --fix"
+  }
+}

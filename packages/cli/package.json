@@ -1,0 +1,22 @@
+{
+  "name": "@axiomap/cli",
+  "version": "0.0.0",
+  "private": true,
+  "description": "Axiomap command line interface.",
+  "license": "MIT",
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "bin": {
+    "axiomap": "./dist/bin.js"
+  },
+  "files": ["dist"],
+  "scripts": {
+    "build": "tsc -b",
+    "test": "vitest run --passWithNoTests",
+    "clean": "rm -rf dist tsconfig.tsbuildinfo"
+  },
+  "dependencies": {
+    "@axiomap/core": "workspace:*"
+  }
+}
