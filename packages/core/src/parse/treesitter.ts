@@ -36,6 +36,9 @@ import { fileURLToPath } from 'node:url';
 
 import { Language, Parser, type Node } from 'web-tree-sitter';
 
+import { hashBody, hashInterface } from '../graph/hash.js';
+import { getHasher, type Hasher } from './cache.js';
+import { analyseBody } from './treesitter-bodies.js';
 import {
   emptyUnit,
   type ContractKind,
@@ -121,9 +124,11 @@ function identifierText(node: TsNode | null): string | null {
 
 class TreeSitterConverter {
   readonly #positions: PositionIndex;
+  readonly #hasher: Hasher;
 
-  constructor(positions: PositionIndex) {
+  constructor(positions: PositionIndex, hasher: Hasher) {
     this.#positions = positions;
+    this.#hasher = hasher;
   }
 
   ref(node: TsNode): SourceRef {
@@ -204,23 +209,48 @@ class TreeSitterConverter {
         ? (node.childForFieldName('name') ?? firstOfType(node, 'identifier'))
         : null;
 
+    const name = identifierText(nameNode);
+    const params = this.#params(node, 'parameter');
+    const returns = this.#returns(node);
+    const modifiers = this.#modifierInvocations(node);
+    const visibilityValue = visibilityOf(visibility?.text ?? null);
+    const mutabilityValue = mutabilityOf(mutability?.text ?? null);
+    const analysis = analyseBody(this.#positions, body, params, returns);
+
     return {
-      name: identifierText(nameNode),
+      name,
       subkind,
-      visibility: visibilityOf(visibility?.text ?? null),
-      stateMutability: mutabilityOf(mutability?.text ?? null),
+      visibility: visibilityValue,
+      stateMutability: mutabilityValue,
       isVirtual: firstOfType(node, 'virtual') !== null,
       isOverride: override !== null,
       overrides:
         override === null
           ? []
           : childrenOfType(override, 'user_defined_type').map((t) => t.text),
-      modifiers: this.#modifierInvocations(node),
-      params: this.#params(node, 'parameter'),
-      returns: this.#returns(node),
+      modifiers,
+      params,
+      returns,
       hasBody: body !== null,
       body: body === null ? null : this.ref(body),
       src: this.ref(node),
+      calls: analysis.calls,
+      identifiers: analysis.identifiers,
+      emits: analysis.emits,
+      reverts: analysis.reverts,
+      locals: analysis.locals,
+      flags: analysis.flags,
+      metrics: analysis.metrics,
+      bodyHash: hashBody(this.#hasher, analysis.tokens),
+      interfaceHash: hashInterface(this.#hasher, {
+        name: name ?? subkind,
+        subkind,
+        visibility: visibilityValue,
+        stateMutability: mutabilityValue,
+        params: params.map((p) => p.typeName),
+        returns: returns.map((p) => p.typeName),
+        modifiers: modifiers.map((m) => m.name),
+      }),
     };
   }
 
@@ -530,22 +560,27 @@ export class TreeSitterSolidityParser implements SolidityParser {
 
   readonly #parser: Parser;
 
-  private constructor(parser: Parser) {
+  readonly #hasher: Hasher;
+
+  private constructor(parser: Parser, hasher: Hasher) {
     this.#parser = parser;
+    this.#hasher = hasher;
   }
 
   /**
-   * Async because the grammar has to be loaded and compiled first. `parse`
-   * itself stays synchronous — the cost is paid once per parser instance, not
-   * once per file, which is what keeps the pool's inner loop tight.
+   * Async because the grammar has to be loaded and compiled first, and because
+   * §8's body hashes need the xxhash WASM module. Both are memoised
+   * process-wide, so a worker thread pays them once. `parse` itself stays
+   * synchronous, which is what keeps the pool's inner loop tight.
    */
   static async create(): Promise<TreeSitterSolidityParser> {
     // Order matters: `Parser.init()` runs inside `loadSolidityLanguage`, and
     // the constructor throws if the runtime has not been initialised yet.
     const language = await loadSolidityLanguage();
+    const hasher = await getHasher();
     const parser = new Parser();
     parser.setLanguage(language);
-    return new TreeSitterSolidityParser(parser);
+    return new TreeSitterSolidityParser(parser, hasher);
   }
 
   parse(file: string, text: string): ParseResult {
@@ -576,7 +611,7 @@ export class TreeSitterSolidityParser implements SolidityParser {
       return { unit: emptyUnit(file), diagnostics, recovered: true };
     }
 
-    const converter = new TreeSitterConverter(positions);
+    const converter = new TreeSitterConverter(positions, this.#hasher);
     if (root.hasError) collectDiagnostics(root, converter, diagnostics);
 
     const unit: ParsedSourceUnit = emptyUnit(file);

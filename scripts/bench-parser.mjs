@@ -95,6 +95,12 @@ const median = (xs) => {
 
 const CACHE_DIR = path.join(LARGE, '.axiomap', 'cache', 'bench');
 
+/**
+ * §9's budget is "parsed **and graphed**", so the timed region covers both
+ * halves of §4's diagram down to the usable graph. They are measured
+ * separately as well: resolution is single-threaded and the parse is not, so
+ * one combined number would hide which half regressed.
+ */
 async function timeRun({ workers, cacheDir }) {
   const started = performance.now();
   const result = await core.ingestProject(LARGE, {
@@ -102,16 +108,35 @@ async function timeRun({ workers, cacheDir }) {
     workers,
     workerEntry: WORKER_ENTRY,
   });
-  return { millis: performance.now() - started, result };
+  const ingested = performance.now();
+  const built = core.buildGraph({
+    project: result.project,
+    table: result.table,
+    parserId: core.DEFAULT_PARSER_ID,
+  });
+  const finished = performance.now();
+  return {
+    millis: finished - started,
+    ingestMillis: ingested - started,
+    graphMillis: finished - ingested,
+    result,
+    built,
+  };
 }
 
 async function measure(label, options, runs) {
   const samples = [];
+  const ingestSamples = [];
+  const graphSamples = [];
   let last = null;
+  let lastGraph = null;
   for (let i = 0; i < runs; i++) {
-    const { millis, result } = await timeRun(options);
-    samples.push(millis);
-    last = result;
+    const run = await timeRun(options);
+    samples.push(run.millis);
+    ingestSamples.push(run.ingestMillis);
+    graphSamples.push(run.graphMillis);
+    last = run.result;
+    lastGraph = run.built;
   }
   return {
     label,
@@ -119,6 +144,8 @@ async function measure(label, options, runs) {
     min: Math.min(...samples),
     max: Math.max(...samples),
     samples,
+    ingestMedian: median(ingestSamples),
+    graphMedian: median(graphSamples),
     workers: last.parseStats.workers,
     cacheHits: last.parseStats.cacheHits,
     contracts:
@@ -127,6 +154,10 @@ async function measure(label, options, runs) {
       last.table.stats.libraries +
       last.table.stats.abstractContracts,
     functions: last.table.stats.functions,
+    nodes: lastGraph.file.nodes.length,
+    edges: lastGraph.file.edges.length,
+    mode: lastGraph.file.mode,
+    callConfidence: lastGraph.file.score.calls.confident,
   };
 }
 
@@ -154,9 +185,16 @@ async function main() {
   for (const row of rows) {
     process.stdout.write(
       `${row.label.padEnd(14)} median ${fmt(row.median).padStart(9)}  ` +
-        `(min ${fmt(row.min)}, max ${fmt(row.max)}, workers ${row.workers})\n`,
+        `(parse ${fmt(row.ingestMedian)}, graph ${fmt(row.graphMedian)}, ` +
+        `min ${fmt(row.min)}, max ${fmt(row.max)}, workers ${row.workers})\n`,
     );
   }
+
+  const shape = rows[rows.length - 1];
+  process.stdout.write(
+    `\ngraph: ${shape.nodes.toLocaleString()} nodes, ${shape.edges.toLocaleString()} edges, ` +
+      `mode ${shape.mode}, ${Math.round(shape.callConfidence * 100)}% of call edges confident\n`,
+  );
 
   fs.rmSync(path.join(LARGE, '.axiomap'), { recursive: true, force: true });
 

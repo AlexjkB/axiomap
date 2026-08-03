@@ -1,5 +1,5 @@
 {
-  "measuredAt": "2026-08-03T04:20:58.751Z",
+  "measuredAt": "2026-08-03T23:52:31.902Z",
   "parser": "treesitter",
   "size": {
     "files": 911,
@@ -9,48 +9,66 @@
   "rows": [
     {
       "label": "single-cold",
-      "median": 2938.49838,
-      "min": 2812.495663,
-      "max": 2992.465544,
+      "median": 8424.006312,
+      "min": 8225.149757,
+      "max": 8656.643224,
       "samples": [
-        2992.465544,
-        2812.495663,
-        2938.49838
+        8656.643224,
+        8424.006312,
+        8225.149757
       ],
+      "ingestMedian": 7549.5041550000005,
+      "graphMedian": 874.502156999999,
       "workers": 1,
       "cacheHits": 0,
       "contracts": 2719,
-      "functions": 13542
+      "functions": 13542,
+      "nodes": 30708,
+      "edges": 74512,
+      "mode": "heuristic",
+      "callConfidence": 1
     },
     {
       "label": "parallel-cold",
-      "median": 1230.891106000001,
-      "min": 1217.501588000001,
-      "max": 1296.6503109999994,
+      "median": 3998.553482999996,
+      "min": 3815.3920230000003,
+      "max": 4142.8383079999985,
       "samples": [
-        1230.891106000001,
-        1296.6503109999994,
-        1217.501588000001
+        4142.8383079999985,
+        3815.3920230000003,
+        3998.553482999996
       ],
+      "ingestMedian": 3196.5101609999983,
+      "graphMedian": 802.0433219999977,
       "workers": 7,
       "cacheHits": 0,
       "contracts": 2719,
-      "functions": 13542
+      "functions": 13542,
+      "nodes": 30708,
+      "edges": 74512,
+      "mode": "heuristic",
+      "callConfidence": 1
     },
     {
       "label": "parallel-warm",
-      "median": 426.82454399999915,
-      "min": 410.66243700000086,
-      "max": 426.95202600000084,
+      "median": 1798.797424000004,
+      "min": 1794.7385020000002,
+      "max": 2120.826519999995,
       "samples": [
-        426.82454399999915,
-        410.66243700000086,
-        426.95202600000084
+        1798.797424000004,
+        1794.7385020000002,
+        2120.826519999995
       ],
+      "ingestMedian": 1022.5702820000006,
+      "graphMedian": 820.2401309999987,
       "workers": 7,
       "cacheHits": 911,
       "contracts": 2719,
-      "functions": 13542
+      "functions": 13542,
+      "nodes": 30708,
+      "edges": 74512,
+      "mode": "heuristic",
+      "callConfidence": 1
     }
   ],
   "warmBudgetMs": 5000,

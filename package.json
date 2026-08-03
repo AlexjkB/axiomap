@@ -15,7 +15,8 @@
     "check:network": "node scripts/check-no-network-deps.mjs",
     "clean": "turbo run clean && rm -rf node_modules/.cache .turbo",
     "prepare": "husky",
-    "bench:parser": "node scripts/bench-parser.mjs"
+    "bench:parser": "node scripts/bench-parser.mjs",
+    "test:golden": "pnpm --filter @axiomap/core exec vitest run test/golden.test.ts"
   },
   "devDependencies": {
     "@eslint/js": "^9.18.0",

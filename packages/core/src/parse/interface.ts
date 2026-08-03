@@ -6,13 +6,17 @@
  * it ships JS bindings, or `web-tree-sitter` for packaging — is a new file
  * rather than a refactor.
  *
- * The shape below is a **declaration-level** view: everything a global symbol
- * table needs, and nothing more. Expression-level detail — call sites, state
- * reads and writes, the `flags` block in §10 — is deliberately not here. It is
- * only needed by heuristic resolution in Phase 2, by which point one backend
- * has already won, so building it twice would be paying the bake-off cost
- * twice for no extra information. Phase 2 extends this interface additively;
- * §16 records the deferral.
+ * Phase 1 kept this to a **declaration-level** view, because building
+ * expression detail twice would have paid the bake-off cost twice. Phase 2
+ * extended it additively, as planned: `ParsedFunction` now also carries its
+ * call sites, identifier uses, emits, reverts, locals, flags, metrics and the
+ * two hashes §8 needs. Nothing declaration-level changed shape.
+ *
+ * The expression-level types stay **syntactic**. A call site records what was
+ * written — a bare name, a member on an identifier, a cast, `super.` — and
+ * never what it resolves to. Resolution reads the symbol table and lives in
+ * `resolve/`, which is what lets the same parse output feed both the heuristic
+ * tier and Phase 3's semantic upgrade.
  *
  * Rules every implementation must hold to:
  *
@@ -61,6 +65,127 @@ export interface ParsedModifierInvocation {
   src: SourceRef;
 }
 
+/**
+ * How a call was written. The resolver keys off this before it looks at any
+ * name, because the shape alone decides which scopes are even candidates.
+ */
+export type CallShape =
+  /** `f(...)` — current contract, then bases, then file scope. */
+  | 'bare'
+  /** `recv.m(...)` where `recv` is a plain identifier. */
+  | 'member'
+  /** `T(expr).m(...)` — the cast names the type outright. */
+  | 'cast'
+  /** `super.m(...)` — needs the linearization. */
+  | 'super'
+  /** `this.m(...)` — own external entrypoint. */
+  | 'this'
+  /** `new T(...)` — a `creates` edge, not a `calls` edge. */
+  | 'new'
+  /** `f()(...)`, `arr[i].m(...)`, anything whose receiver is an expression. */
+  | 'expression';
+
+export interface ParsedCall {
+  shape: CallShape;
+  /**
+   * The name being called: `f` for a bare call, the member for everything
+   * with a receiver, the type for `new T`.
+   */
+  name: string;
+  /** `recv` for `shape: 'member'`, the type for `'cast'`, else null. */
+  receiver: string | null;
+  argCount: number;
+  /** `{value: ...}` was present. Also sets `sendsValue`. */
+  hasValueOption: boolean;
+  /** `{salt: ...}` — create2. */
+  hasSaltOption: boolean;
+  /** Whole call expression. §10: an edge's `src` is the **call site**. */
+  src: SourceRef;
+}
+
+/**
+ * One use of an identifier in a function body, already classified as a read or
+ * a write. Which declaration it refers to is the resolver's problem; the
+ * parser only reports that the name appeared and how.
+ *
+ * `write` covers assignment, compound assignment, `++`/`--`, `delete`, and
+ * `.push`/`.pop` on the identifier. A compound assignment is recorded twice,
+ * once each way, because `x += 1` genuinely both reads and writes.
+ */
+export interface ParsedIdentifierUse {
+  name: string;
+  write: boolean;
+  src: SourceRef;
+}
+
+/** `emit E(...)` and `revert Err(...)` — a name and where it was written. */
+export interface ParsedNameRef {
+  name: string;
+  src: SourceRef;
+}
+
+/**
+ * A local declaration, including parameters and named returns.
+ *
+ * Two jobs, both load-bearing. Declared types are what makes `f.bar()`
+ * resolvable without a compiler (§4), and the same list is what stops a local
+ * that shadows a state variable from producing a bogus `reads` edge —
+ * `inheritance/src/Shadowing.sol` exists to catch exactly that.
+ */
+export interface ParsedLocal {
+  name: string;
+  /** Source text of the declared type. */
+  typeName: string;
+  src: SourceRef;
+}
+
+/**
+ * §10's `flags`, minus `readsState`/`writesState` — those are derived from
+ * resolved edges and so belong to the graph, not the parse.
+ *
+ * The two `assembly*` fields are not in §10's list. They exist because a `sload`
+ * or `sstore` inside an `assembly` block touches storage without naming a
+ * variable the resolver could bind, and without them a proxy's `fallback` would
+ * report `writesState: false` — wrong in exactly the file where it matters
+ * most. The graph ORs them into §10's two booleans; nothing else reads them.
+ */
+export interface ParsedFunctionFlags {
+  hasAssembly: boolean;
+  hasDelegatecall: boolean;
+  hasLowLevelCall: boolean;
+  hasSelfdestruct: boolean;
+  hasCreate: boolean;
+  sendsValue: boolean;
+  hasUnchecked: boolean;
+  hasTryCatch: boolean;
+  assemblyReadsState: boolean;
+  assemblyWritesState: boolean;
+}
+
+export interface ParsedFunctionMetrics {
+  /** Distinct body lines carrying a non-comment token. */
+  sloc: number;
+  /** 1 + branch points, counting `&&`/`||`, ternaries and catch clauses. */
+  cyclomatic: number;
+  /** Deepest block nesting inside the body; a flat body is 1. */
+  maxDepth: number;
+}
+
+export function emptyFunctionFlags(): ParsedFunctionFlags {
+  return {
+    hasAssembly: false,
+    hasDelegatecall: false,
+    hasLowLevelCall: false,
+    hasSelfdestruct: false,
+    hasCreate: false,
+    sendsValue: false,
+    hasUnchecked: false,
+    hasTryCatch: false,
+    assemblyReadsState: false,
+    assemblyWritesState: false,
+  };
+}
+
 export interface ParsedFunction {
   /** `null` for constructor, fallback and receive. */
   name: string | null;
@@ -76,9 +201,27 @@ export interface ParsedFunction {
   returns: ParsedParam[];
   /** False for an unimplemented function in an interface or abstract contract. */
   hasBody: boolean;
-  /** Range of the body braces. Phase 2 walks this; Phase 2 also hashes it. */
+  /** Range of the body braces. */
   body: SourceRef | null;
   src: SourceRef;
+
+  // --- expression level (Phase 2) ---------------------------------------
+  calls: ParsedCall[];
+  identifiers: ParsedIdentifierUse[];
+  emits: ParsedNameRef[];
+  reverts: ParsedNameRef[];
+  /** Parameters, named returns and body declarations, in that order. */
+  locals: ParsedLocal[];
+  flags: ParsedFunctionFlags;
+  metrics: ParsedFunctionMetrics;
+  /**
+   * §8. `bodyHash` is over the body's non-comment tokens, so reformatting and
+   * comment edits do not invalidate a review; `interfaceHash` is over
+   * signature, visibility, mutability and modifier names, so a breaking change
+   * is distinguishable from a re-review trigger.
+   */
+  bodyHash: string;
+  interfaceHash: string;
 }
 
 export interface ParsedStateVariable {

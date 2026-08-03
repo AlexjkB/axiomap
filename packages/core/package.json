@@ -23,7 +23,12 @@
     "clean": "rm -rf dist tsconfig.tsbuildinfo"
   },
   "dependencies": {
+    "graphology": "^0.26.0",
     "web-tree-sitter": "^0.26.11",
-    "xxhash-wasm": "^1.1.0"
+    "xxhash-wasm": "^1.1.0",
+    "zod": "^4.4.3"
+  },
+  "devDependencies": {
+    "graphology-types": "^0.24.8"
   }
 }

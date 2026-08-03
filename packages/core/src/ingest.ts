@@ -1,10 +1,11 @@
 /**
- * The Phase 1 pipeline end to end: detect a project, enumerate its Solidity,
- * parse it in parallel, and index it into a global symbol table.
+ * The pipeline end to end: detect a project, enumerate its Solidity, parse it
+ * in parallel, index it into a global symbol table, resolve names to edges and
+ * build the graph.
  *
- * This is the top half of §4's diagram — everything down to and including the
- * symbol table. Heuristic resolution and graph construction sit below it in
- * Phase 2 and consume the table this returns.
+ * That is all of §4's diagram down to `GRAPH (usable)`. Everything below that
+ * line — the semantic tier in `enrich/` — is optional by construction and is
+ * Phase 3; `buildProjectGraph` never calls a compiler and never needs one.
  *
  * Not in §5's layout: the layout names directories, and this is the one thing
  * that composes them. Putting it inside any of `parse/`, `project/` or
@@ -13,6 +14,7 @@
 
 import path from 'node:path';
 
+import { buildGraph, type BuiltGraph } from './graph/build.js';
 import { parseFiles, type ParseRunStats } from './parse/workers.js';
 import { DEFAULT_PARSER_ID } from './parse/index.js';
 import type { ParserId } from './parse/interface.js';
@@ -62,4 +64,31 @@ export async function ingestProject(
   const table = buildSymbolTable({ project, results: run.results });
 
   return { project, table, files, parseStats: run.stats };
+}
+
+export interface BuildProjectGraphOptions extends IngestOptions {
+  /** Override §4's measured mode threshold; see `graph/score.ts`. */
+  callResolutionThreshold?: number;
+}
+
+export interface ProjectGraphResult extends IngestResult, BuiltGraph {}
+
+/**
+ * Ingest a project and build its graph. This is what `axiomap build` runs and
+ * what the golden-file suite asserts on.
+ */
+export async function buildProjectGraph(
+  root: string,
+  options: BuildProjectGraphOptions = {},
+): Promise<ProjectGraphResult> {
+  const ingested = await ingestProject(root, options);
+  const built = buildGraph({
+    project: ingested.project,
+    table: ingested.table,
+    parserId: options.parserId ?? DEFAULT_PARSER_ID,
+    ...(options.callResolutionThreshold === undefined
+      ? {}
+      : { callResolutionThreshold: options.callResolutionThreshold }),
+  });
+  return { ...ingested, ...built };
 }

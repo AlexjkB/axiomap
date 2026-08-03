@@ -21,6 +21,12 @@
 import type {
   ContractKind,
   FunctionSubkind,
+  ParsedCall,
+  ParsedFunctionFlags,
+  ParsedFunctionMetrics,
+  ParsedIdentifierUse,
+  ParsedLocal,
+  ParsedNameRef,
   ParsedParam,
   StateMutability,
   Visibility,
@@ -76,6 +82,20 @@ export interface FunctionSymbol extends SymbolBase {
   returns: ParsedParam[];
   hasBody: boolean;
   body: SourceRef | null;
+  /**
+   * Expression-level detail, carried through unchanged from the parse so that
+   * `resolve/` needs only the table. Phase 3's semantic tier upgrades the
+   * *edges* derived from these, never these themselves.
+   */
+  calls: ParsedCall[];
+  identifiers: ParsedIdentifierUse[];
+  emits: ParsedNameRef[];
+  reverts: ParsedNameRef[];
+  locals: ParsedLocal[];
+  flags: ParsedFunctionFlags;
+  metrics: ParsedFunctionMetrics;
+  bodyHash: string;
+  interfaceHash: string;
 }
 
 export interface StateVariableSymbol extends SymbolBase {
@@ -131,6 +151,12 @@ export interface FileSymbols {
   imported: Map<string, { fromFile: string; originalName: string }>;
   /** Files this one imports, resolved where possible. */
   imports: ResolvedImport[];
+  /**
+   * Resolved targets of bare `import "path"` directives, which pull in every
+   * top-level name of the target rather than binding one. Recorded separately
+   * because `imports` cannot distinguish them after the fact.
+   */
+  bareImports: string[];
   /** True when the parse recovered from at least one error. */
   recovered: boolean;
   diagnosticCount: number;

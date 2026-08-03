@@ -27,6 +27,8 @@ import type {
   AnySymbol,
   ContractSymbol,
   FileSymbols,
+  FunctionSymbol,
+  SymbolBase,
   SymbolTable,
   SymbolTableStats,
 } from './table.js';
@@ -77,6 +79,36 @@ function functionName(fn: ParsedFunction): string {
     default:
       return '<anonymous>';
   }
+}
+
+/**
+ * Everything a `FunctionSymbol` copies verbatim from a `ParsedFunction`, in one
+ * place. Three call sites build function symbols — file-level, contract
+ * function, contract modifier — and Phase 2 added nine more fields to each.
+ */
+function functionBody(fn: ParsedFunction): Omit<FunctionSymbol, keyof SymbolBase | 'kind'> {
+  return {
+    subkind: fn.subkind,
+    visibility: fn.visibility,
+    stateMutability: fn.stateMutability,
+    isVirtual: fn.isVirtual,
+    isOverride: fn.isOverride,
+    overrides: fn.overrides,
+    modifierNames: fn.modifiers.map((m) => m.name),
+    params: fn.params,
+    returns: fn.returns,
+    hasBody: fn.hasBody,
+    body: fn.body,
+    calls: fn.calls,
+    identifiers: fn.identifiers,
+    emits: fn.emits,
+    reverts: fn.reverts,
+    locals: fn.locals,
+    flags: fn.flags,
+    metrics: fn.metrics,
+    bodyHash: fn.bodyHash,
+    interfaceHash: fn.interfaceHash,
+  };
 }
 
 export interface BuildSymbolTableInput {
@@ -140,6 +172,7 @@ export function buildSymbolTable(input: BuildSymbolTableInput): SymbolTable {
       exports: new Map(),
       imported: new Map(),
       imports: [],
+      bareImports: [],
       recovered: result.recovered,
       diagnosticCount: result.diagnostics.length,
     };
@@ -185,10 +218,12 @@ export function buildSymbolTable(input: BuildSymbolTableInput): SymbolTable {
       } else if (imported.unitAlias !== null) {
         // `import * as L from "..."` — the alias names the whole unit.
         fileSymbols.imported.set(imported.unitAlias, { fromFile, originalName: '*' });
+      } else {
+        // A bare `import "..."` pulls in every top-level name. It is expanded
+        // in `resolve/`, not here: the target file's exports may not be indexed
+        // yet at this point in the loop.
+        fileSymbols.bareImports.push(fromFile);
       }
-      // A bare `import "..."` pulls in every top-level name; that is resolved
-      // lazily in Phase 2 by walking `imports`, because the target file's
-      // exports may not be indexed yet at this point in the loop.
     }
 
     // --- file-level declarations ---------------------------------------
@@ -202,17 +237,7 @@ export function buildSymbolTable(input: BuildSymbolTableInput): SymbolTable {
           file,
           scope: null,
           src: fn.src,
-          subkind: fn.subkind,
-          visibility: fn.visibility,
-          stateMutability: fn.stateMutability,
-          isVirtual: fn.isVirtual,
-          isOverride: fn.isOverride,
-          overrides: fn.overrides,
-          modifierNames: fn.modifiers.map((m) => m.name),
-          params: fn.params,
-          returns: fn.returns,
-          hasBody: fn.hasBody,
-          body: fn.body,
+          ...functionBody(fn),
         },
         fileSymbols,
         true,
@@ -382,17 +407,7 @@ function indexContract(
         file,
         scope: id,
         src: fn.src,
-        subkind: fn.subkind,
-        visibility: fn.visibility,
-        stateMutability: fn.stateMutability,
-        isVirtual: fn.isVirtual,
-        isOverride: fn.isOverride,
-        overrides: fn.overrides,
-        modifierNames: fn.modifiers.map((m) => m.name),
-        params: fn.params,
-        returns: fn.returns,
-        hasBody: fn.hasBody,
-        body: fn.body,
+        ...functionBody(fn),
       });
       table.stats.modifiers++;
       continue;
@@ -405,17 +420,7 @@ function indexContract(
       file,
       scope: id,
       src: fn.src,
-      subkind: fn.subkind,
-      visibility: fn.visibility,
-      stateMutability: fn.stateMutability,
-      isVirtual: fn.isVirtual,
-      isOverride: fn.isOverride,
-      overrides: fn.overrides,
-      modifierNames: fn.modifiers.map((m) => m.name),
-      params: fn.params,
-      returns: fn.returns,
-      hasBody: fn.hasBody,
-      body: fn.body,
+      ...functionBody(fn),
     });
     table.stats.functions++;
   }

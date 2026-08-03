@@ -37,4 +37,21 @@ export { readHardhatConfig, type HardhatConfig } from './project/hardhat.js';
 
 export * from './symbols/index.js';
 
-export { ingestProject, type IngestOptions, type IngestResult } from './ingest.js';
+export * from './graph/index.js';
+export {
+  resolveProject,
+  ProjectScope,
+  type EdgeDraft,
+  type Linearization,
+  type ResolveResult,
+  type UnresolvedTarget,
+} from './resolve/index.js';
+
+export {
+  buildProjectGraph,
+  ingestProject,
+  type BuildProjectGraphOptions,
+  type IngestOptions,
+  type IngestResult,
+  type ProjectGraphResult,
+} from './ingest.js';

@@ -24,8 +24,13 @@ import xxhash from 'xxhash-wasm';
 
 import type { ParserId, ParseResult } from './interface.js';
 
-/** Bump on any change to the `ParsedSourceUnit` shape. */
-export const PARSE_SCHEMA_VERSION = 1;
+/**
+ * Bump on any change to the `ParsedSourceUnit` shape.
+ *
+ * 2 — Phase 2 added expression-level detail to `ParsedFunction`: call sites,
+ * identifier uses, emits, reverts, locals, flags, metrics and §8's hashes.
+ */
+export const PARSE_SCHEMA_VERSION = 2;
 
 export interface Hasher {
   h64ToString(input: string): string;
