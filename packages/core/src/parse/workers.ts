@@ -142,7 +142,7 @@ async function parseInline(
   options: ParsePoolOptions,
   cacheDir: string | null,
 ): Promise<{ results: Map<string, ParseResult>; stats: Omit<ParseRunStats, 'millis'> }> {
-  const parser = createParser(options.parserId);
+  const parser = await createParser(options.parserId);
   const cache = cacheDir === null ? null : await ParseCache.open(cacheDir, options.parserId);
   const results = new Map<string, ParseResult>();
   let cacheHits = 0;

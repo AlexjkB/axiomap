@@ -126,13 +126,30 @@ revision, which is always cold. That is a ~28 s operation on ANTLR against ~2 s.
   terminator, and constructor visibility, all of which are anonymous tokens in
   this grammar). What replaces it is a clean-parse sweep over the same fixture
   list plus the recovery assertions in `packages/core/test/parse.test.ts`.
-- **A packaging problem is now owed.** The native `tree-sitter` binding builds
-  through `node-gyp` and needs per-platform prebuilds inside a `.vsix`, and
-  `tree-sitter-solidity@1.2.13` lists `yarn` in its runtime `dependencies`,
-  which puts `http`/`https`/`net`/`dns` into `@axiomap/core`'s production tree
-  and fails `pnpm check:network`. The fix is `web-tree-sitter` plus the
-  508 KB MIT-licensed `.wasm` the grammar package already ships, which removes
-  both problems at once. Tracked in §16; **`check:network` stays red until it
-  lands.**
+- **Packaging: resolved, and it made things faster.** The native `tree-sitter`
+  binding builds through `node-gyp` and needs per-platform prebuilds inside a
+  `.vsix`, and `tree-sitter-solidity@1.2.13` lists `yarn` in its runtime
+  `dependencies`, which put `http`/`https`/`net`/`dns` into `@axiomap/core`'s
+  production tree and failed `pnpm check:network`. Both are gone: the backend
+  now runs `web-tree-sitter` over the 508 KB MIT-licensed grammar `.wasm`
+  vendored in `packages/core/vendor/`. `@axiomap/core`'s entire production
+  dependency tree is two pure-WASM packages with no transitive dependencies of
+  their own, and `check:network` passes.
+
+  The swap was expected to cost 1.5–2× throughput. **It gained ~1.5× instead**,
+  measured on the same fixture and host:
+
+  | Configuration | native binding | WASM |
+  |---|---|---|
+  | `single-cold` | 4,545 ms | 2,938 ms |
+  | `parallel-cold` | 1,925 ms | 1,231 ms |
+  | `parallel-warm` | 612 ms | 427 ms |
+
+  The likely cause is that this workload is dominated by *tree walking*, not
+  parsing: the converter touches `type`, `text`, `children` and
+  `childForFieldName` on every node, and each of those crosses the N-API
+  boundary in the native binding. That is a plausible reading of the numbers
+  rather than a profiled conclusion, but the direction is not in doubt — it
+  reproduces across runs.
 - **Incremental reparse on keystroke** (§16) is now reachable. It was
   conditional on this decision.

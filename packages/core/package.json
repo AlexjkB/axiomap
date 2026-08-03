@@ -14,7 +14,8 @@
     }
   },
   "files": [
-    "dist"
+    "dist",
+    "vendor"
   ],
   "scripts": {
     "build": "tsc -b",
@@ -22,8 +23,7 @@
     "clean": "rm -rf dist tsconfig.tsbuildinfo"
   },
   "dependencies": {
-    "tree-sitter": "^0.25.1",
-    "tree-sitter-solidity": "^1.2.13",
+    "web-tree-sitter": "^0.26.11",
     "xxhash-wasm": "^1.1.0"
   }
 }

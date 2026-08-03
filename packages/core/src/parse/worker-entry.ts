@@ -40,7 +40,9 @@ async function main(): Promise<void> {
   if (parentPort === null) return;
 
   const input = workerData as WorkerInput;
-  const parser = createParser(input.parserId);
+  // Both awaits finish before the ready handshake below, so the grammar
+  // compile is never billed to the first file's parse time.
+  const parser = await createParser(input.parserId);
   const cache =
     input.cacheDir === null ? null : await ParseCache.open(input.cacheDir, input.parserId);
 

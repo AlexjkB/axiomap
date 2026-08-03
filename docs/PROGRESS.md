@@ -79,8 +79,7 @@ Nothing.
 ## Phase 1 — Parsing & symbol table
 
 **Date:** 2026-07-29
-**Status:** complete. One follow-up is owed and named below — `pnpm check:network` is red
-until the parser is repackaged onto WASM.
+**Status:** complete. `pnpm check` and `pnpm check:network` both green.
 
 ### Exit criteria
 
@@ -90,7 +89,7 @@ until the parser is repackaged onto WASM.
 | Benchmark documented | pass — `docs/decisions/0001-parser.md`, with raw measurements in `0001-parser.json` |
 | Parser choice committed | pass — **tree-sitter**. `parse/antlr.ts` and `@solidity-parser/parser` are deleted; the ADR records the decision and its consequences |
 
-`pnpm check` is green: 8 turbo tasks, 101 tests — 87 in `core`, 14 repo-level. Three of
+`pnpm check` is green: 8 turbo tasks, 103 tests — 89 in `core`, 14 repo-level. Three of
 the core tests exercise the real worker threads and skip themselves when `dist/` is
 absent; `pnpm check` builds first, so they run.
 
@@ -127,14 +126,24 @@ parsing. Everything that distinguishes them is elsewhere:
   `tree-sitter-solidity@1.2.13` lists **`yarn` in its runtime `dependencies`**, which drags
   `http`/`https`/`net`/`dns` into `@axiomap/core`'s production tree.
 
-**Decision: tree-sitter.** Recovery decided it; throughput agreed. Written up in the ADR.
+**Decision: tree-sitter**, running on `web-tree-sitter` over a vendored grammar `.wasm`
+rather than the native binding. Recovery decided the backend; throughput agreed. Written
+up in the ADR.
 
-**`pnpm check:network` is red as a result, and stays red until the WASM swap lands.** It is
-not a false positive — §3's invariant is about what is in the production tree, and yarn is
-in it. The fix is `web-tree-sitter` plus the 508 KB MIT `.wasm` the grammar package already
-ships, which removes the yarn dependency and the `node-gyp` build together. Leaving the
-gate red and named was chosen over silencing it with a pnpm override: the guard is
-reporting something true, and a workaround would have to be unpicked later anyway.
+The WASM packaging was adopted to clear two problems the native binding brought — a
+`node-gyp` build with per-platform prebuilds in the `.vsix`, and `tree-sitter-solidity`
+listing `yarn` in its runtime dependencies, which put `http`/`https`/`net`/`dns` in
+`@axiomap/core`'s production tree and failed §3's gate. Both are gone. **`@axiomap/core`'s
+entire production dependency tree is now two pure-WASM packages** — `web-tree-sitter` and
+`xxhash-wasm` — with no transitive dependencies of their own, which is a good thing to be
+able to show an auditor.
+
+**It was also expected to cost 1.5–2× throughput and instead gained ~1.5×**, on the same
+fixture and host: single-cold 4,545 → 2,938 ms, parallel-cold 1,925 → 1,231 ms, warm
+612 → 427 ms. The prediction was wrong. The likely reason is that this workload is
+dominated by tree *walking* rather than parsing — the converter touches `type`, `text`,
+`children` and `childForFieldName` on every node, and each crosses the N-API boundary in
+the native binding. That reading is not profiled, but the direction reproduces across runs.
 
 ### What was built
 
@@ -181,25 +190,28 @@ reporting something true, and a workaround would have to be unpicked later anywa
   files at 0.8. A pinned or bounded old version still downgrades, which is the case §4
   actually cares about.
 
-### Appended to §16
+### §16 changes
 
-- **`web-tree-sitter` + a vendored WASM grammar** (Tier 1). Avoids both the native build
-  and the `yarn` runtime dependency. Trigger: tree-sitter wins the bake-off.
+- **Added then removed** the `web-tree-sitter` + vendored WASM entry. It was appended as a
+  Tier 1 deferral while the bake-off was open, and implemented once tree-sitter won, so it
+  no longer belongs in a backlog of what was deliberately left out.
+- **"Incremental reparse on keystroke"** lost its "depends on which parser wins" blocker
+  and is now gated on need alone.
 
 ### Notes for the next session
 
-- **The WASM repackaging is the one piece of Phase 1 still owed**, and it is what turns
-  `pnpm check:network` green. Swap `tree-sitter` + `tree-sitter-solidity` for
-  `web-tree-sitter` with the `.wasm` vendored into the repo. Three things make it more than
-  a dependency change: `Parser.init()` and `Language.load()` are async, so `createParser`
-  becomes async and that ripples through `workers.ts`, `worker-entry.ts` and the tests;
-  the node API differs in places (`isMissing`/`hasError` are methods on some versions, not
-  properties) and `treesitter.ts` leans on several of them; and the `.wasm` has to resolve
-  from `dist/` for the CLI, from inside a `.vsix` later, and from `src/` under vitest —
-  the same problem `workers.ts` already solves for `worker-entry.js`, so reuse that shape.
-  Re-run `pnpm bench:parser` afterwards; WASM is expected to be 1.5–2× slower than the
-  native binding, which is still far inside §9's budget, but that is a prediction and not
-  a measurement.
+- **`createParser` is async now** — the WASM grammar has to be compiled before a parser
+  exists. `SolidityParser.parse` is still synchronous, and the grammar load is memoised
+  per process, so the cost lands once per thread rather than once per file. Phase 2 will
+  add call sites; they need `await`.
+- **The grammar `.wasm` lives in `packages/core/vendor/`** and is resolved with one
+  module-relative path that works from both `src/parse/` and `dist/parse/`, because they
+  sit at the same depth under the package root. `vendor/` is in the package's `files`.
+  `test/parse.test.ts` asserts both facts — a packaging mistake here would otherwise
+  surface as "every parse returns nothing" on a user's machine rather than in CI.
+- **`web-tree-sitter` ships its own runtime `.wasm` inside `node_modules`**, separate from
+  the grammar. It resolves fine for the CLI and tests. Bundling it into a `.vsix` is
+  Phase 8's problem and is worth checking early there.
 - `bench-parser.mjs` is no longer a bake-off. It is a single-backend harness that asserts
   §9's standing warm budget and exits non-zero on a miss, writing `docs/perf/ingest.json`.
   `docs/decisions/0001-parser.md` is frozen and no longer generated. §6's command table

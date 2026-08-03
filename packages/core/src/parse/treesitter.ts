@@ -1,8 +1,19 @@
 /**
- * The parser backend — `tree-sitter` + `tree-sitter-solidity`.
+ * The parser backend — `web-tree-sitter` over a vendored `tree-sitter-solidity`
+ * grammar.
  *
  * Won the Phase 1 bake-off on error recovery and cold-parse throughput; see
  * `docs/decisions/0001-parser.md`.
+ *
+ * **WASM rather than the native binding**, which is a packaging decision, not a
+ * performance one. The native `tree-sitter` package builds through `node-gyp`
+ * at install and needs per-platform prebuilds shipped inside a `.vsix`, and
+ * `tree-sitter-solidity` lists `yarn` in its runtime dependencies — which puts
+ * `http`/`https`/`net`/`dns` in `@axiomap/core`'s production tree and breaks
+ * §3's zero-network invariant. `web-tree-sitter` has neither problem, and the
+ * grammar's `.wasm` is 508 KB of MIT-licensed data in `vendor/`. The node API
+ * is identical between the two, so everything below this header is unchanged
+ * from the native version.
  *
  * Structural notes that the code below depends on:
  *
@@ -20,8 +31,10 @@
  *    (symbol), so imports are reconstructed by walking tokens in order.
  */
 
-import Parser from 'tree-sitter';
-import Solidity from 'tree-sitter-solidity';
+import fs from 'node:fs';
+import { fileURLToPath } from 'node:url';
+
+import { Language, Parser, type Node } from 'web-tree-sitter';
 
 import {
   emptyUnit,
@@ -50,7 +63,36 @@ import {
 } from './interface.js';
 import { PositionIndex, type SourceRef } from './positions.js';
 
-type TsNode = Parser.SyntaxNode;
+type TsNode = Node;
+
+/**
+ * The grammar, resolved relative to this module.
+ *
+ * `src/parse/` and `dist/parse/` sit at the same depth under the package root,
+ * so one relative path works for the built CLI, for vitest running TypeScript
+ * straight from source, and for anything importing the package — no build-time
+ * copy step, and nothing to keep in sync. `vendor/` is listed in the package's
+ * `files`, so it ships. Bundling it into a `.vsix` is Phase 8's problem, but
+ * the path stays valid as long as `vendor/` sits beside `dist/`.
+ */
+const GRAMMAR_WASM = new URL('../../vendor/tree-sitter-solidity.wasm', import.meta.url);
+
+/**
+ * `Parser.init()` loads the tree-sitter runtime and `Language.load` compiles
+ * the grammar; both are async and both are process-wide. Memoised on the
+ * promise rather than the result so concurrent callers share one load — each
+ * worker thread pays this once, and the test suite pays it once per process
+ * instead of once per `createParser`.
+ */
+let languagePromise: Promise<Language> | null = null;
+
+export async function loadSolidityLanguage(): Promise<Language> {
+  languagePromise ??= (async () => {
+    await Parser.init();
+    return Language.load(fs.readFileSync(fileURLToPath(GRAMMAR_WASM)));
+  })();
+  return languagePromise;
+}
 
 const STORAGE_LOCATIONS = new Set(['memory', 'storage', 'calldata']);
 const VISIBILITIES = new Set(['public', 'external', 'internal', 'private']);
@@ -488,9 +530,22 @@ export class TreeSitterSolidityParser implements SolidityParser {
 
   readonly #parser: Parser;
 
-  constructor() {
-    this.#parser = new Parser();
-    this.#parser.setLanguage(Solidity);
+  private constructor(parser: Parser) {
+    this.#parser = parser;
+  }
+
+  /**
+   * Async because the grammar has to be loaded and compiled first. `parse`
+   * itself stays synchronous — the cost is paid once per parser instance, not
+   * once per file, which is what keeps the pool's inner loop tight.
+   */
+  static async create(): Promise<TreeSitterSolidityParser> {
+    // Order matters: `Parser.init()` runs inside `loadSolidityLanguage`, and
+    // the constructor throws if the runtime has not been initialised yet.
+    const language = await loadSolidityLanguage();
+    const parser = new Parser();
+    parser.setLanguage(language);
+    return new TreeSitterSolidityParser(parser);
   }
 
   parse(file: string, text: string): ParseResult {
@@ -499,7 +554,19 @@ export class TreeSitterSolidityParser implements SolidityParser {
 
     let root: TsNode;
     try {
-      root = this.#parser.parse(text).rootNode;
+      const tree = this.#parser.parse(text);
+      if (tree === null) {
+        // Documented as possible when the parser is cancelled or has no
+        // language. Neither should happen here, but decision #1 says a file
+        // that cannot be parsed is a diagnostic, never a throw.
+        diagnostics.push({
+          message: 'parser returned no tree',
+          severity: 'error',
+          src: null,
+        });
+        return { unit: emptyUnit(file), diagnostics, recovered: true };
+      }
+      root = tree.rootNode;
     } catch (error) {
       diagnostics.push({
         message: error instanceof Error ? error.message : String(error),

@@ -24,7 +24,7 @@ describe('ParseCache', () => {
 
   it('round-trips a parse result', async () => {
     const cache = await ParseCache.open(dir, PARSER);
-    const result = createParser(PARSER).parse('A.sol', SOURCE);
+    const result = (await createParser(PARSER)).parse('A.sol', SOURCE);
 
     expect(cache.get('A.sol', SOURCE)).toBeNull();
     cache.set('A.sol', SOURCE, result);
@@ -34,7 +34,7 @@ describe('ParseCache', () => {
 
   it('misses when the content changes', async () => {
     const cache = await ParseCache.open(dir, PARSER);
-    cache.set('A.sol', SOURCE, createParser(PARSER).parse('A.sol', SOURCE));
+    cache.set('A.sol', SOURCE, (await createParser(PARSER)).parse('A.sol', SOURCE));
 
     expect(cache.get('A.sol', `${SOURCE}// touched\n`)).toBeNull();
   });
@@ -43,7 +43,7 @@ describe('ParseCache', () => {
     // The key carries the path so a hit never re-stamps SourceRefs onto the
     // wrong file — `pathological/` has two byte-similar `Duplicate.sol`s.
     const cache = await ParseCache.open(dir, PARSER);
-    cache.set('a/A.sol', SOURCE, createParser(PARSER).parse('a/A.sol', SOURCE));
+    cache.set('a/A.sol', SOURCE, (await createParser(PARSER)).parse('a/A.sol', SOURCE));
 
     expect(cache.get('b/A.sol', SOURCE)).toBeNull();
   });

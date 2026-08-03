@@ -3,7 +3,7 @@ import { TreeSitterSolidityParser } from './treesitter.js';
 
 export * from './interface.js';
 export { PositionIndex, type SourceRef } from './positions.js';
-export { TreeSitterSolidityParser } from './treesitter.js';
+export { loadSolidityLanguage, TreeSitterSolidityParser } from './treesitter.js';
 
 /**
  * The backend everything else in `core` uses.
@@ -21,9 +21,16 @@ export { TreeSitterSolidityParser } from './treesitter.js';
  */
 export const DEFAULT_PARSER_ID: ParserId = 'treesitter';
 
-export function createParser(id: ParserId = DEFAULT_PARSER_ID): SolidityParser {
+/**
+ * Async because the WASM grammar has to be loaded and compiled before a parser
+ * exists. The load is memoised process-wide, so this is only genuinely slow the
+ * first time in each thread; `SolidityParser.parse` stays synchronous.
+ */
+export async function createParser(
+  id: ParserId = DEFAULT_PARSER_ID,
+): Promise<SolidityParser> {
   switch (id) {
     case 'treesitter':
-      return new TreeSitterSolidityParser();
+      return TreeSitterSolidityParser.create();
   }
 }
