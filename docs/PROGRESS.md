@@ -222,3 +222,178 @@ the native binding. That reading is not profiled, but the direction reproduces a
 - `pathological/src/SyntaxError.sol` and `DoesNotCompile.sol` are load-bearing, not
   decoration. The first is the recovery benchmark; the second is decision #1 in one file.
   Neither should be "fixed".
+
+---
+
+## Phase 2 — Heuristic resolution & graph construction
+
+**Date:** 2026-08-03
+**Status:** complete. `pnpm check` and `pnpm check:network` both green.
+
+### Exit criteria
+
+| Criterion | Result |
+|---|---|
+| `graph.json` committed per fixture | pass — `packages/core/test/golden/`, four fixtures. Three are committed whole; `inheritance/` is committed for its hand-written `src/` plus a counts summary for the vendored OpenZeppelin subtree, for the reason below |
+| Diffed on every run | pass — `test/golden.test.ts` runs inside `pnpm test`, and `pnpm test:golden` runs it alone (§6's command table already named it). Verified it fails on drift by mutating one committed edge and watching the suite go red |
+| All node kinds | pass — every §10 kind appears in `minimal/` |
+| All edge kinds | pass — all eleven appear in `minimal/`, asserted as an exact sorted list in `resolve.test.ts` so a new kind cannot appear unannounced |
+| Resolution confidence tagging | pass — all four values produced and asserted, each with a `reason` on the two uncertain ones |
+| Stable IDs | pass — unchanged from Phase 1's `symbols/ids.ts`; the graph keys on them directly |
+| Body hashes | pass — `bodyHash` and `interfaceHash` on every function node, with tests for what must and must not change them |
+| Serialization | pass — `graph/serialize.ts`, deterministic and byte-identical across builds, with `schemaVersion` refusal |
+
+`pnpm check` is green: 165 tests in `core` (89 from Phase 1, 76 new) and 14 repo-level.
+
+### The resolution score, measured
+
+§16's open question — "what is an acceptable resolution score floor?" — is answered and
+struck from the spec. Measured on all four fixtures with no build artifacts:
+
+| Fixture | call edges | confident | overall | mode |
+|---|---|---|---|---|
+| `minimal/` | 8 | 75% | 94% | heuristic |
+| `inheritance/` | 225 | 88% | 94% | heuristic |
+| `defi/` | 43 | **98%** | 99% | heuristic |
+| `pathological/` | 6 | 50% | 90% | **structural** |
+
+`defi/` clears §16's 85% working assumption comfortably. But **the assumption itself was
+wrong as a threshold**: at 85%, `minimal/` — five hand-written contracts whose only two
+failures are a deliberate `.call{value:}` and a deliberate `.delegatecall` — would have
+fallen into structural mode. The ratio is unstable on small inputs, so the threshold is set
+at **70% of call edges** and the small-project floor that would fix the instability
+properly is in §16 rather than guessed at here.
+
+Two scores are computed, not one. `overall` covers every edge that required resolving a
+name and is the number §4 prints; `calls` covers `calls` and `creates` only and is the one
+that selects the mode, because structural mode drops exactly those kinds. Inheritance and
+state access resolve near-perfectly, and folding them into the gate would mask a resolver
+that had failed at the hard part.
+
+Every fixture's unresolved edges were read individually. They are: low-level `call` and
+`delegatecall` (target chosen at runtime), one function pointer, one
+`abi.encodeWithSelector`, one call to a function that genuinely does not exist, and
+eleven OpenZeppelin `using`-for calls on expression receivers. All are correct answers.
+Two resolver bugs *were* found this way and fixed — `new bytes(n)` counted as contract
+creation, and `MyType.wrap(x)` on a user-defined value type reported as an unresolved
+call — which is the argument for reading the list rather than trusting the percentage.
+
+### What was built
+
+- **`parse/interface.ts` extended additively**, exactly as Phase 1 planned it. `ParsedFunction`
+  gained call sites, identifier uses, emits, reverts, locals, flags, metrics and the two
+  hashes. Nothing declaration-level changed shape. `PARSE_SCHEMA_VERSION` is 2, so every
+  cached parse from Phase 1 invalidates rather than deserialising into the new type.
+- **`parse/treesitter-bodies.ts`** — the body walker. Records what was *written*, never what
+  it means: `IPair(x).mint()` is "a cast-shaped call named `mint` on type `IPair`", and the
+  resolver decides whether `IPair` is even a type. The parser cannot tell `Deposit({...})`
+  from `scale(a, b)` and does not try.
+- **`resolve/scope.ts`** — file scope (own exports, aliased imports, `import * as`, bare
+  imports) and C3 linearization in Solidity's spelling: bases merge right to left, so
+  `is B, C` gives `[D, C, B, A]` and `is C, B` gives `[E, B, C, A]`. `inheritance/src/Diamond.sol`
+  has both on purpose and both are asserted. A chain that cannot be merged is marked
+  `ambiguous` and every `super` edge through it is downgraded to match.
+- **`resolve/index.ts`** — the resolver. Seven call shapes, `using`-for attachment, public
+  getter calls, base-constructor invocations that parse as modifiers, interface calls with
+  `possibleTargets` and `crossTrustBoundary`, and state access with local shadowing.
+- **`graph/schema.ts`** — zod as the source of truth, TypeScript inferred from it. The
+  alternative fails in the direction that matters: a field added to the type but not the
+  schema is written and then rejected on read.
+- **`graph/{build,score,serialize,hash}.ts`** — graphology assembly with §10's call-site
+  collapsing, the three modes, deterministic output, and §8's hashes.
+
+### Deviations from the spec
+
+- **A tenth node kind, `Unresolved`, not in §10's list.** §4 makes `unresolved` a
+  first-class answer and "show me every unresolved external call" one of the most valuable
+  queries in the tool — but an edge needs two endpoints. Unresolved calls point at a
+  synthetic node named for the callee (`?call`, `?transform`), marked `synthetic: true` and
+  carrying the reason. §10's list is of *declaration* kinds and a placeholder is not one.
+  The alternative, hiding unresolved calls on a node attribute, would make the single most
+  valuable query the only one that is not a graph query.
+- **`inheritance/`'s golden is committed filtered.** Its full graph serializes to ~1.2 MB —
+  over this repo's own pre-commit size guard, and far past the point where anyone reads the
+  diff, which is the only thing that makes a golden useful. The hand-written `src/`
+  contracts are committed whole; the 25 vendored OpenZeppelin files are pinned by a counts
+  summary (nodes by kind, edges by kind, edges by resolution). A change in how OpenZeppelin
+  resolves still fails the build; it fails as four numbers instead of forty thousand lines.
+- **`ParsedFunctionFlags` carries two fields beyond §10**, `assemblyReadsState` and
+  `assemblyWritesState`. A `sstore` inside an `assembly` block touches storage without
+  naming a variable the resolver could bind, and without them `Proxy.fallback()` would
+  report `writesState: false` — wrong in exactly the file where it matters most. The graph
+  ORs them into §10's two booleans and nothing else reads them.
+- **Hashes are computed during the parse, though they live in `graph/hash.ts`** as §5's
+  layout says. Computing them later would mean either keeping normalised body text in the
+  disk cache (which would multiply its size) or re-reading every file. `parse/treesitter.ts`
+  calls into `graph/hash.ts`; the definition of "the same body" stays in one file, in the
+  directory §5 names.
+- **C3 linearization is implemented in `resolve/`, though §7 lists it as a Phase 4 analysis
+  pass.** `super` dispatch cannot be resolved without it and §4 says so explicitly. Phase 4's
+  pass should surface it over the graph — `linearizedBases` and `linearizationCertainty` are
+  already on every contract node — rather than compute it a second time.
+- **The score weights a collapsed edge by its call-site count.** §10 collapses twenty calls
+  to `_mint` into one edge; the score still counts twenty, because twenty unresolved call
+  sites is twenty unresolved call sites and collapsing them would flatter the number.
+- **`inherits` is emitted for every base; `implements` and `overrides` are function-level.**
+  §10 lists all three without saying which level `implements` belongs to. A base that is an
+  interface still gets `inherits` (it is the relation that carries `linearizationIndex`), and
+  a function implementing an interface function gets `implements` while one overriding a
+  base *with a body* gets `overrides`. That split is the one an auditor asks for.
+- **`FileSymbols` gained `bareImports`.** `import "path"` pulls in every top-level name of
+  the target, and Phase 1's `imports` array could not distinguish it after the fact.
+- **`pnpm bench:parser` now times the graph build too.** §9's budget is "parsed **and
+  graphed** in under 5 seconds warm", which was not measurable until this phase. Parse and
+  graph are reported separately, since resolution is single-threaded and the parse is not.
+
+### Performance
+
+200,129 SLOC across 911 files, same host as Phase 1:
+
+| Configuration | parse | graph | total |
+|---|---|---|---|
+| single-cold | 7,550 ms | 875 ms | 8,424 ms |
+| parallel-cold | 3,197 ms | 802 ms | 3,999 ms |
+| parallel-warm | 1,023 ms | 820 ms | **1,799 ms** |
+
+§9's warm budget passes with the graph included, at about a third of it. **Parsing did get
+substantially slower** — single-cold was 2,938 ms in Phase 1 — and that is expected rather
+than a regression to chase: Phase 1 walked declarations only, and this phase walks every
+statement and expression in every body. Warm went 427 → 1,023 ms for a related reason: the
+cached parse result now carries call sites and identifier uses, so there is more JSON to
+read back. The whole pipeline still lands well inside budget, so no optimisation work was
+done; the numbers are recorded so a future regression has a baseline.
+
+### §16 changes
+
+- **Answered and struck the open question** on the resolution score floor, with the measured
+  table and the note that the 85% working assumption would have been wrong.
+- **Added Tier 2 — attached-library calls on expression receivers.** The largest unresolved
+  bucket (11 of 15 on `inheritance/`). Resolving it is the same type-inference work item as
+  overload resolution, and they should be done together.
+- **Added Tier 2 — file-level `using ... for ... global` directives.** Not collected by the
+  parser; no fixture uses one, and adding it untested would put untested code in the
+  resolution path.
+- **Added Tier 2 — a small-project floor for the mode threshold**, with `minimal/` at 75% as
+  the motivating data point.
+- **Noted on the existing overload/selector entry** that its "instrument why" trigger is
+  already satisfied: every ambiguous and unresolved edge carries a `reason`.
+
+### Notes for the next session
+
+- **Phase 3's exit criterion is a shape comparison**, and the heuristic graph it compares
+  against is now committed. `defi/` must reach >95% semantic with artifacts *and* be
+  identical in shape to `packages/core/test/golden/defi.graph.json`. Any structural
+  difference is a heuristic-resolver bug to fix, not a golden to regenerate.
+- **The `enrich/`-stubbed-out test §7 asks for is not written yet** — it belongs to Phase 3,
+  since there is nothing to stub until `enrich/` exists. The property it guards already
+  holds: `buildProjectGraph` never touches a compiler.
+- **`selectMode` returns `full` as soon as one semantic edge exists.** That is the seam
+  Phase 3 lands in; the mode copy is already written for it.
+- The `?name` synthetic nodes are project-wide, so every unresolved `.call` in a project
+  collapses onto one `?call` node. The call sites stay on the edges, so navigation is
+  unaffected, but a per-file or per-reason split may read better in the Phase 7 views.
+- `pathological/src/Indirect.sol` documents an overload pair whose ambiguity "the resolver
+  must emit" — but the fixture never actually calls `pick`. Overload ambiguity is covered by
+  `inheritance/` (13 real OpenZeppelin cases) and by an inline temp project in
+  `resolve.test.ts`. Adding the missing call site to the fixture would change the counts
+  Phase 1's `symbols.test.ts` asserts, so it was left alone deliberately.
