@@ -11,5 +11,12 @@ export function fixture(name: string): string {
   return path.join(FIXTURE_ROOT, name);
 }
 
-/** Both backends, so every parser test runs twice by construction. */
-export const BACKENDS = ['antlr', 'treesitter'] as const;
+/**
+ * The parser backend under test. A one-member list rather than an inlined
+ * literal: Phase 1's bake-off ran every parser test against both candidates by
+ * construction, and keeping the shape means a future backend (§16 names two)
+ * is one entry here rather than a rewrite of every suite.
+ */
+export const BACKENDS = ['treesitter'] as const;
+
+export const PARSER: (typeof BACKENDS)[number] = 'treesitter';

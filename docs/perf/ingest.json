@@ -1,0 +1,61 @@
+{
+  "measuredAt": "2026-08-03T04:11:11.936Z",
+  "parser": "treesitter",
+  "size": {
+    "files": 911,
+    "sloc": 200129
+  },
+  "runs": 2,
+  "rows": [
+    {
+      "label": "single-cold",
+      "median": 5706.8141495,
+      "min": 4972.195299,
+      "max": 6441.433,
+      "samples": [
+        4972.195299,
+        6441.433
+      ],
+      "workers": 1,
+      "cacheHits": 0,
+      "contracts": 2719,
+      "functions": 13542
+    },
+    {
+      "label": "parallel-cold",
+      "median": 2626.568198,
+      "min": 2579.909760999999,
+      "max": 2673.226635000001,
+      "samples": [
+        2579.909760999999,
+        2673.226635000001
+      ],
+      "workers": 7,
+      "cacheHits": 0,
+      "contracts": 2719,
+      "functions": 13542
+    },
+    {
+      "label": "parallel-warm",
+      "median": 629.0790049999996,
+      "min": 609.1804510000002,
+      "max": 648.977558999999,
+      "samples": [
+        609.1804510000002,
+        648.977558999999
+      ],
+      "workers": 7,
+      "cacheHits": 911,
+      "contracts": 2719,
+      "functions": 13542
+    }
+  ],
+  "warmBudgetMs": 5000,
+  "withinBudget": true,
+  "host": {
+    "cpu": "Intel(R) Core(TM) i5-8350U CPU @ 1.70GHz",
+    "cores": 8,
+    "node": "v22.15.0",
+    "platform": "linux 6.8.0-136-generic"
+  }
+}

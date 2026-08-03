@@ -1,14 +1,14 @@
 /**
  * UTF-16 index → byte offset / line / column.
  *
- * Both parser backends report positions as JavaScript string indices, i.e. in
- * UTF-16 code units. §10 requires `SourceRef.offset` to be a **byte** offset,
- * because that is what solc's `src` field uses and what the semantic tier in
- * Phase 3 will have to line up against. On any file containing a non-ASCII
- * character the two differ, and the symptom — navigation landing a few
- * characters off, only in some files — looks like an intermittent bug rather
- * than an encoding mistake. Convert once, here, for both backends, so they
- * cannot disagree.
+ * The parser reports positions as JavaScript string indices, i.e. in UTF-16
+ * code units. §10 requires `SourceRef.offset` to be a **byte** offset, because
+ * that is what solc's `src` field uses and what the semantic tier in Phase 3
+ * will have to line up against. On any file containing a non-ASCII character
+ * the two differ, and the symptom — navigation landing a few characters off,
+ * only in some files — looks like an intermittent bug rather than an encoding
+ * mistake. Conversion lives here rather than in a backend so that swapping the
+ * backend cannot change a single byte offset.
  *
  * `line`/`column` keep the editor convention instead: 1-based line, 0-based
  * column in UTF-16 code units, which is exactly what VS Code's `Position`
@@ -101,10 +101,11 @@ export class PositionIndex {
   /**
    * Build a SourceRef from a half-open UTF-16 range `[start, end)`.
    *
-   * Both backends report ranges differently — tree-sitter's `endIndex` is
-   * exclusive, `@solidity-parser/parser`'s `range[1]` is inclusive — so each
-   * backend normalises to half-open before calling this. Getting that wrong
-   * costs exactly one character on every node, which is why it is stated here.
+   * The range is half-open, and every backend normalises to that before
+   * calling in. Worth stating because parsers disagree on the convention —
+   * tree-sitter's `endIndex` is exclusive, but the ANTLR backend Phase 1
+   * benchmarked reported an inclusive end, and getting it wrong costs exactly
+   * one character on every node in the graph.
    */
   ref(startUtf16: number, endUtf16Exclusive: number): SourceRef {
     const start = Math.max(0, Math.min(startUtf16, this.#text.length));

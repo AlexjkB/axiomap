@@ -22,7 +22,7 @@ import { fileURLToPath } from 'node:url';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 
 import { parseFiles } from '../src/parse/workers.js';
-import { BACKENDS, fixture } from './fixtures.js';
+import { BACKENDS, fixture, PARSER } from './fixtures.js';
 
 const DIST = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../dist');
 const WORKER_ENTRY = new URL(`file://${path.join(DIST, 'parse/worker-entry.js')}`);
@@ -78,7 +78,7 @@ describe.runIf(built)('worker pool', () => {
   it('shares one disk cache across workers', async () => {
     const options = {
       root: fixture('pathological'),
-      parserId: 'antlr' as const,
+      parserId: PARSER,
       cacheDir,
       workers: 3,
       workerEntry: WORKER_ENTRY,
@@ -98,7 +98,7 @@ describe.runIf(built)('worker pool', () => {
     // let one overwrite the other's source refs.
     const run = await parseFiles(FILES, {
       root: fixture('pathological'),
-      parserId: 'antlr',
+      parserId: PARSER,
       cacheDir,
       workers: 3,
       workerEntry: WORKER_ENTRY,

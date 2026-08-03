@@ -79,19 +79,27 @@ Nothing.
 ## Phase 1 — Parsing & symbol table
 
 **Date:** 2026-07-29
-**Status:** complete except the parser choice, which is deliberately left open — see below
+**Status:** complete. One follow-up is owed and named below — `pnpm check:network` is red
+until the parser is repackaged onto WASM.
 
 ### Exit criteria
 
 | Criterion | Result |
 |---|---|
-| Symbol table for all fixtures with hand-verified contract/function counts | pass — `packages/core/test/symbols.test.ts`, run against both backends. Counts for `minimal/` and `defi/` were derived by reading the sources and are commented with their derivation; `inheritance/` vendors OpenZeppelin so its hand-written contracts are asserted exactly and the vendored part structurally |
-| Benchmark documented | pass — `docs/decisions/0001-parser.md`, regenerable via `pnpm bench:parser`, with measurements persisted to `0001-parser.json` |
-| Parser choice committed | **not done, by instruction.** The session prompt asked for both implementations, the numbers reported, and confirmation before deleting the loser. Both backends are in the tree and both are tested |
+| Symbol table for all fixtures with hand-verified contract/function counts | pass — `packages/core/test/symbols.test.ts`. Counts for `minimal/` and `defi/` were derived by reading the sources and are commented with their derivation; `inheritance/` vendors OpenZeppelin so its hand-written contracts are asserted exactly and the vendored part structurally |
+| Benchmark documented | pass — `docs/decisions/0001-parser.md`, with raw measurements in `0001-parser.json` |
+| Parser choice committed | pass — **tree-sitter**. `parse/antlr.ts` and `@solidity-parser/parser` are deleted; the ADR records the decision and its consequences |
 
-`pnpm check` is green: 8 turbo tasks, 127 tests — 113 in `core`, 14 repo-level. Four of
+`pnpm check` is green: 8 turbo tasks, 101 tests — 87 in `core`, 14 repo-level. Three of
 the core tests exercise the real worker threads and skip themselves when `dist/` is
 absent; `pnpm check` builds first, so they run.
+
+The core test count fell from 113 when the second backend went: every parser suite ran
+twice by construction, and the 18-case `backend equivalence` sweep had nothing left to
+compare. That sweep was worth its keep — it caught three real bugs in the tree-sitter
+converter, all of them anonymous tokens in the grammar that a `namedChildren` walk misses
+(parameter storage locations, `struct_member` ranges including their terminator, and
+constructor visibility). It is replaced by a clean-parse sweep over the same fixture list.
 
 ### The bake-off
 
@@ -119,12 +127,14 @@ parsing. Everything that distinguishes them is elsewhere:
   `tree-sitter-solidity@1.2.13` lists **`yarn` in its runtime `dependencies`**, which drags
   `http`/`https`/`net`/`dns` into `@axiomap/core`'s production tree.
 
-**`pnpm check:network` currently fails for that last reason.** It is not a false positive —
-§3's invariant is about what is in the tree, and yarn is in the tree. It resolves either
-way once the choice is made: deleting tree-sitter clears it outright, and keeping
-tree-sitter means switching to `web-tree-sitter` plus the `.wasm` the grammar package
-already ships, which has neither the native build nor the yarn dependency. That option is
-now in §16.
+**Decision: tree-sitter.** Recovery decided it; throughput agreed. Written up in the ADR.
+
+**`pnpm check:network` is red as a result, and stays red until the WASM swap lands.** It is
+not a false positive — §3's invariant is about what is in the production tree, and yarn is
+in it. The fix is `web-tree-sitter` plus the 508 KB MIT `.wasm` the grammar package already
+ships, which removes the yarn dependency and the `node-gyp` build together. Leaving the
+gate red and named was chosen over silencing it with a pnpm override: the guard is
+reporting something true, and a workaround would have to be unpicked later anyway.
 
 ### What was built
 
@@ -178,13 +188,22 @@ now in §16.
 
 ### Notes for the next session
 
-- **Phase 2 cannot start until the parser choice is made.** It extends `SolidityParser`
-  with expression-level detail, and doing that against two backends is the exact waste the
-  bake-off exists to end. Delete the loser first: its file, its dependency, its branch of
-  `createParser`, and its half of the `describe.each` in the tests.
-- `docs/decisions/0001-parser.md` still says `**Status:** proposed`. The bench script
-  refuses to overwrite the file once that changes, so record the decision there before
-  re-running it.
+- **The WASM repackaging is the one piece of Phase 1 still owed**, and it is what turns
+  `pnpm check:network` green. Swap `tree-sitter` + `tree-sitter-solidity` for
+  `web-tree-sitter` with the `.wasm` vendored into the repo. Three things make it more than
+  a dependency change: `Parser.init()` and `Language.load()` are async, so `createParser`
+  becomes async and that ripples through `workers.ts`, `worker-entry.ts` and the tests;
+  the node API differs in places (`isMissing`/`hasError` are methods on some versions, not
+  properties) and `treesitter.ts` leans on several of them; and the `.wasm` has to resolve
+  from `dist/` for the CLI, from inside a `.vsix` later, and from `src/` under vitest —
+  the same problem `workers.ts` already solves for `worker-entry.js`, so reuse that shape.
+  Re-run `pnpm bench:parser` afterwards; WASM is expected to be 1.5–2× slower than the
+  native binding, which is still far inside §9's budget, but that is a prediction and not
+  a measurement.
+- `bench-parser.mjs` is no longer a bake-off. It is a single-backend harness that asserts
+  §9's standing warm budget and exits non-zero on a miss, writing `docs/perf/ingest.json`.
+  `docs/decisions/0001-parser.md` is frozen and no longer generated. §6's command table
+  still describes the old behaviour.
 - §14 wants `defi/` committed twice as two git tags with a hand-authored changeset between
   them. Not done — the changeset needs to be designed against the diff engine it exists to
   test, which is Phase 5. The fixture content is in place and ready to be tagged.

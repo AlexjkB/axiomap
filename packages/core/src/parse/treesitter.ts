@@ -1,16 +1,15 @@
 /**
- * Backend B — `tree-sitter` + `tree-sitter-solidity`.
+ * The parser backend — `tree-sitter` + `tree-sitter-solidity`.
  *
- * Benchmarked against `antlr.ts` in Phase 1; see
+ * Won the Phase 1 bake-off on error recovery and cold-parse throughput; see
  * `docs/decisions/0001-parser.md`.
  *
  * Structural notes that the code below depends on:
  *
  * 1. `startIndex`/`endIndex` are **UTF-16 code units** when parsing a JS
  *    string, not bytes, despite tree-sitter being byte-oriented internally.
- *    They go through `PositionIndex` exactly like the ANTLR backend's ranges.
- *    `endIndex` is exclusive here and inclusive there — the one asymmetry
- *    between the two files.
+ *    They go through `PositionIndex`, which is what makes `SourceRef.offset` a
+ *    byte offset. `endIndex` is exclusive.
  * 2. Several modifiers are **anonymous tokens**, not named nodes: `abstract`,
  *    `constant`, `anonymous`, `fallback`, `receive`. `virtual`, `immutable`
  *    and `state_location` are named. Anything reading only `namedChildren`

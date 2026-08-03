@@ -1,10 +1,10 @@
 /**
  * `SolidityParser` — the swap seam (§5).
  *
- * Two backends implement this in Phase 1 and are benchmarked against each
- * other; the loser is deleted. §16 keeps the interface afterwards so a third
- * backend (Solar, when it ships JS bindings) is a new file rather than a
- * refactor.
+ * Two backends implemented this during Phase 1's bake-off; tree-sitter won and
+ * the other was deleted. The interface stays so a future backend — Solar when
+ * it ships JS bindings, or `web-tree-sitter` for packaging — is a new file
+ * rather than a refactor.
  *
  * The shape below is a **declaration-level** view: everything a global symbol
  * table needs, and nothing more. Expression-level detail — call sites, state
@@ -26,7 +26,11 @@
 
 import type { SourceRef } from './positions.js';
 
-export type ParserId = 'antlr' | 'treesitter';
+/**
+ * One member today. Kept as a union because it is the cache key discriminator
+ * and because §16 names two candidate future backends.
+ */
+export type ParserId = 'treesitter';
 
 export type ContractKind = 'contract' | 'interface' | 'library' | 'abstract';
 

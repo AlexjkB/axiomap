@@ -7,7 +7,7 @@ import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import { ParseCache, PARSE_SCHEMA_VERSION } from '../src/parse/cache.js';
 import { createParser } from '../src/parse/index.js';
 import { parseFiles } from '../src/parse/workers.js';
-import { fixture } from './fixtures.js';
+import { fixture, PARSER } from './fixtures.js';
 
 const SOURCE = 'pragma solidity ^0.8.20;\ncontract A { function f() external {} }\n';
 
@@ -23,8 +23,8 @@ describe('ParseCache', () => {
   });
 
   it('round-trips a parse result', async () => {
-    const cache = await ParseCache.open(dir, 'antlr');
-    const result = createParser('antlr').parse('A.sol', SOURCE);
+    const cache = await ParseCache.open(dir, PARSER);
+    const result = createParser(PARSER).parse('A.sol', SOURCE);
 
     expect(cache.get('A.sol', SOURCE)).toBeNull();
     cache.set('A.sol', SOURCE, result);
@@ -33,31 +33,28 @@ describe('ParseCache', () => {
   });
 
   it('misses when the content changes', async () => {
-    const cache = await ParseCache.open(dir, 'antlr');
-    cache.set('A.sol', SOURCE, createParser('antlr').parse('A.sol', SOURCE));
+    const cache = await ParseCache.open(dir, PARSER);
+    cache.set('A.sol', SOURCE, createParser(PARSER).parse('A.sol', SOURCE));
 
     expect(cache.get('A.sol', `${SOURCE}// touched\n`)).toBeNull();
-  });
-
-  it('does not share entries between parsers', async () => {
-    const antlr = await ParseCache.open(dir, 'antlr');
-    const treesitter = await ParseCache.open(dir, 'treesitter');
-
-    antlr.set('A.sol', SOURCE, createParser('antlr').parse('A.sol', SOURCE));
-    expect(treesitter.get('A.sol', SOURCE)).toBeNull();
   });
 
   it('does not share entries between paths', async () => {
     // The key carries the path so a hit never re-stamps SourceRefs onto the
     // wrong file — `pathological/` has two byte-similar `Duplicate.sol`s.
-    const cache = await ParseCache.open(dir, 'antlr');
-    cache.set('a/A.sol', SOURCE, createParser('antlr').parse('a/A.sol', SOURCE));
+    const cache = await ParseCache.open(dir, PARSER);
+    cache.set('a/A.sol', SOURCE, createParser(PARSER).parse('a/A.sol', SOURCE));
 
     expect(cache.get('b/A.sol', SOURCE)).toBeNull();
   });
 
   it('includes the schema version in the key', async () => {
-    const cache = await ParseCache.open(dir, 'antlr');
+    // The key is parserId + schema version + path + content. Parser and schema
+    // are in there so an entry written by one backend or one AST shape can
+    // never be read back as another — the parser half stopped being directly
+    // testable when Phase 1's bake-off left a single backend, so the guarantee
+    // now rests on `ParseCache.key` and this comment.
+    const cache = await ParseCache.open(dir, PARSER);
     expect(PARSE_SCHEMA_VERSION).toBeGreaterThan(0);
     expect(cache.key('A.sol', SOURCE)).not.toBe(cache.key('A.sol', `${SOURCE} `));
   });
@@ -84,12 +81,12 @@ describe('parseFiles', () => {
       'src/Vault.sol',
     ];
 
-    const cold = await parseFiles(files, { root, parserId: 'antlr', cacheDir });
+    const cold = await parseFiles(files, { root, parserId: PARSER, cacheDir });
     expect([...cold.results.keys()].sort()).toEqual(files);
     expect(cold.stats.cacheMisses).toBe(5);
     expect(cold.stats.cacheHits).toBe(0);
 
-    const warm = await parseFiles(files, { root, parserId: 'antlr', cacheDir });
+    const warm = await parseFiles(files, { root, parserId: PARSER, cacheDir });
     expect(warm.stats.cacheHits).toBe(5);
     expect(warm.results.get('src/Vault.sol')).toEqual(cold.results.get('src/Vault.sol'));
     expect(existsSync(cacheDir)).toBe(true);
@@ -98,7 +95,7 @@ describe('parseFiles', () => {
   it('turns an unreadable file into a diagnostic, not a crash', async () => {
     const run = await parseFiles(['src/DoesNotExist.sol'], {
       root: fixture('minimal'),
-      parserId: 'antlr',
+      parserId: PARSER,
       cacheDir: null,
     });
 

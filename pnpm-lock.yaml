@@ -47,9 +47,6 @@ importers:
 
   packages/core:
     dependencies:
-      '@solidity-parser/parser':
-        specifier: ^0.20.2
-        version: 0.20.2
       tree-sitter:
         specifier: ^0.25.1
         version: 0.25.1
@@ -403,9 +400,6 @@ packages:
     resolution: {integrity: sha512-MOG/3gTOn4Fwf574RVOaY61I5o6P90legkFADiTyn1hyjNydT+cerU2rLUwPdZkKKyJ+iT+K9p7WXK4LM1Ka6g==}
     cpu: [x64]
     os: [win32]
-
-  '@solidity-parser/parser@0.20.2':
-    resolution: {integrity: sha512-rbu0bzwNvMcwAjH86hiEAcOeRI2EeK8zCkHDrFykh/Al8mvJeFmjy3UrE7GYQjNwOgbGUUtCn5/k8CB8zIu7QA==}
 
   '@turbo/darwin-64@2.10.7':
     resolution: {integrity: sha512-/c9cSBRermWDv85oufLhoH6XRLOVbvzJLRd+WLyfJCP+i0HFLQj4PVNDrHcY17/ve5l8X0Oua4bJBqJUgJPnZA==}
@@ -1471,8 +1465,6 @@ snapshots:
 
   '@rollup/rollup-win32-x64-msvc@4.62.3':
     optional: true
-
-  '@solidity-parser/parser@0.20.2': {}
 
   '@turbo/darwin-64@2.10.7':
     optional: true
