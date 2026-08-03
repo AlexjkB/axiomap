@@ -1,0 +1,33 @@
+{
+  "prefix": "lib/",
+  "files": 25,
+  "nodesByKind": {
+    "Contract": 27,
+    "Enum": 2,
+    "Error": 41,
+    "Event": 7,
+    "Function": 260,
+    "SourceUnit": 25,
+    "StateVariable": 35,
+    "Struct": 7,
+    "Unresolved": 2,
+    "UserDefinedValueType": 1
+  },
+  "edgesByKind": {
+    "calls": 190,
+    "declares": 380,
+    "emits": 6,
+    "implements": 13,
+    "inherits": 21,
+    "modifiedBy": 8,
+    "overrides": 8,
+    "reads": 35,
+    "reverts": 92,
+    "writes": 18
+  },
+  "edgesByResolution": {
+    "ambiguous": 13,
+    "heuristic": 743,
+    "unresolved": 15
+  }
+}

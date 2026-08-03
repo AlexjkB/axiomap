@@ -1,0 +1,5210 @@
+{
+  "schemaVersion": 1,
+  "generator": {
+    "name": "axiomap",
+    "parser": "treesitter",
+    "hashVersion": 1
+  },
+  "project": {
+    "kind": "foundry",
+    "sources": [
+      "src"
+    ],
+    "files": 10
+  },
+  "mode": "structural",
+  "modeReason": "No build artifacts, and only 50% of call edges resolved confidently — below the 70% threshold. The call graph is withheld rather than drawn sparse and misleading. Contracts, inheritance, members and state access are unaffected; build the project to enable call edges.",
+  "score": {
+    "overall": {
+      "semantic": 0,
+      "heuristic": 26,
+      "ambiguous": 0,
+      "unresolved": 3,
+      "total": 29,
+      "confident": 0.896551724137931
+    },
+    "calls": {
+      "semantic": 0,
+      "heuristic": 3,
+      "ambiguous": 0,
+      "unresolved": 3,
+      "total": 6,
+      "confident": 0.5
+    },
+    "excludedFiles": 1
+  },
+  "diagnostics": [
+    {
+      "message": "Cannot resolve import \"@nonexistent/package/Missing.sol\" from src/BadImport.sol (checked: foundry.toml, node_modules, relative paths). Tried: node_modules/@nonexistent/package/Missing.sol, src/@nonexistent/package/Missing.sol, @nonexistent/package/Missing.sol.",
+      "severity": "warning"
+    },
+    {
+      "message": "Cannot resolve import \"./does/not/exist/Ghost.sol\" from src/BadImport.sol (checked: foundry.toml, node_modules, relative paths). Tried: src/does/not/exist/Ghost.sol.",
+      "severity": "warning"
+    }
+  ],
+  "nodes": [
+    {
+      "id": "src/Assembly.sol",
+      "kind": "SourceUnit",
+      "name": "src/Assembly.sol",
+      "file": "src/Assembly.sol",
+      "scope": null,
+      "src": {
+        "file": "src/Assembly.sol",
+        "offset": 0,
+        "length": 0,
+        "line": 1,
+        "column": 0
+      },
+      "pragma": "pragma solidity ^0.8.20;",
+      "versionSupport": "supported",
+      "recovered": false,
+      "unresolvedImports": []
+    },
+    {
+      "id": "src/Assembly.sol:Assembly",
+      "name": "Assembly",
+      "file": "src/Assembly.sol",
+      "scope": null,
+      "src": {
+        "file": "src/Assembly.sol",
+        "offset": 295,
+        "length": 988,
+        "line": 7,
+        "column": 0
+      },
+      "kind": "Contract",
+      "contractKind": "contract",
+      "baseNames": [],
+      "linearizedBases": [
+        "src/Assembly.sol:Assembly"
+      ],
+      "linearizationCertainty": "certain",
+      "isFullyImplemented": true,
+      "isTest": false,
+      "isMock": false
+    },
+    {
+      "id": "src/Assembly.sol:Assembly.codeSize(address)",
+      "name": "codeSize",
+      "file": "src/Assembly.sol",
+      "scope": "src/Assembly.sol:Assembly",
+      "src": {
+        "file": "src/Assembly.sol",
+        "offset": 1134,
+        "length": 147,
+        "line": 37,
+        "column": 4
+      },
+      "kind": "Function",
+      "subkind": "function",
+      "visibility": "external",
+      "stateMutability": "view",
+      "isVirtual": false,
+      "isOverride": false,
+      "modifiers": [],
+      "params": [
+        {
+          "name": "target",
+          "type": "address"
+        }
+      ],
+      "returns": [
+        {
+          "name": "size",
+          "type": "uint256"
+        }
+      ],
+      "hasBody": true,
+      "bodyHash": "6143d349e8271197",
+      "interfaceHash": "959e11cd93aef552",
+      "metrics": {
+        "sloc": 5,
+        "cyclomatic": 1,
+        "maxDepth": 2
+      },
+      "flags": {
+        "hasAssembly": true,
+        "hasDelegatecall": false,
+        "hasLowLevelCall": false,
+        "hasSelfdestruct": false,
+        "hasCreate": false,
+        "sendsValue": false,
+        "hasUnchecked": false,
+        "hasTryCatch": false,
+        "readsState": false,
+        "writesState": false
+      }
+    },
+    {
+      "id": "src/Assembly.sol:Assembly.counted(uint256)",
+      "name": "counted",
+      "file": "src/Assembly.sol",
+      "scope": "src/Assembly.sol:Assembly",
+      "src": {
+        "file": "src/Assembly.sol",
+        "offset": 852,
+        "length": 191,
+        "line": 25,
+        "column": 4
+      },
+      "kind": "Function",
+      "subkind": "function",
+      "visibility": "external",
+      "stateMutability": "pure",
+      "isVirtual": false,
+      "isOverride": false,
+      "modifiers": [],
+      "params": [
+        {
+          "name": "n",
+          "type": "uint256"
+        }
+      ],
+      "returns": [
+        {
+          "name": "total",
+          "type": "uint256"
+        }
+      ],
+      "hasBody": true,
+      "bodyHash": "75341701990d4be1",
+      "interfaceHash": "249d05f1645fa1c6",
+      "metrics": {
+        "sloc": 7,
+        "cyclomatic": 2,
+        "maxDepth": 3
+      },
+      "flags": {
+        "hasAssembly": false,
+        "hasDelegatecall": false,
+        "hasLowLevelCall": false,
+        "hasSelfdestruct": false,
+        "hasCreate": false,
+        "sendsValue": false,
+        "hasUnchecked": true,
+        "hasTryCatch": false,
+        "readsState": false,
+        "writesState": false
+      }
+    },
+    {
+      "id": "src/Assembly.sol:Assembly.destroy(address payable)",
+      "name": "destroy",
+      "file": "src/Assembly.sol",
+      "scope": "src/Assembly.sol:Assembly",
+      "src": {
+        "file": "src/Assembly.sol",
+        "offset": 1049,
+        "length": 79,
+        "line": 33,
+        "column": 4
+      },
+      "kind": "Function",
+      "subkind": "function",
+      "visibility": "external",
+      "stateMutability": "nonpayable",
+      "isVirtual": false,
+      "isOverride": false,
+      "modifiers": [],
+      "params": [
+        {
+          "name": "to",
+          "type": "address payable"
+        }
+      ],
+      "returns": [],
+      "hasBody": true,
+      "bodyHash": "46a6e505df80e63e",
+      "interfaceHash": "251429f036d81771",
+      "metrics": {
+        "sloc": 3,
+        "cyclomatic": 1,
+        "maxDepth": 1
+      },
+      "flags": {
+        "hasAssembly": false,
+        "hasDelegatecall": false,
+        "hasLowLevelCall": false,
+        "hasSelfdestruct": true,
+        "hasCreate": false,
+        "sendsValue": false,
+        "hasUnchecked": false,
+        "hasTryCatch": false,
+        "readsState": false,
+        "writesState": false
+      }
+    },
+    {
+      "id": "src/Assembly.sol:Assembly.readSlot(uint256)",
+      "name": "readSlot",
+      "file": "src/Assembly.sol",
+      "scope": "src/Assembly.sol:Assembly",
+      "src": {
+        "file": "src/Assembly.sol",
+        "offset": 575,
+        "length": 141,
+        "line": 13,
+        "column": 4
+      },
+      "kind": "Function",
+      "subkind": "function",
+      "visibility": "external",
+      "stateMutability": "view",
+      "isVirtual": false,
+      "isOverride": false,
+      "modifiers": [],
+      "params": [
+        {
+          "name": "slot",
+          "type": "uint256"
+        }
+      ],
+      "returns": [
+        {
+          "name": "result",
+          "type": "bytes32"
+        }
+      ],
+      "hasBody": true,
+      "bodyHash": "eb7b1a3a8fbb6246",
+      "interfaceHash": "74dcdd767cef21c9",
+      "metrics": {
+        "sloc": 5,
+        "cyclomatic": 1,
+        "maxDepth": 2
+      },
+      "flags": {
+        "hasAssembly": true,
+        "hasDelegatecall": false,
+        "hasLowLevelCall": false,
+        "hasSelfdestruct": false,
+        "hasCreate": false,
+        "sendsValue": false,
+        "hasUnchecked": false,
+        "hasTryCatch": false,
+        "readsState": true,
+        "writesState": false
+      }
+    },
+    {
+      "id": "src/Assembly.sol:Assembly.slot0",
+      "name": "slot0",
+      "file": "src/Assembly.sol",
+      "scope": "src/Assembly.sol:Assembly",
+      "src": {
+        "file": "src/Assembly.sol",
+        "offset": 319,
+        "length": 21,
+        "line": 8,
+        "column": 4
+      },
+      "kind": "StateVariable",
+      "type": "uint256",
+      "visibility": "public",
+      "isConstant": false,
+      "isImmutable": false,
+      "isTransient": false,
+      "isMapping": false
+    },
+    {
+      "id": "src/Assembly.sol:Assembly.writeRaw(uint256,bytes32)",
+      "name": "writeRaw",
+      "file": "src/Assembly.sol",
+      "scope": "src/Assembly.sol:Assembly",
+      "src": {
+        "file": "src/Assembly.sol",
+        "offset": 722,
+        "length": 124,
+        "line": 19,
+        "column": 4
+      },
+      "kind": "Function",
+      "subkind": "function",
+      "visibility": "external",
+      "stateMutability": "nonpayable",
+      "isVirtual": false,
+      "isOverride": false,
+      "modifiers": [],
+      "params": [
+        {
+          "name": "slot",
+          "type": "uint256"
+        },
+        {
+          "name": "value",
+          "type": "bytes32"
+        }
+      ],
+      "returns": [],
+      "hasBody": true,
+      "bodyHash": "813af8ba55169609",
+      "interfaceHash": "79fc0d8bb9cd4cb0",
+      "metrics": {
+        "sloc": 5,
+        "cyclomatic": 1,
+        "maxDepth": 2
+      },
+      "flags": {
+        "hasAssembly": true,
+        "hasDelegatecall": false,
+        "hasLowLevelCall": false,
+        "hasSelfdestruct": false,
+        "hasCreate": false,
+        "sendsValue": false,
+        "hasUnchecked": false,
+        "hasTryCatch": false,
+        "readsState": false,
+        "writesState": true
+      }
+    },
+    {
+      "id": "src/BadImport.sol",
+      "kind": "SourceUnit",
+      "name": "src/BadImport.sol",
+      "file": "src/BadImport.sol",
+      "scope": null,
+      "src": {
+        "file": "src/BadImport.sol",
+        "offset": 0,
+        "length": 0,
+        "line": 1,
+        "column": 0
+      },
+      "pragma": "pragma solidity ^0.8.20;",
+      "versionSupport": "supported",
+      "recovered": false,
+      "unresolvedImports": [
+        "@nonexistent/package/Missing.sol",
+        "./does/not/exist/Ghost.sol"
+      ]
+    },
+    {
+      "id": "src/BadImport.sol:BadImport",
+      "name": "BadImport",
+      "file": "src/BadImport.sol",
+      "scope": null,
+      "src": {
+        "file": "src/BadImport.sol",
+        "offset": 329,
+        "length": 166,
+        "line": 11,
+        "column": 0
+      },
+      "kind": "Contract",
+      "contractKind": "contract",
+      "baseNames": [],
+      "linearizedBases": [
+        "src/BadImport.sol:BadImport"
+      ],
+      "linearizationCertainty": "certain",
+      "isFullyImplemented": true,
+      "isTest": false,
+      "isMock": false
+    },
+    {
+      "id": "src/BadImport.sol:BadImport.phantom",
+      "name": "phantom",
+      "file": "src/BadImport.sol",
+      "scope": "src/BadImport.sol:BadImport",
+      "src": {
+        "file": "src/BadImport.sol",
+        "offset": 380,
+        "length": 23,
+        "line": 13,
+        "column": 4
+      },
+      "kind": "StateVariable",
+      "type": "Missing",
+      "visibility": "public",
+      "isConstant": false,
+      "isImmutable": false,
+      "isTransient": false,
+      "isMapping": false
+    },
+    {
+      "id": "src/BadImport.sol:BadImport.poke()",
+      "name": "poke",
+      "file": "src/BadImport.sol",
+      "scope": "src/BadImport.sol:BadImport",
+      "src": {
+        "file": "src/BadImport.sol",
+        "offset": 409,
+        "length": 84,
+        "line": 15,
+        "column": 4
+      },
+      "kind": "Function",
+      "subkind": "function",
+      "visibility": "external",
+      "stateMutability": "view",
+      "isVirtual": false,
+      "isOverride": false,
+      "modifiers": [],
+      "params": [],
+      "returns": [
+        {
+          "name": null,
+          "type": "uint256"
+        }
+      ],
+      "hasBody": true,
+      "bodyHash": "7f152d492da244aa",
+      "interfaceHash": "fec61c836d2600c0",
+      "metrics": {
+        "sloc": 3,
+        "cyclomatic": 1,
+        "maxDepth": 1
+      },
+      "flags": {
+        "hasAssembly": false,
+        "hasDelegatecall": false,
+        "hasLowLevelCall": false,
+        "hasSelfdestruct": false,
+        "hasCreate": false,
+        "sendsValue": false,
+        "hasUnchecked": false,
+        "hasTryCatch": false,
+        "readsState": true,
+        "writesState": false
+      }
+    },
+    {
+      "id": "src/BadImport.sol:BadImport.real",
+      "name": "real",
+      "file": "src/BadImport.sol",
+      "scope": "src/BadImport.sol:BadImport",
+      "src": {
+        "file": "src/BadImport.sol",
+        "offset": 354,
+        "length": 21,
+        "line": 12,
+        "column": 4
+      },
+      "kind": "StateVariable",
+      "type": "Assembly",
+      "visibility": "public",
+      "isConstant": false,
+      "isImmutable": false,
+      "isTransient": false,
+      "isMapping": false
+    },
+    {
+      "id": "src/Crlf.sol",
+      "kind": "SourceUnit",
+      "name": "src/Crlf.sol",
+      "file": "src/Crlf.sol",
+      "scope": null,
+      "src": {
+        "file": "src/Crlf.sol",
+        "offset": 0,
+        "length": 0,
+        "line": 1,
+        "column": 0
+      },
+      "pragma": "pragma solidity ^0.8.20;",
+      "versionSupport": "supported",
+      "recovered": false,
+      "unresolvedImports": []
+    },
+    {
+      "id": "src/Crlf.sol:Crlf",
+      "name": "Crlf",
+      "file": "src/Crlf.sol",
+      "scope": null,
+      "src": {
+        "file": "src/Crlf.sol",
+        "offset": 298,
+        "length": 288,
+        "line": 7,
+        "column": 0
+      },
+      "kind": "Contract",
+      "contractKind": "contract",
+      "baseNames": [],
+      "linearizedBases": [
+        "src/Crlf.sol:Crlf"
+      ],
+      "linearizationCertainty": "certain",
+      "isFullyImplemented": true,
+      "isTest": false,
+      "isMock": false
+    },
+    {
+      "id": "src/Crlf.sol:Crlf.get()",
+      "name": "get",
+      "file": "src/Crlf.sol",
+      "scope": "src/Crlf.sol:Crlf",
+      "src": {
+        "file": "src/Crlf.sol",
+        "offset": 505,
+        "length": 78,
+        "line": 15,
+        "column": 4
+      },
+      "kind": "Function",
+      "subkind": "function",
+      "visibility": "external",
+      "stateMutability": "view",
+      "isVirtual": false,
+      "isOverride": false,
+      "modifiers": [],
+      "params": [],
+      "returns": [
+        {
+          "name": null,
+          "type": "uint256"
+        }
+      ],
+      "hasBody": true,
+      "bodyHash": "d6e5b67a960f7dd3",
+      "interfaceHash": "1337d79cdeb66413",
+      "metrics": {
+        "sloc": 3,
+        "cyclomatic": 1,
+        "maxDepth": 1
+      },
+      "flags": {
+        "hasAssembly": false,
+        "hasDelegatecall": false,
+        "hasLowLevelCall": false,
+        "hasSelfdestruct": false,
+        "hasCreate": false,
+        "sendsValue": false,
+        "hasUnchecked": false,
+        "hasTryCatch": false,
+        "readsState": true,
+        "writesState": false
+      }
+    },
+    {
+      "id": "src/Crlf.sol:Crlf.set(uint256)",
+      "name": "set",
+      "file": "src/Crlf.sol",
+      "scope": "src/Crlf.sol:Crlf",
+      "src": {
+        "file": "src/Crlf.sol",
+        "offset": 436,
+        "length": 61,
+        "line": 11,
+        "column": 4
+      },
+      "kind": "Function",
+      "subkind": "function",
+      "visibility": "external",
+      "stateMutability": "nonpayable",
+      "isVirtual": false,
+      "isOverride": false,
+      "modifiers": [],
+      "params": [
+        {
+          "name": "v",
+          "type": "uint256"
+        }
+      ],
+      "returns": [],
+      "hasBody": true,
+      "bodyHash": "9144eba787bd0d65",
+      "interfaceHash": "94a0f0320f45d167",
+      "metrics": {
+        "sloc": 3,
+        "cyclomatic": 1,
+        "maxDepth": 1
+      },
+      "flags": {
+        "hasAssembly": false,
+        "hasDelegatecall": false,
+        "hasLowLevelCall": false,
+        "hasSelfdestruct": false,
+        "hasCreate": false,
+        "sendsValue": false,
+        "hasUnchecked": false,
+        "hasTryCatch": false,
+        "readsState": false,
+        "writesState": true
+      }
+    },
+    {
+      "id": "src/Crlf.sol:Crlf.value",
+      "name": "value",
+      "file": "src/Crlf.sol",
+      "scope": "src/Crlf.sol:Crlf",
+      "src": {
+        "file": "src/Crlf.sol",
+        "offset": 319,
+        "length": 21,
+        "line": 8,
+        "column": 4
+      },
+      "kind": "StateVariable",
+      "type": "uint256",
+      "visibility": "public",
+      "isConstant": false,
+      "isImmutable": false,
+      "isTransient": false,
+      "isMapping": false
+    },
+    {
+      "id": "src/DoesNotCompile.sol",
+      "kind": "SourceUnit",
+      "name": "src/DoesNotCompile.sol",
+      "file": "src/DoesNotCompile.sol",
+      "scope": null,
+      "src": {
+        "file": "src/DoesNotCompile.sol",
+        "offset": 0,
+        "length": 0,
+        "line": 1,
+        "column": 0
+      },
+      "pragma": "pragma solidity ^0.8.20;",
+      "versionSupport": "supported",
+      "recovered": false,
+      "unresolvedImports": []
+    },
+    {
+      "id": "src/DoesNotCompile.sol:DoesNotCompile",
+      "name": "DoesNotCompile",
+      "file": "src/DoesNotCompile.sol",
+      "scope": null,
+      "src": {
+        "file": "src/DoesNotCompile.sol",
+        "offset": 285,
+        "length": 702,
+        "line": 7,
+        "column": 0
+      },
+      "kind": "Contract",
+      "contractKind": "contract",
+      "baseNames": [],
+      "linearizedBases": [
+        "src/DoesNotCompile.sol:DoesNotCompile"
+      ],
+      "linearizationCertainty": "certain",
+      "isFullyImplemented": true,
+      "isTest": false,
+      "isMock": false
+    },
+    {
+      "id": "src/DoesNotCompile.sol:DoesNotCompile.alsoBroken()",
+      "name": "alsoBroken",
+      "file": "src/DoesNotCompile.sol",
+      "scope": "src/DoesNotCompile.sol:DoesNotCompile",
+      "src": {
+        "file": "src/DoesNotCompile.sol",
+        "offset": 683,
+        "length": 95,
+        "line": 21,
+        "column": 4
+      },
+      "kind": "Function",
+      "subkind": "function",
+      "visibility": "external",
+      "stateMutability": "view",
+      "isVirtual": false,
+      "isOverride": false,
+      "modifiers": [],
+      "params": [],
+      "returns": [
+        {
+          "name": null,
+          "type": "uint256"
+        }
+      ],
+      "hasBody": true,
+      "bodyHash": "915158a72f52c74b",
+      "interfaceHash": "4eb388530faf08a7",
+      "metrics": {
+        "sloc": 3,
+        "cyclomatic": 1,
+        "maxDepth": 1
+      },
+      "flags": {
+        "hasAssembly": false,
+        "hasDelegatecall": false,
+        "hasLowLevelCall": false,
+        "hasSelfdestruct": false,
+        "hasCreate": false,
+        "sendsValue": false,
+        "hasUnchecked": false,
+        "hasTryCatch": false,
+        "readsState": false,
+        "writesState": false
+      }
+    },
+    {
+      "id": "src/DoesNotCompile.sol:DoesNotCompile.broken()",
+      "name": "broken",
+      "file": "src/DoesNotCompile.sol",
+      "scope": "src/DoesNotCompile.sol:DoesNotCompile",
+      "src": {
+        "file": "src/DoesNotCompile.sol",
+        "offset": 552,
+        "length": 66,
+        "line": 16,
+        "column": 4
+      },
+      "kind": "Function",
+      "subkind": "function",
+      "visibility": "external",
+      "stateMutability": "nonpayable",
+      "isVirtual": false,
+      "isOverride": false,
+      "modifiers": [],
+      "params": [],
+      "returns": [],
+      "hasBody": true,
+      "bodyHash": "475faed7d4ff43ff",
+      "interfaceHash": "0b7aa4293e48074b",
+      "metrics": {
+        "sloc": 3,
+        "cyclomatic": 1,
+        "maxDepth": 1
+      },
+      "flags": {
+        "hasAssembly": false,
+        "hasDelegatecall": false,
+        "hasLowLevelCall": false,
+        "hasSelfdestruct": false,
+        "hasCreate": false,
+        "sendsValue": false,
+        "hasUnchecked": false,
+        "hasTryCatch": false,
+        "readsState": false,
+        "writesState": true
+      }
+    },
+    {
+      "id": "src/DoesNotCompile.sol:DoesNotCompile.count",
+      "name": "count",
+      "file": "src/DoesNotCompile.sol",
+      "scope": "src/DoesNotCompile.sol:DoesNotCompile",
+      "src": {
+        "file": "src/DoesNotCompile.sol",
+        "offset": 315,
+        "length": 21,
+        "line": 8,
+        "column": 4
+      },
+      "kind": "StateVariable",
+      "type": "uint256",
+      "visibility": "public",
+      "isConstant": false,
+      "isImmutable": false,
+      "isTransient": false,
+      "isMapping": false
+    },
+    {
+      "id": "src/DoesNotCompile.sol:DoesNotCompile.identity(uint256)",
+      "name": "identity",
+      "file": "src/DoesNotCompile.sol",
+      "scope": "src/DoesNotCompile.sol:DoesNotCompile",
+      "src": {
+        "file": "src/DoesNotCompile.sol",
+        "offset": 784,
+        "length": 86,
+        "line": 25,
+        "column": 4
+      },
+      "kind": "Function",
+      "subkind": "function",
+      "visibility": "internal",
+      "stateMutability": "pure",
+      "isVirtual": false,
+      "isOverride": false,
+      "modifiers": [],
+      "params": [
+        {
+          "name": "x",
+          "type": "uint256"
+        }
+      ],
+      "returns": [
+        {
+          "name": null,
+          "type": "uint256"
+        }
+      ],
+      "hasBody": true,
+      "bodyHash": "0d2af28760bf0b16",
+      "interfaceHash": "2ff019623a2fe804",
+      "metrics": {
+        "sloc": 3,
+        "cyclomatic": 1,
+        "maxDepth": 1
+      },
+      "flags": {
+        "hasAssembly": false,
+        "hasDelegatecall": false,
+        "hasLowLevelCall": false,
+        "hasSelfdestruct": false,
+        "hasCreate": false,
+        "sendsValue": false,
+        "hasUnchecked": false,
+        "hasTryCatch": false,
+        "readsState": false,
+        "writesState": false
+      }
+    },
+    {
+      "id": "src/DoesNotCompile.sol:DoesNotCompile.increment()",
+      "name": "increment",
+      "file": "src/DoesNotCompile.sol",
+      "scope": "src/DoesNotCompile.sol:DoesNotCompile",
+      "src": {
+        "file": "src/DoesNotCompile.sol",
+        "offset": 414,
+        "length": 74,
+        "line": 11,
+        "column": 4
+      },
+      "kind": "Function",
+      "subkind": "function",
+      "visibility": "external",
+      "stateMutability": "nonpayable",
+      "isVirtual": false,
+      "isOverride": false,
+      "modifiers": [],
+      "params": [],
+      "returns": [],
+      "hasBody": true,
+      "bodyHash": "b005d88b74f4b7b2",
+      "interfaceHash": "0cb858d9e2a3760e",
+      "metrics": {
+        "sloc": 3,
+        "cyclomatic": 1,
+        "maxDepth": 1
+      },
+      "flags": {
+        "hasAssembly": false,
+        "hasDelegatecall": false,
+        "hasLowLevelCall": false,
+        "hasSelfdestruct": false,
+        "hasCreate": false,
+        "sendsValue": false,
+        "hasUnchecked": false,
+        "hasTryCatch": false,
+        "readsState": true,
+        "writesState": true
+      }
+    },
+    {
+      "id": "src/DoesNotCompile.sol:DoesNotCompile.noReturn()",
+      "name": "noReturn",
+      "file": "src/DoesNotCompile.sol",
+      "scope": "src/DoesNotCompile.sol:DoesNotCompile",
+      "src": {
+        "file": "src/DoesNotCompile.sol",
+        "offset": 931,
+        "length": 54,
+        "line": 30,
+        "column": 4
+      },
+      "kind": "Function",
+      "subkind": "function",
+      "visibility": "external",
+      "stateMutability": "pure",
+      "isVirtual": false,
+      "isOverride": false,
+      "modifiers": [],
+      "params": [],
+      "returns": [
+        {
+          "name": null,
+          "type": "uint256"
+        }
+      ],
+      "hasBody": true,
+      "bodyHash": "444605ea147580e0",
+      "interfaceHash": "01e5350f5e1fc72c",
+      "metrics": {
+        "sloc": 1,
+        "cyclomatic": 1,
+        "maxDepth": 1
+      },
+      "flags": {
+        "hasAssembly": false,
+        "hasDelegatecall": false,
+        "hasLowLevelCall": false,
+        "hasSelfdestruct": false,
+        "hasCreate": false,
+        "sendsValue": false,
+        "hasUnchecked": false,
+        "hasTryCatch": false,
+        "readsState": false,
+        "writesState": false
+      }
+    },
+    {
+      "id": "src/Indirect.sol",
+      "kind": "SourceUnit",
+      "name": "src/Indirect.sol",
+      "file": "src/Indirect.sol",
+      "scope": null,
+      "src": {
+        "file": "src/Indirect.sol",
+        "offset": 0,
+        "length": 0,
+        "line": 1,
+        "column": 0
+      },
+      "pragma": "pragma solidity ^0.8.20;",
+      "versionSupport": "supported",
+      "recovered": false,
+      "unresolvedImports": []
+    },
+    {
+      "id": "src/Indirect.sol:IThing",
+      "name": "IThing",
+      "file": "src/Indirect.sol",
+      "scope": null,
+      "src": {
+        "file": "src/Indirect.sol",
+        "offset": 58,
+        "length": 77,
+        "line": 4,
+        "column": 0
+      },
+      "kind": "Contract",
+      "contractKind": "interface",
+      "baseNames": [],
+      "linearizedBases": [
+        "src/Indirect.sol:IThing"
+      ],
+      "linearizationCertainty": "certain",
+      "isFullyImplemented": false,
+      "isTest": false,
+      "isMock": false
+    },
+    {
+      "id": "src/Indirect.sol:IThing.work(uint256)",
+      "name": "work",
+      "file": "src/Indirect.sol",
+      "scope": "src/Indirect.sol:IThing",
+      "src": {
+        "file": "src/Indirect.sol",
+        "offset": 81,
+        "length": 52,
+        "line": 5,
+        "column": 4
+      },
+      "kind": "Function",
+      "subkind": "function",
+      "visibility": "external",
+      "stateMutability": "nonpayable",
+      "isVirtual": false,
+      "isOverride": false,
+      "modifiers": [],
+      "params": [
+        {
+          "name": "x",
+          "type": "uint256"
+        }
+      ],
+      "returns": [
+        {
+          "name": null,
+          "type": "uint256"
+        }
+      ],
+      "hasBody": false,
+      "bodyHash": "3498efb3aa3800ea",
+      "interfaceHash": "401093227622890e",
+      "metrics": {
+        "sloc": 0,
+        "cyclomatic": 1,
+        "maxDepth": 0
+      },
+      "flags": {
+        "hasAssembly": false,
+        "hasDelegatecall": false,
+        "hasLowLevelCall": false,
+        "hasSelfdestruct": false,
+        "hasCreate": false,
+        "sendsValue": false,
+        "hasUnchecked": false,
+        "hasTryCatch": false,
+        "readsState": false,
+        "writesState": false
+      }
+    },
+    {
+      "id": "src/Indirect.sol:Indirect",
+      "name": "Indirect",
+      "file": "src/Indirect.sol",
+      "scope": null,
+      "src": {
+        "file": "src/Indirect.sol",
+        "offset": 284,
+        "length": 1878,
+        "line": 10,
+        "column": 0
+      },
+      "kind": "Contract",
+      "contractKind": "contract",
+      "baseNames": [],
+      "linearizedBases": [
+        "src/Indirect.sol:Indirect"
+      ],
+      "linearizationCertainty": "certain",
+      "isFullyImplemented": true,
+      "isTest": false,
+      "isMock": false
+    },
+    {
+      "id": "src/Indirect.sol:Indirect!Failed(string)",
+      "name": "Failed",
+      "file": "src/Indirect.sol",
+      "scope": "src/Indirect.sol:Indirect",
+      "src": {
+        "file": "src/Indirect.sol",
+        "offset": 308,
+        "length": 28,
+        "line": 11,
+        "column": 4
+      },
+      "kind": "Error",
+      "params": [
+        {
+          "name": "reason",
+          "type": "string"
+        }
+      ]
+    },
+    {
+      "id": "src/Indirect.sol:Indirect.apply_(uint256)",
+      "name": "apply_",
+      "file": "src/Indirect.sol",
+      "scope": "src/Indirect.sol:Indirect",
+      "src": {
+        "file": "src/Indirect.sol",
+        "offset": 902,
+        "length": 95,
+        "line": 33,
+        "column": 4
+      },
+      "kind": "Function",
+      "subkind": "function",
+      "visibility": "external",
+      "stateMutability": "view",
+      "isVirtual": false,
+      "isOverride": false,
+      "modifiers": [],
+      "params": [
+        {
+          "name": "x",
+          "type": "uint256"
+        }
+      ],
+      "returns": [
+        {
+          "name": null,
+          "type": "uint256"
+        }
+      ],
+      "hasBody": true,
+      "bodyHash": "f1e7ef31d0331612",
+      "interfaceHash": "d54e091ed12b2e93",
+      "metrics": {
+        "sloc": 3,
+        "cyclomatic": 1,
+        "maxDepth": 1
+      },
+      "flags": {
+        "hasAssembly": false,
+        "hasDelegatecall": false,
+        "hasLowLevelCall": false,
+        "hasSelfdestruct": false,
+        "hasCreate": false,
+        "sendsValue": false,
+        "hasUnchecked": false,
+        "hasTryCatch": false,
+        "readsState": false,
+        "writesState": false
+      }
+    },
+    {
+      "id": "src/Indirect.sol:Indirect.choose(bool)",
+      "name": "choose",
+      "file": "src/Indirect.sol",
+      "scope": "src/Indirect.sol:Indirect",
+      "src": {
+        "file": "src/Indirect.sol",
+        "offset": 717,
+        "length": 97,
+        "line": 28,
+        "column": 4
+      },
+      "kind": "Function",
+      "subkind": "function",
+      "visibility": "external",
+      "stateMutability": "nonpayable",
+      "isVirtual": false,
+      "isOverride": false,
+      "modifiers": [],
+      "params": [
+        {
+          "name": "useDouble",
+          "type": "bool"
+        }
+      ],
+      "returns": [],
+      "hasBody": true,
+      "bodyHash": "bade06c6b3797fc6",
+      "interfaceHash": "acb2558a60954803",
+      "metrics": {
+        "sloc": 3,
+        "cyclomatic": 2,
+        "maxDepth": 1
+      },
+      "flags": {
+        "hasAssembly": false,
+        "hasDelegatecall": false,
+        "hasLowLevelCall": false,
+        "hasSelfdestruct": false,
+        "hasCreate": false,
+        "sendsValue": false,
+        "hasUnchecked": false,
+        "hasTryCatch": false,
+        "readsState": false,
+        "writesState": true
+      }
+    },
+    {
+      "id": "src/Indirect.sol:Indirect.double(uint256)",
+      "name": "double",
+      "file": "src/Indirect.sol",
+      "scope": "src/Indirect.sol:Indirect",
+      "src": {
+        "file": "src/Indirect.sol",
+        "offset": 529,
+        "length": 88,
+        "line": 20,
+        "column": 4
+      },
+      "kind": "Function",
+      "subkind": "function",
+      "visibility": "internal",
+      "stateMutability": "pure",
+      "isVirtual": false,
+      "isOverride": false,
+      "modifiers": [],
+      "params": [
+        {
+          "name": "x",
+          "type": "uint256"
+        }
+      ],
+      "returns": [
+        {
+          "name": null,
+          "type": "uint256"
+        }
+      ],
+      "hasBody": true,
+      "bodyHash": "c55261a2c295887d",
+      "interfaceHash": "a93f414a9eee3e33",
+      "metrics": {
+        "sloc": 3,
+        "cyclomatic": 1,
+        "maxDepth": 1
+      },
+      "flags": {
+        "hasAssembly": false,
+        "hasDelegatecall": false,
+        "hasLowLevelCall": false,
+        "hasSelfdestruct": false,
+        "hasCreate": false,
+        "sendsValue": false,
+        "hasUnchecked": false,
+        "hasTryCatch": false,
+        "readsState": false,
+        "writesState": false
+      }
+    },
+    {
+      "id": "src/Indirect.sol:Indirect.guarded(uint256)",
+      "name": "guarded",
+      "file": "src/Indirect.sol",
+      "scope": "src/Indirect.sol:Indirect",
+      "src": {
+        "file": "src/Indirect.sol",
+        "offset": 1434,
+        "length": 395,
+        "line": 46,
+        "column": 4
+      },
+      "kind": "Function",
+      "subkind": "function",
+      "visibility": "external",
+      "stateMutability": "nonpayable",
+      "isVirtual": false,
+      "isOverride": false,
+      "modifiers": [],
+      "params": [
+        {
+          "name": "x",
+          "type": "uint256"
+        }
+      ],
+      "returns": [
+        {
+          "name": "value",
+          "type": "uint256"
+        }
+      ],
+      "hasBody": true,
+      "bodyHash": "4970c00416559c9e",
+      "interfaceHash": "888511df8498162e",
+      "metrics": {
+        "sloc": 12,
+        "cyclomatic": 4,
+        "maxDepth": 2
+      },
+      "flags": {
+        "hasAssembly": false,
+        "hasDelegatecall": false,
+        "hasLowLevelCall": false,
+        "hasSelfdestruct": false,
+        "hasCreate": false,
+        "sendsValue": false,
+        "hasUnchecked": false,
+        "hasTryCatch": true,
+        "readsState": true,
+        "writesState": false
+      }
+    },
+    {
+      "id": "src/Indirect.sol:Indirect.pick(address)",
+      "name": "pick",
+      "file": "src/Indirect.sol",
+      "scope": "src/Indirect.sol:Indirect",
+      "src": {
+        "file": "src/Indirect.sol",
+        "offset": 2062,
+        "length": 98,
+        "line": 65,
+        "column": 4
+      },
+      "kind": "Function",
+      "subkind": "function",
+      "visibility": "public",
+      "stateMutability": "pure",
+      "isVirtual": false,
+      "isOverride": false,
+      "modifiers": [],
+      "params": [
+        {
+          "name": "a",
+          "type": "address"
+        }
+      ],
+      "returns": [
+        {
+          "name": null,
+          "type": "uint256"
+        }
+      ],
+      "hasBody": true,
+      "bodyHash": "865dffa140e4fe10",
+      "interfaceHash": "ee6b3e385de9adcc",
+      "metrics": {
+        "sloc": 3,
+        "cyclomatic": 1,
+        "maxDepth": 1
+      },
+      "flags": {
+        "hasAssembly": false,
+        "hasDelegatecall": false,
+        "hasLowLevelCall": false,
+        "hasSelfdestruct": false,
+        "hasCreate": false,
+        "sendsValue": false,
+        "hasUnchecked": false,
+        "hasTryCatch": false,
+        "readsState": false,
+        "writesState": false
+      }
+    },
+    {
+      "id": "src/Indirect.sol:Indirect.pick(uint256)",
+      "name": "pick",
+      "file": "src/Indirect.sol",
+      "scope": "src/Indirect.sol:Indirect",
+      "src": {
+        "file": "src/Indirect.sol",
+        "offset": 1976,
+        "length": 80,
+        "line": 61,
+        "column": 4
+      },
+      "kind": "Function",
+      "subkind": "function",
+      "visibility": "public",
+      "stateMutability": "pure",
+      "isVirtual": false,
+      "isOverride": false,
+      "modifiers": [],
+      "params": [
+        {
+          "name": "a",
+          "type": "uint256"
+        }
+      ],
+      "returns": [
+        {
+          "name": null,
+          "type": "uint256"
+        }
+      ],
+      "hasBody": true,
+      "bodyHash": "720600204953e0aa",
+      "interfaceHash": "02c530d4bb7a9ea9",
+      "metrics": {
+        "sloc": 3,
+        "cyclomatic": 1,
+        "maxDepth": 1
+      },
+      "flags": {
+        "hasAssembly": false,
+        "hasDelegatecall": false,
+        "hasLowLevelCall": false,
+        "hasSelfdestruct": false,
+        "hasCreate": false,
+        "sendsValue": false,
+        "hasUnchecked": false,
+        "hasTryCatch": false,
+        "readsState": false,
+        "writesState": false
+      }
+    },
+    {
+      "id": "src/Indirect.sol:Indirect.raw(bytes4,uint256)",
+      "name": "raw",
+      "file": "src/Indirect.sol",
+      "scope": "src/Indirect.sol:Indirect",
+      "src": {
+        "file": "src/Indirect.sol",
+        "offset": 1112,
+        "length": 241,
+        "line": 39,
+        "column": 4
+      },
+      "kind": "Function",
+      "subkind": "function",
+      "visibility": "external",
+      "stateMutability": "nonpayable",
+      "isVirtual": false,
+      "isOverride": false,
+      "modifiers": [],
+      "params": [
+        {
+          "name": "selector",
+          "type": "bytes4"
+        },
+        {
+          "name": "arg",
+          "type": "uint256"
+        }
+      ],
+      "returns": [
+        {
+          "name": null,
+          "type": "bytes"
+        }
+      ],
+      "hasBody": true,
+      "bodyHash": "ee3f9d2834c7ccb0",
+      "interfaceHash": "b59ca00803ae0463",
+      "metrics": {
+        "sloc": 5,
+        "cyclomatic": 2,
+        "maxDepth": 1
+      },
+      "flags": {
+        "hasAssembly": false,
+        "hasDelegatecall": false,
+        "hasLowLevelCall": true,
+        "hasSelfdestruct": false,
+        "hasCreate": false,
+        "sendsValue": false,
+        "hasUnchecked": false,
+        "hasTryCatch": false,
+        "readsState": true,
+        "writesState": false
+      }
+    },
+    {
+      "id": "src/Indirect.sol:Indirect.target",
+      "name": "target",
+      "file": "src/Indirect.sol",
+      "scope": "src/Indirect.sol:Indirect",
+      "src": {
+        "file": "src/Indirect.sol",
+        "offset": 501,
+        "length": 22,
+        "line": 18,
+        "column": 4
+      },
+      "kind": "StateVariable",
+      "type": "address",
+      "visibility": "public",
+      "isConstant": false,
+      "isImmutable": false,
+      "isTransient": false,
+      "isMapping": false
+    },
+    {
+      "id": "src/Indirect.sol:Indirect.transform",
+      "name": "transform",
+      "file": "src/Indirect.sol",
+      "scope": "src/Indirect.sol:Indirect",
+      "src": {
+        "file": "src/Indirect.sol",
+        "offset": 426,
+        "length": 69,
+        "line": 16,
+        "column": 4
+      },
+      "kind": "StateVariable",
+      "type": "function(uint256) internal pure returns (uint256)",
+      "visibility": "internal",
+      "isConstant": false,
+      "isImmutable": false,
+      "isTransient": false,
+      "isMapping": false
+    },
+    {
+      "id": "src/Indirect.sol:Indirect.triple(uint256)",
+      "name": "triple",
+      "file": "src/Indirect.sol",
+      "scope": "src/Indirect.sol:Indirect",
+      "src": {
+        "file": "src/Indirect.sol",
+        "offset": 623,
+        "length": 88,
+        "line": 24,
+        "column": 4
+      },
+      "kind": "Function",
+      "subkind": "function",
+      "visibility": "internal",
+      "stateMutability": "pure",
+      "isVirtual": false,
+      "isOverride": false,
+      "modifiers": [],
+      "params": [
+        {
+          "name": "x",
+          "type": "uint256"
+        }
+      ],
+      "returns": [
+        {
+          "name": null,
+          "type": "uint256"
+        }
+      ],
+      "hasBody": true,
+      "bodyHash": "f52288dff6f9ddd4",
+      "interfaceHash": "f1e0c383bc5d003d",
+      "metrics": {
+        "sloc": 3,
+        "cyclomatic": 1,
+        "maxDepth": 1
+      },
+      "flags": {
+        "hasAssembly": false,
+        "hasDelegatecall": false,
+        "hasLowLevelCall": false,
+        "hasSelfdestruct": false,
+        "hasCreate": false,
+        "sendsValue": false,
+        "hasUnchecked": false,
+        "hasTryCatch": false,
+        "readsState": false,
+        "writesState": false
+      }
+    },
+    {
+      "id": "src/Indirect.sol:Indirect^Result(uint256)",
+      "name": "Result",
+      "file": "src/Indirect.sol",
+      "scope": "src/Indirect.sol:Indirect",
+      "src": {
+        "file": "src/Indirect.sol",
+        "offset": 342,
+        "length": 28,
+        "line": 13,
+        "column": 4
+      },
+      "kind": "Event",
+      "params": [
+        {
+          "name": "value",
+          "type": "uint256"
+        }
+      ],
+      "isAnonymous": false
+    },
+    {
+      "id": "src/Legacy.sol",
+      "kind": "SourceUnit",
+      "name": "src/Legacy.sol",
+      "file": "src/Legacy.sol",
+      "scope": null,
+      "src": {
+        "file": "src/Legacy.sol",
+        "offset": 0,
+        "length": 0,
+        "line": 1,
+        "column": 0
+      },
+      "pragma": "pragma solidity ^0.6.12;",
+      "versionSupport": "best-effort",
+      "recovered": false,
+      "unresolvedImports": []
+    },
+    {
+      "id": "src/Legacy.sol:Legacy",
+      "name": "Legacy",
+      "file": "src/Legacy.sol",
+      "scope": null,
+      "src": {
+        "file": "src/Legacy.sol",
+        "offset": 268,
+        "length": 313,
+        "line": 7,
+        "column": 0
+      },
+      "kind": "Contract",
+      "contractKind": "contract",
+      "baseNames": [],
+      "linearizedBases": [
+        "src/Legacy.sol:Legacy"
+      ],
+      "linearizationCertainty": "certain",
+      "isFullyImplemented": true,
+      "isTest": false,
+      "isMock": false
+    },
+    {
+      "id": "src/Legacy.sol:Legacy#onlyOwner",
+      "name": "onlyOwner",
+      "file": "src/Legacy.sol",
+      "scope": "src/Legacy.sol:Legacy",
+      "src": {
+        "file": "src/Legacy.sol",
+        "offset": 405,
+        "length": 90,
+        "line": 15,
+        "column": 4
+      },
+      "kind": "Function",
+      "subkind": "modifier",
+      "visibility": "default",
+      "stateMutability": "nonpayable",
+      "isVirtual": false,
+      "isOverride": false,
+      "modifiers": [],
+      "params": [],
+      "returns": [],
+      "hasBody": true,
+      "bodyHash": "13625fe5cd095a32",
+      "interfaceHash": "c160fd051bbea45c",
+      "metrics": {
+        "sloc": 4,
+        "cyclomatic": 1,
+        "maxDepth": 1
+      },
+      "flags": {
+        "hasAssembly": false,
+        "hasDelegatecall": false,
+        "hasLowLevelCall": false,
+        "hasSelfdestruct": false,
+        "hasCreate": false,
+        "sendsValue": false,
+        "hasUnchecked": false,
+        "hasTryCatch": false,
+        "readsState": true,
+        "writesState": false
+      }
+    },
+    {
+      "id": "src/Legacy.sol:Legacy.add(uint256)",
+      "name": "add",
+      "file": "src/Legacy.sol",
+      "scope": "src/Legacy.sol:Legacy",
+      "src": {
+        "file": "src/Legacy.sol",
+        "offset": 501,
+        "length": 78,
+        "line": 20,
+        "column": 4
+      },
+      "kind": "Function",
+      "subkind": "function",
+      "visibility": "public",
+      "stateMutability": "nonpayable",
+      "isVirtual": false,
+      "isOverride": false,
+      "modifiers": [
+        "src/Legacy.sol:Legacy#onlyOwner"
+      ],
+      "params": [
+        {
+          "name": "amount",
+          "type": "uint256"
+        }
+      ],
+      "returns": [],
+      "hasBody": true,
+      "bodyHash": "ece869d7e92a870d",
+      "interfaceHash": "5e6c672ab1fb038f",
+      "metrics": {
+        "sloc": 3,
+        "cyclomatic": 1,
+        "maxDepth": 1
+      },
+      "flags": {
+        "hasAssembly": false,
+        "hasDelegatecall": false,
+        "hasLowLevelCall": false,
+        "hasSelfdestruct": false,
+        "hasCreate": false,
+        "sendsValue": false,
+        "hasUnchecked": false,
+        "hasTryCatch": false,
+        "readsState": true,
+        "writesState": true
+      }
+    },
+    {
+      "id": "src/Legacy.sol:Legacy.constructor()",
+      "name": "constructor",
+      "file": "src/Legacy.sol",
+      "scope": "src/Legacy.sol:Legacy",
+      "src": {
+        "file": "src/Legacy.sol",
+        "offset": 343,
+        "length": 56,
+        "line": 11,
+        "column": 4
+      },
+      "kind": "Function",
+      "subkind": "constructor",
+      "visibility": "public",
+      "stateMutability": "nonpayable",
+      "isVirtual": false,
+      "isOverride": false,
+      "modifiers": [],
+      "params": [],
+      "returns": [],
+      "hasBody": true,
+      "bodyHash": "7ed1888ca7c3d0cd",
+      "interfaceHash": "3ebfe550bedc3c8a",
+      "metrics": {
+        "sloc": 3,
+        "cyclomatic": 1,
+        "maxDepth": 1
+      },
+      "flags": {
+        "hasAssembly": false,
+        "hasDelegatecall": false,
+        "hasLowLevelCall": false,
+        "hasSelfdestruct": false,
+        "hasCreate": false,
+        "sendsValue": false,
+        "hasUnchecked": false,
+        "hasTryCatch": false,
+        "readsState": false,
+        "writesState": true
+      }
+    },
+    {
+      "id": "src/Legacy.sol:Legacy.owner",
+      "name": "owner",
+      "file": "src/Legacy.sol",
+      "scope": "src/Legacy.sol:Legacy",
+      "src": {
+        "file": "src/Legacy.sol",
+        "offset": 290,
+        "length": 21,
+        "line": 8,
+        "column": 4
+      },
+      "kind": "StateVariable",
+      "type": "address",
+      "visibility": "public",
+      "isConstant": false,
+      "isImmutable": false,
+      "isTransient": false,
+      "isMapping": false
+    },
+    {
+      "id": "src/Legacy.sol:Legacy.total",
+      "name": "total",
+      "file": "src/Legacy.sol",
+      "scope": "src/Legacy.sol:Legacy",
+      "src": {
+        "file": "src/Legacy.sol",
+        "offset": 316,
+        "length": 21,
+        "line": 9,
+        "column": 4
+      },
+      "kind": "StateVariable",
+      "type": "uint256",
+      "visibility": "public",
+      "isConstant": false,
+      "isImmutable": false,
+      "isTransient": false,
+      "isMapping": false
+    },
+    {
+      "id": "src/Proxy.sol",
+      "kind": "SourceUnit",
+      "name": "src/Proxy.sol",
+      "file": "src/Proxy.sol",
+      "scope": null,
+      "src": {
+        "file": "src/Proxy.sol",
+        "offset": 0,
+        "length": 0,
+        "line": 1,
+        "column": 0
+      },
+      "pragma": "pragma solidity ^0.8.20;",
+      "versionSupport": "supported",
+      "recovered": false,
+      "unresolvedImports": []
+    },
+    {
+      "id": "src/Proxy.sol:Implementation",
+      "name": "Implementation",
+      "file": "src/Proxy.sol",
+      "scope": null,
+      "src": {
+        "file": "src/Proxy.sol",
+        "offset": 1205,
+        "length": 231,
+        "line": 38,
+        "column": 0
+      },
+      "kind": "Contract",
+      "contractKind": "contract",
+      "baseNames": [],
+      "linearizedBases": [
+        "src/Proxy.sol:Implementation"
+      ],
+      "linearizationCertainty": "certain",
+      "isFullyImplemented": true,
+      "isTest": false,
+      "isMock": false
+    },
+    {
+      "id": "src/Proxy.sol:Implementation.balances",
+      "name": "balances",
+      "file": "src/Proxy.sol",
+      "scope": "src/Proxy.sol:Implementation",
+      "src": {
+        "file": "src/Proxy.sol",
+        "offset": 1267,
+        "length": 44,
+        "line": 40,
+        "column": 4
+      },
+      "kind": "StateVariable",
+      "type": "mapping(address => uint256)",
+      "visibility": "public",
+      "isConstant": false,
+      "isImmutable": false,
+      "isTransient": false,
+      "isMapping": true
+    },
+    {
+      "id": "src/Proxy.sol:Implementation.mint(uint256)",
+      "name": "mint",
+      "file": "src/Proxy.sol",
+      "scope": "src/Proxy.sol:Implementation",
+      "src": {
+        "file": "src/Proxy.sol",
+        "offset": 1317,
+        "length": 117,
+        "line": 42,
+        "column": 4
+      },
+      "kind": "Function",
+      "subkind": "function",
+      "visibility": "external",
+      "stateMutability": "nonpayable",
+      "isVirtual": false,
+      "isOverride": false,
+      "modifiers": [],
+      "params": [
+        {
+          "name": "amount",
+          "type": "uint256"
+        }
+      ],
+      "returns": [],
+      "hasBody": true,
+      "bodyHash": "954b81b704c4c39e",
+      "interfaceHash": "48d85b8fafd56989",
+      "metrics": {
+        "sloc": 4,
+        "cyclomatic": 1,
+        "maxDepth": 1
+      },
+      "flags": {
+        "hasAssembly": false,
+        "hasDelegatecall": false,
+        "hasLowLevelCall": false,
+        "hasSelfdestruct": false,
+        "hasCreate": false,
+        "sendsValue": false,
+        "hasUnchecked": false,
+        "hasTryCatch": false,
+        "readsState": true,
+        "writesState": true
+      }
+    },
+    {
+      "id": "src/Proxy.sol:Implementation.totalSupply",
+      "name": "totalSupply",
+      "file": "src/Proxy.sol",
+      "scope": "src/Proxy.sol:Implementation",
+      "src": {
+        "file": "src/Proxy.sol",
+        "offset": 1235,
+        "length": 27,
+        "line": 39,
+        "column": 4
+      },
+      "kind": "StateVariable",
+      "type": "uint256",
+      "visibility": "public",
+      "isConstant": false,
+      "isImmutable": false,
+      "isTransient": false,
+      "isMapping": false
+    },
+    {
+      "id": "src/Proxy.sol:Proxy",
+      "name": "Proxy",
+      "file": "src/Proxy.sol",
+      "scope": null,
+      "src": {
+        "file": "src/Proxy.sol",
+        "offset": 127,
+        "length": 758,
+        "line": 5,
+        "column": 0
+      },
+      "kind": "Contract",
+      "contractKind": "contract",
+      "baseNames": [],
+      "linearizedBases": [
+        "src/Proxy.sol:Proxy"
+      ],
+      "linearizationCertainty": "certain",
+      "isFullyImplemented": true,
+      "isTest": false,
+      "isMock": false
+    },
+    {
+      "id": "src/Proxy.sol:Proxy.admin",
+      "name": "admin",
+      "file": "src/Proxy.sol",
+      "scope": "src/Proxy.sol:Proxy",
+      "src": {
+        "file": "src/Proxy.sol",
+        "offset": 183,
+        "length": 21,
+        "line": 7,
+        "column": 4
+      },
+      "kind": "StateVariable",
+      "type": "address",
+      "visibility": "public",
+      "isConstant": false,
+      "isImmutable": false,
+      "isTransient": false,
+      "isMapping": false
+    },
+    {
+      "id": "src/Proxy.sol:Proxy.constructor(address)",
+      "name": "constructor",
+      "file": "src/Proxy.sol",
+      "scope": "src/Proxy.sol:Proxy",
+      "src": {
+        "file": "src/Proxy.sol",
+        "offset": 210,
+        "length": 92,
+        "line": 9,
+        "column": 4
+      },
+      "kind": "Function",
+      "subkind": "constructor",
+      "visibility": "default",
+      "stateMutability": "nonpayable",
+      "isVirtual": false,
+      "isOverride": false,
+      "modifiers": [],
+      "params": [
+        {
+          "name": "impl",
+          "type": "address"
+        }
+      ],
+      "returns": [],
+      "hasBody": true,
+      "bodyHash": "173b95680b72eb01",
+      "interfaceHash": "ef1a75c1225700c1",
+      "metrics": {
+        "sloc": 4,
+        "cyclomatic": 1,
+        "maxDepth": 1
+      },
+      "flags": {
+        "hasAssembly": false,
+        "hasDelegatecall": false,
+        "hasLowLevelCall": false,
+        "hasSelfdestruct": false,
+        "hasCreate": false,
+        "sendsValue": false,
+        "hasUnchecked": false,
+        "hasTryCatch": false,
+        "readsState": false,
+        "writesState": true
+      }
+    },
+    {
+      "id": "src/Proxy.sol:Proxy.fallback()",
+      "name": "fallback",
+      "file": "src/Proxy.sol",
+      "scope": "src/Proxy.sol:Proxy",
+      "src": {
+        "file": "src/Proxy.sol",
+        "offset": 308,
+        "length": 403,
+        "line": 14,
+        "column": 4
+      },
+      "kind": "Function",
+      "subkind": "fallback",
+      "visibility": "external",
+      "stateMutability": "payable",
+      "isVirtual": false,
+      "isOverride": false,
+      "modifiers": [],
+      "params": [],
+      "returns": [],
+      "hasBody": true,
+      "bodyHash": "73fbf2779a1759fd",
+      "interfaceHash": "93f9cc690de17ee2",
+      "metrics": {
+        "sloc": 11,
+        "cyclomatic": 1,
+        "maxDepth": 2
+      },
+      "flags": {
+        "hasAssembly": true,
+        "hasDelegatecall": true,
+        "hasLowLevelCall": false,
+        "hasSelfdestruct": false,
+        "hasCreate": false,
+        "sendsValue": false,
+        "hasUnchecked": false,
+        "hasTryCatch": false,
+        "readsState": true,
+        "writesState": false
+      }
+    },
+    {
+      "id": "src/Proxy.sol:Proxy.implementation",
+      "name": "implementation",
+      "file": "src/Proxy.sol",
+      "scope": "src/Proxy.sol:Proxy",
+      "src": {
+        "file": "src/Proxy.sol",
+        "offset": 148,
+        "length": 30,
+        "line": 6,
+        "column": 4
+      },
+      "kind": "StateVariable",
+      "type": "address",
+      "visibility": "public",
+      "isConstant": false,
+      "isImmutable": false,
+      "isTransient": false,
+      "isMapping": false
+    },
+    {
+      "id": "src/Proxy.sol:Proxy.receive()",
+      "name": "receive",
+      "file": "src/Proxy.sol",
+      "scope": "src/Proxy.sol:Proxy",
+      "src": {
+        "file": "src/Proxy.sol",
+        "offset": 717,
+        "length": 29,
+        "line": 26,
+        "column": 4
+      },
+      "kind": "Function",
+      "subkind": "receive",
+      "visibility": "external",
+      "stateMutability": "payable",
+      "isVirtual": false,
+      "isOverride": false,
+      "modifiers": [],
+      "params": [],
+      "returns": [],
+      "hasBody": true,
+      "bodyHash": "444605ea147580e0",
+      "interfaceHash": "2aa4cabe812f4ed8",
+      "metrics": {
+        "sloc": 1,
+        "cyclomatic": 1,
+        "maxDepth": 1
+      },
+      "flags": {
+        "hasAssembly": false,
+        "hasDelegatecall": false,
+        "hasLowLevelCall": false,
+        "hasSelfdestruct": false,
+        "hasCreate": false,
+        "sendsValue": false,
+        "hasUnchecked": false,
+        "hasTryCatch": false,
+        "readsState": false,
+        "writesState": false
+      }
+    },
+    {
+      "id": "src/Proxy.sol:Proxy.upgradeTo(address)",
+      "name": "upgradeTo",
+      "file": "src/Proxy.sol",
+      "scope": "src/Proxy.sol:Proxy",
+      "src": {
+        "file": "src/Proxy.sol",
+        "offset": 752,
+        "length": 131,
+        "line": 28,
+        "column": 4
+      },
+      "kind": "Function",
+      "subkind": "function",
+      "visibility": "external",
+      "stateMutability": "nonpayable",
+      "isVirtual": false,
+      "isOverride": false,
+      "modifiers": [],
+      "params": [
+        {
+          "name": "impl",
+          "type": "address"
+        }
+      ],
+      "returns": [],
+      "hasBody": true,
+      "bodyHash": "2d9b8225ad690222",
+      "interfaceHash": "37efb7ee1ad15045",
+      "metrics": {
+        "sloc": 4,
+        "cyclomatic": 1,
+        "maxDepth": 1
+      },
+      "flags": {
+        "hasAssembly": false,
+        "hasDelegatecall": false,
+        "hasLowLevelCall": false,
+        "hasSelfdestruct": false,
+        "hasCreate": false,
+        "sendsValue": false,
+        "hasUnchecked": false,
+        "hasTryCatch": false,
+        "readsState": true,
+        "writesState": true
+      }
+    },
+    {
+      "id": "src/SyntaxError.sol",
+      "kind": "SourceUnit",
+      "name": "src/SyntaxError.sol",
+      "file": "src/SyntaxError.sol",
+      "scope": null,
+      "src": {
+        "file": "src/SyntaxError.sol",
+        "offset": 0,
+        "length": 0,
+        "line": 1,
+        "column": 0
+      },
+      "pragma": "pragma solidity ^0.8.20;",
+      "versionSupport": "supported",
+      "recovered": true,
+      "unresolvedImports": []
+    },
+    {
+      "id": "src/SyntaxError.sol:AfterTheError",
+      "name": "AfterTheError",
+      "file": "src/SyntaxError.sol",
+      "scope": null,
+      "src": {
+        "file": "src/SyntaxError.sol",
+        "offset": 635,
+        "length": 110,
+        "line": 27,
+        "column": 0
+      },
+      "kind": "Contract",
+      "contractKind": "contract",
+      "baseNames": [],
+      "linearizedBases": [
+        "src/SyntaxError.sol:AfterTheError"
+      ],
+      "linearizationCertainty": "certain",
+      "isFullyImplemented": true,
+      "isTest": false,
+      "isMock": false
+    },
+    {
+      "id": "src/SyntaxError.sol:AfterTheError.stillHere()",
+      "name": "stillHere",
+      "file": "src/SyntaxError.sol",
+      "scope": "src/SyntaxError.sol:AfterTheError",
+      "src": {
+        "file": "src/SyntaxError.sol",
+        "offset": 664,
+        "length": 79,
+        "line": 28,
+        "column": 4
+      },
+      "kind": "Function",
+      "subkind": "function",
+      "visibility": "external",
+      "stateMutability": "pure",
+      "isVirtual": false,
+      "isOverride": false,
+      "modifiers": [],
+      "params": [],
+      "returns": [
+        {
+          "name": null,
+          "type": "uint256"
+        }
+      ],
+      "hasBody": true,
+      "bodyHash": "66c65292fe5df409",
+      "interfaceHash": "9d57a97f761b40f0",
+      "metrics": {
+        "sloc": 3,
+        "cyclomatic": 1,
+        "maxDepth": 1
+      },
+      "flags": {
+        "hasAssembly": false,
+        "hasDelegatecall": false,
+        "hasLowLevelCall": false,
+        "hasSelfdestruct": false,
+        "hasCreate": false,
+        "sendsValue": false,
+        "hasUnchecked": false,
+        "hasTryCatch": false,
+        "readsState": false,
+        "writesState": false
+      }
+    },
+    {
+      "id": "src/SyntaxError.sol:BeforeTheError",
+      "name": "BeforeTheError",
+      "file": "src/SyntaxError.sol",
+      "scope": null,
+      "src": {
+        "file": "src/SyntaxError.sol",
+        "offset": 278,
+        "length": 138,
+        "line": 7,
+        "column": 0
+      },
+      "kind": "Contract",
+      "contractKind": "contract",
+      "baseNames": [],
+      "linearizedBases": [
+        "src/SyntaxError.sol:BeforeTheError"
+      ],
+      "linearizationCertainty": "certain",
+      "isFullyImplemented": true,
+      "isTest": false,
+      "isMock": false
+    },
+    {
+      "id": "src/SyntaxError.sol:BeforeTheError.fine()",
+      "name": "fine",
+      "file": "src/SyntaxError.sol",
+      "scope": "src/SyntaxError.sol:BeforeTheError",
+      "src": {
+        "file": "src/SyntaxError.sol",
+        "offset": 336,
+        "length": 78,
+        "line": 10,
+        "column": 4
+      },
+      "kind": "Function",
+      "subkind": "function",
+      "visibility": "external",
+      "stateMutability": "view",
+      "isVirtual": false,
+      "isOverride": false,
+      "modifiers": [],
+      "params": [],
+      "returns": [
+        {
+          "name": null,
+          "type": "uint256"
+        }
+      ],
+      "hasBody": true,
+      "bodyHash": "6b27f7444a709dc6",
+      "interfaceHash": "98c537f862b13f83",
+      "metrics": {
+        "sloc": 3,
+        "cyclomatic": 1,
+        "maxDepth": 1
+      },
+      "flags": {
+        "hasAssembly": false,
+        "hasDelegatecall": false,
+        "hasLowLevelCall": false,
+        "hasSelfdestruct": false,
+        "hasCreate": false,
+        "sendsValue": false,
+        "hasUnchecked": false,
+        "hasTryCatch": false,
+        "readsState": true,
+        "writesState": false
+      }
+    },
+    {
+      "id": "src/SyntaxError.sol:BeforeTheError.intact",
+      "name": "intact",
+      "file": "src/SyntaxError.sol",
+      "scope": "src/SyntaxError.sol:BeforeTheError",
+      "src": {
+        "file": "src/SyntaxError.sol",
+        "offset": 308,
+        "length": 22,
+        "line": 8,
+        "column": 4
+      },
+      "kind": "StateVariable",
+      "type": "uint256",
+      "visibility": "public",
+      "isConstant": false,
+      "isImmutable": false,
+      "isTransient": false,
+      "isMapping": false
+    },
+    {
+      "id": "src/SyntaxError.sol:Broken",
+      "name": "Broken",
+      "file": "src/SyntaxError.sol",
+      "scope": null,
+      "src": {
+        "file": "src/SyntaxError.sol",
+        "offset": 418,
+        "length": 215,
+        "line": 15,
+        "column": 0
+      },
+      "kind": "Contract",
+      "contractKind": "contract",
+      "baseNames": [],
+      "linearizedBases": [
+        "src/SyntaxError.sol:Broken"
+      ],
+      "linearizationCertainty": "certain",
+      "isFullyImplemented": true,
+      "isTest": false,
+      "isMock": false
+    },
+    {
+      "id": "src/SyntaxError.sol:Broken.afterTheError()",
+      "name": "afterTheError",
+      "file": "src/SyntaxError.sol",
+      "scope": "src/SyntaxError.sol:Broken",
+      "src": {
+        "file": "src/SyntaxError.sol",
+        "offset": 549,
+        "length": 82,
+        "line": 22,
+        "column": 4
+      },
+      "kind": "Function",
+      "subkind": "function",
+      "visibility": "external",
+      "stateMutability": "pure",
+      "isVirtual": false,
+      "isOverride": false,
+      "modifiers": [],
+      "params": [],
+      "returns": [
+        {
+          "name": null,
+          "type": "bool"
+        }
+      ],
+      "hasBody": true,
+      "bodyHash": "23e4ff7a2dccb9a0",
+      "interfaceHash": "e4329a5509ee78e0",
+      "metrics": {
+        "sloc": 3,
+        "cyclomatic": 1,
+        "maxDepth": 1
+      },
+      "flags": {
+        "hasAssembly": false,
+        "hasDelegatecall": false,
+        "hasLowLevelCall": false,
+        "hasSelfdestruct": false,
+        "hasCreate": false,
+        "sendsValue": false,
+        "hasUnchecked": false,
+        "hasTryCatch": false,
+        "readsState": false,
+        "writesState": false
+      }
+    },
+    {
+      "id": "src/SyntaxError.sol:Broken.alsoIntact",
+      "name": "alsoIntact",
+      "file": "src/SyntaxError.sol",
+      "scope": "src/SyntaxError.sol:Broken",
+      "src": {
+        "file": "src/SyntaxError.sol",
+        "offset": 440,
+        "length": 26,
+        "line": 16,
+        "column": 4
+      },
+      "kind": "StateVariable",
+      "type": "uint256",
+      "visibility": "public",
+      "isConstant": false,
+      "isImmutable": false,
+      "isTransient": false,
+      "isMapping": false
+    },
+    {
+      "id": "src/SyntaxError.sol:Broken.truncated(uint256)",
+      "name": "truncated",
+      "file": "src/SyntaxError.sol",
+      "scope": "src/SyntaxError.sol:Broken",
+      "src": {
+        "file": "src/SyntaxError.sol",
+        "offset": 472,
+        "length": 71,
+        "line": 18,
+        "column": 4
+      },
+      "kind": "Function",
+      "subkind": "function",
+      "visibility": "default",
+      "stateMutability": "nonpayable",
+      "isVirtual": false,
+      "isOverride": false,
+      "modifiers": [],
+      "params": [
+        {
+          "name": "a",
+          "type": "uint256"
+        }
+      ],
+      "returns": [
+        {
+          "name": null,
+          "type": "uint256"
+        }
+      ],
+      "hasBody": true,
+      "bodyHash": "12c3141464a3700e",
+      "interfaceHash": "b24738eb60fc3a37",
+      "metrics": {
+        "sloc": 3,
+        "cyclomatic": 1,
+        "maxDepth": 1
+      },
+      "flags": {
+        "hasAssembly": false,
+        "hasDelegatecall": false,
+        "hasLowLevelCall": false,
+        "hasSelfdestruct": false,
+        "hasCreate": false,
+        "sendsValue": false,
+        "hasUnchecked": false,
+        "hasTryCatch": false,
+        "readsState": false,
+        "writesState": false
+      }
+    },
+    {
+      "id": "src/dup-a/Duplicate.sol",
+      "kind": "SourceUnit",
+      "name": "src/dup-a/Duplicate.sol",
+      "file": "src/dup-a/Duplicate.sol",
+      "scope": null,
+      "src": {
+        "file": "src/dup-a/Duplicate.sol",
+        "offset": 0,
+        "length": 0,
+        "line": 1,
+        "column": 0
+      },
+      "pragma": "pragma solidity ^0.8.20;",
+      "versionSupport": "supported",
+      "recovered": false,
+      "unresolvedImports": []
+    },
+    {
+      "id": "src/dup-a/Duplicate.sol:Duplicate",
+      "name": "Duplicate",
+      "file": "src/dup-a/Duplicate.sol",
+      "scope": null,
+      "src": {
+        "file": "src/dup-a/Duplicate.sol",
+        "offset": 196,
+        "length": 145,
+        "line": 6,
+        "column": 0
+      },
+      "kind": "Contract",
+      "contractKind": "contract",
+      "baseNames": [],
+      "linearizedBases": [
+        "src/dup-a/Duplicate.sol:Duplicate"
+      ],
+      "linearizationCertainty": "certain",
+      "isFullyImplemented": true,
+      "isTest": false,
+      "isMock": false
+    },
+    {
+      "id": "src/dup-a/Duplicate.sol:Duplicate.which",
+      "name": "which",
+      "file": "src/dup-a/Duplicate.sol",
+      "scope": "src/dup-a/Duplicate.sol:Duplicate",
+      "src": {
+        "file": "src/dup-a/Duplicate.sol",
+        "offset": 221,
+        "length": 25,
+        "line": 7,
+        "column": 4
+      },
+      "kind": "StateVariable",
+      "type": "uint256",
+      "visibility": "public",
+      "isConstant": false,
+      "isImmutable": false,
+      "isTransient": false,
+      "isMapping": false
+    },
+    {
+      "id": "src/dup-a/Duplicate.sol:Duplicate.whoAmI()",
+      "name": "whoAmI",
+      "file": "src/dup-a/Duplicate.sol",
+      "scope": "src/dup-a/Duplicate.sol:Duplicate",
+      "src": {
+        "file": "src/dup-a/Duplicate.sol",
+        "offset": 252,
+        "length": 87,
+        "line": 9,
+        "column": 4
+      },
+      "kind": "Function",
+      "subkind": "function",
+      "visibility": "external",
+      "stateMutability": "pure",
+      "isVirtual": false,
+      "isOverride": false,
+      "modifiers": [],
+      "params": [],
+      "returns": [
+        {
+          "name": null,
+          "type": "string"
+        }
+      ],
+      "hasBody": true,
+      "bodyHash": "37a68f975eb1cacd",
+      "interfaceHash": "80c5a26d49dd0115",
+      "metrics": {
+        "sloc": 3,
+        "cyclomatic": 1,
+        "maxDepth": 1
+      },
+      "flags": {
+        "hasAssembly": false,
+        "hasDelegatecall": false,
+        "hasLowLevelCall": false,
+        "hasSelfdestruct": false,
+        "hasCreate": false,
+        "sendsValue": false,
+        "hasUnchecked": false,
+        "hasTryCatch": false,
+        "readsState": false,
+        "writesState": false
+      }
+    },
+    {
+      "id": "src/dup-b/Duplicate.sol",
+      "kind": "SourceUnit",
+      "name": "src/dup-b/Duplicate.sol",
+      "file": "src/dup-b/Duplicate.sol",
+      "scope": null,
+      "src": {
+        "file": "src/dup-b/Duplicate.sol",
+        "offset": 0,
+        "length": 0,
+        "line": 1,
+        "column": 0
+      },
+      "pragma": "pragma solidity ^0.8.20;",
+      "versionSupport": "supported",
+      "recovered": false,
+      "unresolvedImports": []
+    },
+    {
+      "id": "src/dup-b/Duplicate.sol:Duplicate",
+      "name": "Duplicate",
+      "file": "src/dup-b/Duplicate.sol",
+      "scope": null,
+      "src": {
+        "file": "src/dup-b/Duplicate.sol",
+        "offset": 139,
+        "length": 238,
+        "line": 5,
+        "column": 0
+      },
+      "kind": "Contract",
+      "contractKind": "contract",
+      "baseNames": [],
+      "linearizedBases": [
+        "src/dup-b/Duplicate.sol:Duplicate"
+      ],
+      "linearizationCertainty": "certain",
+      "isFullyImplemented": true,
+      "isTest": false,
+      "isMock": false
+    },
+    {
+      "id": "src/dup-b/Duplicate.sol:Duplicate.claim()",
+      "name": "claim",
+      "file": "src/dup-b/Duplicate.sol",
+      "scope": "src/dup-b/Duplicate.sol:Duplicate",
+      "src": {
+        "file": "src/dup-b/Duplicate.sol",
+        "offset": 314,
+        "length": 61,
+        "line": 13,
+        "column": 4
+      },
+      "kind": "Function",
+      "subkind": "function",
+      "visibility": "external",
+      "stateMutability": "nonpayable",
+      "isVirtual": false,
+      "isOverride": false,
+      "modifiers": [],
+      "params": [],
+      "returns": [],
+      "hasBody": true,
+      "bodyHash": "7ed1888ca7c3d0cd",
+      "interfaceHash": "c0183eb82db10999",
+      "metrics": {
+        "sloc": 3,
+        "cyclomatic": 1,
+        "maxDepth": 1
+      },
+      "flags": {
+        "hasAssembly": false,
+        "hasDelegatecall": false,
+        "hasLowLevelCall": false,
+        "hasSelfdestruct": false,
+        "hasCreate": false,
+        "sendsValue": false,
+        "hasUnchecked": false,
+        "hasTryCatch": false,
+        "readsState": false,
+        "writesState": true
+      }
+    },
+    {
+      "id": "src/dup-b/Duplicate.sol:Duplicate.owner",
+      "name": "owner",
+      "file": "src/dup-b/Duplicate.sol",
+      "scope": "src/dup-b/Duplicate.sol:Duplicate",
+      "src": {
+        "file": "src/dup-b/Duplicate.sol",
+        "offset": 194,
+        "length": 21,
+        "line": 7,
+        "column": 4
+      },
+      "kind": "StateVariable",
+      "type": "address",
+      "visibility": "public",
+      "isConstant": false,
+      "isImmutable": false,
+      "isTransient": false,
+      "isMapping": false
+    },
+    {
+      "id": "src/dup-b/Duplicate.sol:Duplicate.which",
+      "name": "which",
+      "file": "src/dup-b/Duplicate.sol",
+      "scope": "src/dup-b/Duplicate.sol:Duplicate",
+      "src": {
+        "file": "src/dup-b/Duplicate.sol",
+        "offset": 164,
+        "length": 25,
+        "line": 6,
+        "column": 4
+      },
+      "kind": "StateVariable",
+      "type": "uint256",
+      "visibility": "public",
+      "isConstant": false,
+      "isImmutable": false,
+      "isTransient": false,
+      "isMapping": false
+    },
+    {
+      "id": "src/dup-b/Duplicate.sol:Duplicate.whoAmI()",
+      "name": "whoAmI",
+      "file": "src/dup-b/Duplicate.sol",
+      "scope": "src/dup-b/Duplicate.sol:Duplicate",
+      "src": {
+        "file": "src/dup-b/Duplicate.sol",
+        "offset": 221,
+        "length": 87,
+        "line": 9,
+        "column": 4
+      },
+      "kind": "Function",
+      "subkind": "function",
+      "visibility": "external",
+      "stateMutability": "pure",
+      "isVirtual": false,
+      "isOverride": false,
+      "modifiers": [],
+      "params": [],
+      "returns": [
+        {
+          "name": null,
+          "type": "string"
+        }
+      ],
+      "hasBody": true,
+      "bodyHash": "37a68f975eb1cacd",
+      "interfaceHash": "80c5a26d49dd0115",
+      "metrics": {
+        "sloc": 3,
+        "cyclomatic": 1,
+        "maxDepth": 1
+      },
+      "flags": {
+        "hasAssembly": false,
+        "hasDelegatecall": false,
+        "hasLowLevelCall": false,
+        "hasSelfdestruct": false,
+        "hasCreate": false,
+        "sendsValue": false,
+        "hasUnchecked": false,
+        "hasTryCatch": false,
+        "readsState": false,
+        "writesState": false
+      }
+    }
+  ],
+  "edges": [
+    {
+      "id": "src/Assembly.sol:Assembly|src/Assembly.sol:Assembly.codeSize(address)|declares|",
+      "kind": "declares",
+      "from": "src/Assembly.sol:Assembly",
+      "to": "src/Assembly.sol:Assembly.codeSize(address)",
+      "resolution": "heuristic",
+      "src": {
+        "file": "src/Assembly.sol",
+        "offset": 1134,
+        "length": 147,
+        "line": 37,
+        "column": 4
+      },
+      "sites": [
+        {
+          "file": "src/Assembly.sol",
+          "offset": 1134,
+          "length": 147,
+          "line": 37,
+          "column": 4
+        }
+      ],
+      "count": 1,
+      "possibleTargets": []
+    },
+    {
+      "id": "src/Assembly.sol:Assembly|src/Assembly.sol:Assembly.counted(uint256)|declares|",
+      "kind": "declares",
+      "from": "src/Assembly.sol:Assembly",
+      "to": "src/Assembly.sol:Assembly.counted(uint256)",
+      "resolution": "heuristic",
+      "src": {
+        "file": "src/Assembly.sol",
+        "offset": 852,
+        "length": 191,
+        "line": 25,
+        "column": 4
+      },
+      "sites": [
+        {
+          "file": "src/Assembly.sol",
+          "offset": 852,
+          "length": 191,
+          "line": 25,
+          "column": 4
+        }
+      ],
+      "count": 1,
+      "possibleTargets": []
+    },
+    {
+      "id": "src/Assembly.sol:Assembly|src/Assembly.sol:Assembly.destroy(address payable)|declares|",
+      "kind": "declares",
+      "from": "src/Assembly.sol:Assembly",
+      "to": "src/Assembly.sol:Assembly.destroy(address payable)",
+      "resolution": "heuristic",
+      "src": {
+        "file": "src/Assembly.sol",
+        "offset": 1049,
+        "length": 79,
+        "line": 33,
+        "column": 4
+      },
+      "sites": [
+        {
+          "file": "src/Assembly.sol",
+          "offset": 1049,
+          "length": 79,
+          "line": 33,
+          "column": 4
+        }
+      ],
+      "count": 1,
+      "possibleTargets": []
+    },
+    {
+      "id": "src/Assembly.sol:Assembly|src/Assembly.sol:Assembly.readSlot(uint256)|declares|",
+      "kind": "declares",
+      "from": "src/Assembly.sol:Assembly",
+      "to": "src/Assembly.sol:Assembly.readSlot(uint256)",
+      "resolution": "heuristic",
+      "src": {
+        "file": "src/Assembly.sol",
+        "offset": 575,
+        "length": 141,
+        "line": 13,
+        "column": 4
+      },
+      "sites": [
+        {
+          "file": "src/Assembly.sol",
+          "offset": 575,
+          "length": 141,
+          "line": 13,
+          "column": 4
+        }
+      ],
+      "count": 1,
+      "possibleTargets": []
+    },
+    {
+      "id": "src/Assembly.sol:Assembly|src/Assembly.sol:Assembly.slot0|declares|",
+      "kind": "declares",
+      "from": "src/Assembly.sol:Assembly",
+      "to": "src/Assembly.sol:Assembly.slot0",
+      "resolution": "heuristic",
+      "src": {
+        "file": "src/Assembly.sol",
+        "offset": 319,
+        "length": 21,
+        "line": 8,
+        "column": 4
+      },
+      "sites": [
+        {
+          "file": "src/Assembly.sol",
+          "offset": 319,
+          "length": 21,
+          "line": 8,
+          "column": 4
+        }
+      ],
+      "count": 1,
+      "possibleTargets": []
+    },
+    {
+      "id": "src/Assembly.sol:Assembly|src/Assembly.sol:Assembly.writeRaw(uint256,bytes32)|declares|",
+      "kind": "declares",
+      "from": "src/Assembly.sol:Assembly",
+      "to": "src/Assembly.sol:Assembly.writeRaw(uint256,bytes32)",
+      "resolution": "heuristic",
+      "src": {
+        "file": "src/Assembly.sol",
+        "offset": 722,
+        "length": 124,
+        "line": 19,
+        "column": 4
+      },
+      "sites": [
+        {
+          "file": "src/Assembly.sol",
+          "offset": 722,
+          "length": 124,
+          "line": 19,
+          "column": 4
+        }
+      ],
+      "count": 1,
+      "possibleTargets": []
+    },
+    {
+      "id": "src/Assembly.sol|src/Assembly.sol:Assembly|declares|",
+      "kind": "declares",
+      "from": "src/Assembly.sol",
+      "to": "src/Assembly.sol:Assembly",
+      "resolution": "heuristic",
+      "src": {
+        "file": "src/Assembly.sol",
+        "offset": 295,
+        "length": 988,
+        "line": 7,
+        "column": 0
+      },
+      "sites": [
+        {
+          "file": "src/Assembly.sol",
+          "offset": 295,
+          "length": 988,
+          "line": 7,
+          "column": 0
+        }
+      ],
+      "count": 1,
+      "possibleTargets": []
+    },
+    {
+      "id": "src/BadImport.sol:BadImport.poke()|src/BadImport.sol:BadImport.real|reads|",
+      "kind": "reads",
+      "from": "src/BadImport.sol:BadImport.poke()",
+      "to": "src/BadImport.sol:BadImport.real",
+      "resolution": "heuristic",
+      "src": {
+        "file": "src/BadImport.sol",
+        "offset": 474,
+        "length": 4,
+        "line": 16,
+        "column": 15
+      },
+      "sites": [
+        {
+          "file": "src/BadImport.sol",
+          "offset": 474,
+          "length": 4,
+          "line": 16,
+          "column": 15
+        }
+      ],
+      "count": 1,
+      "possibleTargets": []
+    },
+    {
+      "id": "src/BadImport.sol:BadImport|src/BadImport.sol:BadImport.phantom|declares|",
+      "kind": "declares",
+      "from": "src/BadImport.sol:BadImport",
+      "to": "src/BadImport.sol:BadImport.phantom",
+      "resolution": "heuristic",
+      "src": {
+        "file": "src/BadImport.sol",
+        "offset": 380,
+        "length": 23,
+        "line": 13,
+        "column": 4
+      },
+      "sites": [
+        {
+          "file": "src/BadImport.sol",
+          "offset": 380,
+          "length": 23,
+          "line": 13,
+          "column": 4
+        }
+      ],
+      "count": 1,
+      "possibleTargets": []
+    },
+    {
+      "id": "src/BadImport.sol:BadImport|src/BadImport.sol:BadImport.poke()|declares|",
+      "kind": "declares",
+      "from": "src/BadImport.sol:BadImport",
+      "to": "src/BadImport.sol:BadImport.poke()",
+      "resolution": "heuristic",
+      "src": {
+        "file": "src/BadImport.sol",
+        "offset": 409,
+        "length": 84,
+        "line": 15,
+        "column": 4
+      },
+      "sites": [
+        {
+          "file": "src/BadImport.sol",
+          "offset": 409,
+          "length": 84,
+          "line": 15,
+          "column": 4
+        }
+      ],
+      "count": 1,
+      "possibleTargets": []
+    },
+    {
+      "id": "src/BadImport.sol:BadImport|src/BadImport.sol:BadImport.real|declares|",
+      "kind": "declares",
+      "from": "src/BadImport.sol:BadImport",
+      "to": "src/BadImport.sol:BadImport.real",
+      "resolution": "heuristic",
+      "src": {
+        "file": "src/BadImport.sol",
+        "offset": 354,
+        "length": 21,
+        "line": 12,
+        "column": 4
+      },
+      "sites": [
+        {
+          "file": "src/BadImport.sol",
+          "offset": 354,
+          "length": 21,
+          "line": 12,
+          "column": 4
+        }
+      ],
+      "count": 1,
+      "possibleTargets": []
+    },
+    {
+      "id": "src/BadImport.sol|src/BadImport.sol:BadImport|declares|",
+      "kind": "declares",
+      "from": "src/BadImport.sol",
+      "to": "src/BadImport.sol:BadImport",
+      "resolution": "heuristic",
+      "src": {
+        "file": "src/BadImport.sol",
+        "offset": 329,
+        "length": 166,
+        "line": 11,
+        "column": 0
+      },
+      "sites": [
+        {
+          "file": "src/BadImport.sol",
+          "offset": 329,
+          "length": 166,
+          "line": 11,
+          "column": 0
+        }
+      ],
+      "count": 1,
+      "possibleTargets": []
+    },
+    {
+      "id": "src/Crlf.sol:Crlf.get()|src/Crlf.sol:Crlf.value|reads|",
+      "kind": "reads",
+      "from": "src/Crlf.sol:Crlf.get()",
+      "to": "src/Crlf.sol:Crlf.value",
+      "resolution": "heuristic",
+      "src": {
+        "file": "src/Crlf.sol",
+        "offset": 570,
+        "length": 5,
+        "line": 16,
+        "column": 15
+      },
+      "sites": [
+        {
+          "file": "src/Crlf.sol",
+          "offset": 570,
+          "length": 5,
+          "line": 16,
+          "column": 15
+        }
+      ],
+      "count": 1,
+      "possibleTargets": []
+    },
+    {
+      "id": "src/Crlf.sol:Crlf.set(uint256)|src/Crlf.sol:Crlf.value|writes|",
+      "kind": "writes",
+      "from": "src/Crlf.sol:Crlf.set(uint256)",
+      "to": "src/Crlf.sol:Crlf.value",
+      "resolution": "heuristic",
+      "src": {
+        "file": "src/Crlf.sol",
+        "offset": 480,
+        "length": 5,
+        "line": 12,
+        "column": 8
+      },
+      "sites": [
+        {
+          "file": "src/Crlf.sol",
+          "offset": 480,
+          "length": 5,
+          "line": 12,
+          "column": 8
+        }
+      ],
+      "count": 1,
+      "possibleTargets": []
+    },
+    {
+      "id": "src/Crlf.sol:Crlf|src/Crlf.sol:Crlf.get()|declares|",
+      "kind": "declares",
+      "from": "src/Crlf.sol:Crlf",
+      "to": "src/Crlf.sol:Crlf.get()",
+      "resolution": "heuristic",
+      "src": {
+        "file": "src/Crlf.sol",
+        "offset": 505,
+        "length": 78,
+        "line": 15,
+        "column": 4
+      },
+      "sites": [
+        {
+          "file": "src/Crlf.sol",
+          "offset": 505,
+          "length": 78,
+          "line": 15,
+          "column": 4
+        }
+      ],
+      "count": 1,
+      "possibleTargets": []
+    },
+    {
+      "id": "src/Crlf.sol:Crlf|src/Crlf.sol:Crlf.set(uint256)|declares|",
+      "kind": "declares",
+      "from": "src/Crlf.sol:Crlf",
+      "to": "src/Crlf.sol:Crlf.set(uint256)",
+      "resolution": "heuristic",
+      "src": {
+        "file": "src/Crlf.sol",
+        "offset": 436,
+        "length": 61,
+        "line": 11,
+        "column": 4
+      },
+      "sites": [
+        {
+          "file": "src/Crlf.sol",
+          "offset": 436,
+          "length": 61,
+          "line": 11,
+          "column": 4
+        }
+      ],
+      "count": 1,
+      "possibleTargets": []
+    },
+    {
+      "id": "src/Crlf.sol:Crlf|src/Crlf.sol:Crlf.value|declares|",
+      "kind": "declares",
+      "from": "src/Crlf.sol:Crlf",
+      "to": "src/Crlf.sol:Crlf.value",
+      "resolution": "heuristic",
+      "src": {
+        "file": "src/Crlf.sol",
+        "offset": 319,
+        "length": 21,
+        "line": 8,
+        "column": 4
+      },
+      "sites": [
+        {
+          "file": "src/Crlf.sol",
+          "offset": 319,
+          "length": 21,
+          "line": 8,
+          "column": 4
+        }
+      ],
+      "count": 1,
+      "possibleTargets": []
+    },
+    {
+      "id": "src/Crlf.sol|src/Crlf.sol:Crlf|declares|",
+      "kind": "declares",
+      "from": "src/Crlf.sol",
+      "to": "src/Crlf.sol:Crlf",
+      "resolution": "heuristic",
+      "src": {
+        "file": "src/Crlf.sol",
+        "offset": 298,
+        "length": 288,
+        "line": 7,
+        "column": 0
+      },
+      "sites": [
+        {
+          "file": "src/Crlf.sol",
+          "offset": 298,
+          "length": 288,
+          "line": 7,
+          "column": 0
+        }
+      ],
+      "count": 1,
+      "possibleTargets": []
+    },
+    {
+      "id": "src/DoesNotCompile.sol:DoesNotCompile.broken()|src/DoesNotCompile.sol:DoesNotCompile.count|writes|",
+      "kind": "writes",
+      "from": "src/DoesNotCompile.sol:DoesNotCompile.broken()",
+      "to": "src/DoesNotCompile.sol:DoesNotCompile.count",
+      "resolution": "heuristic",
+      "src": {
+        "file": "src/DoesNotCompile.sol",
+        "offset": 589,
+        "length": 5,
+        "line": 17,
+        "column": 8
+      },
+      "sites": [
+        {
+          "file": "src/DoesNotCompile.sol",
+          "offset": 589,
+          "length": 5,
+          "line": 17,
+          "column": 8
+        }
+      ],
+      "count": 1,
+      "possibleTargets": []
+    },
+    {
+      "id": "src/DoesNotCompile.sol:DoesNotCompile.increment()|src/DoesNotCompile.sol:DoesNotCompile.count|reads|",
+      "kind": "reads",
+      "from": "src/DoesNotCompile.sol:DoesNotCompile.increment()",
+      "to": "src/DoesNotCompile.sol:DoesNotCompile.count",
+      "resolution": "heuristic",
+      "src": {
+        "file": "src/DoesNotCompile.sol",
+        "offset": 454,
+        "length": 5,
+        "line": 12,
+        "column": 8
+      },
+      "sites": [
+        {
+          "file": "src/DoesNotCompile.sol",
+          "offset": 454,
+          "length": 5,
+          "line": 12,
+          "column": 8
+        }
+      ],
+      "count": 1,
+      "possibleTargets": []
+    },
+    {
+      "id": "src/DoesNotCompile.sol:DoesNotCompile.increment()|src/DoesNotCompile.sol:DoesNotCompile.count|writes|",
+      "kind": "writes",
+      "from": "src/DoesNotCompile.sol:DoesNotCompile.increment()",
+      "to": "src/DoesNotCompile.sol:DoesNotCompile.count",
+      "resolution": "heuristic",
+      "src": {
+        "file": "src/DoesNotCompile.sol",
+        "offset": 454,
+        "length": 5,
+        "line": 12,
+        "column": 8
+      },
+      "sites": [
+        {
+          "file": "src/DoesNotCompile.sol",
+          "offset": 454,
+          "length": 5,
+          "line": 12,
+          "column": 8
+        }
+      ],
+      "count": 1,
+      "possibleTargets": []
+    },
+    {
+      "id": "src/DoesNotCompile.sol:DoesNotCompile|src/DoesNotCompile.sol:DoesNotCompile.alsoBroken()|declares|",
+      "kind": "declares",
+      "from": "src/DoesNotCompile.sol:DoesNotCompile",
+      "to": "src/DoesNotCompile.sol:DoesNotCompile.alsoBroken()",
+      "resolution": "heuristic",
+      "src": {
+        "file": "src/DoesNotCompile.sol",
+        "offset": 683,
+        "length": 95,
+        "line": 21,
+        "column": 4
+      },
+      "sites": [
+        {
+          "file": "src/DoesNotCompile.sol",
+          "offset": 683,
+          "length": 95,
+          "line": 21,
+          "column": 4
+        }
+      ],
+      "count": 1,
+      "possibleTargets": []
+    },
+    {
+      "id": "src/DoesNotCompile.sol:DoesNotCompile|src/DoesNotCompile.sol:DoesNotCompile.broken()|declares|",
+      "kind": "declares",
+      "from": "src/DoesNotCompile.sol:DoesNotCompile",
+      "to": "src/DoesNotCompile.sol:DoesNotCompile.broken()",
+      "resolution": "heuristic",
+      "src": {
+        "file": "src/DoesNotCompile.sol",
+        "offset": 552,
+        "length": 66,
+        "line": 16,
+        "column": 4
+      },
+      "sites": [
+        {
+          "file": "src/DoesNotCompile.sol",
+          "offset": 552,
+          "length": 66,
+          "line": 16,
+          "column": 4
+        }
+      ],
+      "count": 1,
+      "possibleTargets": []
+    },
+    {
+      "id": "src/DoesNotCompile.sol:DoesNotCompile|src/DoesNotCompile.sol:DoesNotCompile.count|declares|",
+      "kind": "declares",
+      "from": "src/DoesNotCompile.sol:DoesNotCompile",
+      "to": "src/DoesNotCompile.sol:DoesNotCompile.count",
+      "resolution": "heuristic",
+      "src": {
+        "file": "src/DoesNotCompile.sol",
+        "offset": 315,
+        "length": 21,
+        "line": 8,
+        "column": 4
+      },
+      "sites": [
+        {
+          "file": "src/DoesNotCompile.sol",
+          "offset": 315,
+          "length": 21,
+          "line": 8,
+          "column": 4
+        }
+      ],
+      "count": 1,
+      "possibleTargets": []
+    },
+    {
+      "id": "src/DoesNotCompile.sol:DoesNotCompile|src/DoesNotCompile.sol:DoesNotCompile.identity(uint256)|declares|",
+      "kind": "declares",
+      "from": "src/DoesNotCompile.sol:DoesNotCompile",
+      "to": "src/DoesNotCompile.sol:DoesNotCompile.identity(uint256)",
+      "resolution": "heuristic",
+      "src": {
+        "file": "src/DoesNotCompile.sol",
+        "offset": 784,
+        "length": 86,
+        "line": 25,
+        "column": 4
+      },
+      "sites": [
+        {
+          "file": "src/DoesNotCompile.sol",
+          "offset": 784,
+          "length": 86,
+          "line": 25,
+          "column": 4
+        }
+      ],
+      "count": 1,
+      "possibleTargets": []
+    },
+    {
+      "id": "src/DoesNotCompile.sol:DoesNotCompile|src/DoesNotCompile.sol:DoesNotCompile.increment()|declares|",
+      "kind": "declares",
+      "from": "src/DoesNotCompile.sol:DoesNotCompile",
+      "to": "src/DoesNotCompile.sol:DoesNotCompile.increment()",
+      "resolution": "heuristic",
+      "src": {
+        "file": "src/DoesNotCompile.sol",
+        "offset": 414,
+        "length": 74,
+        "line": 11,
+        "column": 4
+      },
+      "sites": [
+        {
+          "file": "src/DoesNotCompile.sol",
+          "offset": 414,
+          "length": 74,
+          "line": 11,
+          "column": 4
+        }
+      ],
+      "count": 1,
+      "possibleTargets": []
+    },
+    {
+      "id": "src/DoesNotCompile.sol:DoesNotCompile|src/DoesNotCompile.sol:DoesNotCompile.noReturn()|declares|",
+      "kind": "declares",
+      "from": "src/DoesNotCompile.sol:DoesNotCompile",
+      "to": "src/DoesNotCompile.sol:DoesNotCompile.noReturn()",
+      "resolution": "heuristic",
+      "src": {
+        "file": "src/DoesNotCompile.sol",
+        "offset": 931,
+        "length": 54,
+        "line": 30,
+        "column": 4
+      },
+      "sites": [
+        {
+          "file": "src/DoesNotCompile.sol",
+          "offset": 931,
+          "length": 54,
+          "line": 30,
+          "column": 4
+        }
+      ],
+      "count": 1,
+      "possibleTargets": []
+    },
+    {
+      "id": "src/DoesNotCompile.sol|src/DoesNotCompile.sol:DoesNotCompile|declares|",
+      "kind": "declares",
+      "from": "src/DoesNotCompile.sol",
+      "to": "src/DoesNotCompile.sol:DoesNotCompile",
+      "resolution": "heuristic",
+      "src": {
+        "file": "src/DoesNotCompile.sol",
+        "offset": 285,
+        "length": 702,
+        "line": 7,
+        "column": 0
+      },
+      "sites": [
+        {
+          "file": "src/DoesNotCompile.sol",
+          "offset": 285,
+          "length": 702,
+          "line": 7,
+          "column": 0
+        }
+      ],
+      "count": 1,
+      "possibleTargets": []
+    },
+    {
+      "id": "src/Indirect.sol:IThing|src/Indirect.sol:IThing.work(uint256)|declares|",
+      "kind": "declares",
+      "from": "src/Indirect.sol:IThing",
+      "to": "src/Indirect.sol:IThing.work(uint256)",
+      "resolution": "heuristic",
+      "src": {
+        "file": "src/Indirect.sol",
+        "offset": 81,
+        "length": 52,
+        "line": 5,
+        "column": 4
+      },
+      "sites": [
+        {
+          "file": "src/Indirect.sol",
+          "offset": 81,
+          "length": 52,
+          "line": 5,
+          "column": 4
+        }
+      ],
+      "count": 1,
+      "possibleTargets": []
+    },
+    {
+      "id": "src/Indirect.sol:Indirect.choose(bool)|src/Indirect.sol:Indirect.transform|writes|",
+      "kind": "writes",
+      "from": "src/Indirect.sol:Indirect.choose(bool)",
+      "to": "src/Indirect.sol:Indirect.transform",
+      "resolution": "heuristic",
+      "src": {
+        "file": "src/Indirect.sol",
+        "offset": 768,
+        "length": 9,
+        "line": 29,
+        "column": 8
+      },
+      "sites": [
+        {
+          "file": "src/Indirect.sol",
+          "offset": 768,
+          "length": 9,
+          "line": 29,
+          "column": 8
+        }
+      ],
+      "count": 1,
+      "possibleTargets": []
+    },
+    {
+      "id": "src/Indirect.sol:Indirect.guarded(uint256)|src/Indirect.sol:Indirect!Failed(string)|reverts|",
+      "kind": "reverts",
+      "from": "src/Indirect.sol:Indirect.guarded(uint256)",
+      "to": "src/Indirect.sol:Indirect!Failed(string)",
+      "resolution": "heuristic",
+      "src": {
+        "file": "src/Indirect.sol",
+        "offset": 1663,
+        "length": 22,
+        "line": 51,
+        "column": 12
+      },
+      "sites": [
+        {
+          "file": "src/Indirect.sol",
+          "offset": 1663,
+          "length": 22,
+          "line": 51,
+          "column": 12
+        }
+      ],
+      "count": 1,
+      "possibleTargets": []
+    },
+    {
+      "id": "src/Indirect.sol:Indirect.guarded(uint256)|src/Indirect.sol:Indirect.target|reads|",
+      "kind": "reads",
+      "from": "src/Indirect.sol:Indirect.guarded(uint256)",
+      "to": "src/Indirect.sol:Indirect.target",
+      "resolution": "heuristic",
+      "src": {
+        "file": "src/Indirect.sol",
+        "offset": 1516,
+        "length": 6,
+        "line": 47,
+        "column": 19
+      },
+      "sites": [
+        {
+          "file": "src/Indirect.sol",
+          "offset": 1516,
+          "length": 6,
+          "line": 47,
+          "column": 19
+        }
+      ],
+      "count": 1,
+      "possibleTargets": []
+    },
+    {
+      "id": "src/Indirect.sol:Indirect.guarded(uint256)|src/Indirect.sol:Indirect^Result(uint256)|emits|",
+      "kind": "emits",
+      "from": "src/Indirect.sol:Indirect.guarded(uint256)",
+      "to": "src/Indirect.sol:Indirect^Result(uint256)",
+      "resolution": "heuristic",
+      "src": {
+        "file": "src/Indirect.sol",
+        "offset": 1589,
+        "length": 15,
+        "line": 49,
+        "column": 12
+      },
+      "sites": [
+        {
+          "file": "src/Indirect.sol",
+          "offset": 1589,
+          "length": 15,
+          "line": 49,
+          "column": 12
+        }
+      ],
+      "count": 1,
+      "possibleTargets": []
+    },
+    {
+      "id": "src/Indirect.sol:Indirect.raw(bytes4,uint256)|src/Indirect.sol:Indirect!Failed(string)|reverts|",
+      "kind": "reverts",
+      "from": "src/Indirect.sol:Indirect.raw(bytes4,uint256)",
+      "to": "src/Indirect.sol:Indirect!Failed(string)",
+      "resolution": "heuristic",
+      "src": {
+        "file": "src/Indirect.sol",
+        "offset": 1297,
+        "length": 29,
+        "line": 41,
+        "column": 17
+      },
+      "sites": [
+        {
+          "file": "src/Indirect.sol",
+          "offset": 1297,
+          "length": 29,
+          "line": 41,
+          "column": 17
+        }
+      ],
+      "count": 1,
+      "possibleTargets": []
+    },
+    {
+      "id": "src/Indirect.sol:Indirect.raw(bytes4,uint256)|src/Indirect.sol:Indirect.target|reads|",
+      "kind": "reads",
+      "from": "src/Indirect.sol:Indirect.raw(bytes4,uint256)",
+      "to": "src/Indirect.sol:Indirect.target",
+      "resolution": "heuristic",
+      "src": {
+        "file": "src/Indirect.sol",
+        "offset": 1228,
+        "length": 6,
+        "line": 40,
+        "column": 39
+      },
+      "sites": [
+        {
+          "file": "src/Indirect.sol",
+          "offset": 1228,
+          "length": 6,
+          "line": 40,
+          "column": 39
+        }
+      ],
+      "count": 1,
+      "possibleTargets": []
+    },
+    {
+      "id": "src/Indirect.sol:Indirect|src/Indirect.sol:Indirect!Failed(string)|declares|",
+      "kind": "declares",
+      "from": "src/Indirect.sol:Indirect",
+      "to": "src/Indirect.sol:Indirect!Failed(string)",
+      "resolution": "heuristic",
+      "src": {
+        "file": "src/Indirect.sol",
+        "offset": 308,
+        "length": 28,
+        "line": 11,
+        "column": 4
+      },
+      "sites": [
+        {
+          "file": "src/Indirect.sol",
+          "offset": 308,
+          "length": 28,
+          "line": 11,
+          "column": 4
+        }
+      ],
+      "count": 1,
+      "possibleTargets": []
+    },
+    {
+      "id": "src/Indirect.sol:Indirect|src/Indirect.sol:Indirect.apply_(uint256)|declares|",
+      "kind": "declares",
+      "from": "src/Indirect.sol:Indirect",
+      "to": "src/Indirect.sol:Indirect.apply_(uint256)",
+      "resolution": "heuristic",
+      "src": {
+        "file": "src/Indirect.sol",
+        "offset": 902,
+        "length": 95,
+        "line": 33,
+        "column": 4
+      },
+      "sites": [
+        {
+          "file": "src/Indirect.sol",
+          "offset": 902,
+          "length": 95,
+          "line": 33,
+          "column": 4
+        }
+      ],
+      "count": 1,
+      "possibleTargets": []
+    },
+    {
+      "id": "src/Indirect.sol:Indirect|src/Indirect.sol:Indirect.choose(bool)|declares|",
+      "kind": "declares",
+      "from": "src/Indirect.sol:Indirect",
+      "to": "src/Indirect.sol:Indirect.choose(bool)",
+      "resolution": "heuristic",
+      "src": {
+        "file": "src/Indirect.sol",
+        "offset": 717,
+        "length": 97,
+        "line": 28,
+        "column": 4
+      },
+      "sites": [
+        {
+          "file": "src/Indirect.sol",
+          "offset": 717,
+          "length": 97,
+          "line": 28,
+          "column": 4
+        }
+      ],
+      "count": 1,
+      "possibleTargets": []
+    },
+    {
+      "id": "src/Indirect.sol:Indirect|src/Indirect.sol:Indirect.double(uint256)|declares|",
+      "kind": "declares",
+      "from": "src/Indirect.sol:Indirect",
+      "to": "src/Indirect.sol:Indirect.double(uint256)",
+      "resolution": "heuristic",
+      "src": {
+        "file": "src/Indirect.sol",
+        "offset": 529,
+        "length": 88,
+        "line": 20,
+        "column": 4
+      },
+      "sites": [
+        {
+          "file": "src/Indirect.sol",
+          "offset": 529,
+          "length": 88,
+          "line": 20,
+          "column": 4
+        }
+      ],
+      "count": 1,
+      "possibleTargets": []
+    },
+    {
+      "id": "src/Indirect.sol:Indirect|src/Indirect.sol:Indirect.guarded(uint256)|declares|",
+      "kind": "declares",
+      "from": "src/Indirect.sol:Indirect",
+      "to": "src/Indirect.sol:Indirect.guarded(uint256)",
+      "resolution": "heuristic",
+      "src": {
+        "file": "src/Indirect.sol",
+        "offset": 1434,
+        "length": 395,
+        "line": 46,
+        "column": 4
+      },
+      "sites": [
+        {
+          "file": "src/Indirect.sol",
+          "offset": 1434,
+          "length": 395,
+          "line": 46,
+          "column": 4
+        }
+      ],
+      "count": 1,
+      "possibleTargets": []
+    },
+    {
+      "id": "src/Indirect.sol:Indirect|src/Indirect.sol:Indirect.pick(address)|declares|",
+      "kind": "declares",
+      "from": "src/Indirect.sol:Indirect",
+      "to": "src/Indirect.sol:Indirect.pick(address)",
+      "resolution": "heuristic",
+      "src": {
+        "file": "src/Indirect.sol",
+        "offset": 2062,
+        "length": 98,
+        "line": 65,
+        "column": 4
+      },
+      "sites": [
+        {
+          "file": "src/Indirect.sol",
+          "offset": 2062,
+          "length": 98,
+          "line": 65,
+          "column": 4
+        }
+      ],
+      "count": 1,
+      "possibleTargets": []
+    },
+    {
+      "id": "src/Indirect.sol:Indirect|src/Indirect.sol:Indirect.pick(uint256)|declares|",
+      "kind": "declares",
+      "from": "src/Indirect.sol:Indirect",
+      "to": "src/Indirect.sol:Indirect.pick(uint256)",
+      "resolution": "heuristic",
+      "src": {
+        "file": "src/Indirect.sol",
+        "offset": 1976,
+        "length": 80,
+        "line": 61,
+        "column": 4
+      },
+      "sites": [
+        {
+          "file": "src/Indirect.sol",
+          "offset": 1976,
+          "length": 80,
+          "line": 61,
+          "column": 4
+        }
+      ],
+      "count": 1,
+      "possibleTargets": []
+    },
+    {
+      "id": "src/Indirect.sol:Indirect|src/Indirect.sol:Indirect.raw(bytes4,uint256)|declares|",
+      "kind": "declares",
+      "from": "src/Indirect.sol:Indirect",
+      "to": "src/Indirect.sol:Indirect.raw(bytes4,uint256)",
+      "resolution": "heuristic",
+      "src": {
+        "file": "src/Indirect.sol",
+        "offset": 1112,
+        "length": 241,
+        "line": 39,
+        "column": 4
+      },
+      "sites": [
+        {
+          "file": "src/Indirect.sol",
+          "offset": 1112,
+          "length": 241,
+          "line": 39,
+          "column": 4
+        }
+      ],
+      "count": 1,
+      "possibleTargets": []
+    },
+    {
+      "id": "src/Indirect.sol:Indirect|src/Indirect.sol:Indirect.target|declares|",
+      "kind": "declares",
+      "from": "src/Indirect.sol:Indirect",
+      "to": "src/Indirect.sol:Indirect.target",
+      "resolution": "heuristic",
+      "src": {
+        "file": "src/Indirect.sol",
+        "offset": 501,
+        "length": 22,
+        "line": 18,
+        "column": 4
+      },
+      "sites": [
+        {
+          "file": "src/Indirect.sol",
+          "offset": 501,
+          "length": 22,
+          "line": 18,
+          "column": 4
+        }
+      ],
+      "count": 1,
+      "possibleTargets": []
+    },
+    {
+      "id": "src/Indirect.sol:Indirect|src/Indirect.sol:Indirect.transform|declares|",
+      "kind": "declares",
+      "from": "src/Indirect.sol:Indirect",
+      "to": "src/Indirect.sol:Indirect.transform",
+      "resolution": "heuristic",
+      "src": {
+        "file": "src/Indirect.sol",
+        "offset": 426,
+        "length": 69,
+        "line": 16,
+        "column": 4
+      },
+      "sites": [
+        {
+          "file": "src/Indirect.sol",
+          "offset": 426,
+          "length": 69,
+          "line": 16,
+          "column": 4
+        }
+      ],
+      "count": 1,
+      "possibleTargets": []
+    },
+    {
+      "id": "src/Indirect.sol:Indirect|src/Indirect.sol:Indirect.triple(uint256)|declares|",
+      "kind": "declares",
+      "from": "src/Indirect.sol:Indirect",
+      "to": "src/Indirect.sol:Indirect.triple(uint256)",
+      "resolution": "heuristic",
+      "src": {
+        "file": "src/Indirect.sol",
+        "offset": 623,
+        "length": 88,
+        "line": 24,
+        "column": 4
+      },
+      "sites": [
+        {
+          "file": "src/Indirect.sol",
+          "offset": 623,
+          "length": 88,
+          "line": 24,
+          "column": 4
+        }
+      ],
+      "count": 1,
+      "possibleTargets": []
+    },
+    {
+      "id": "src/Indirect.sol:Indirect|src/Indirect.sol:Indirect^Result(uint256)|declares|",
+      "kind": "declares",
+      "from": "src/Indirect.sol:Indirect",
+      "to": "src/Indirect.sol:Indirect^Result(uint256)",
+      "resolution": "heuristic",
+      "src": {
+        "file": "src/Indirect.sol",
+        "offset": 342,
+        "length": 28,
+        "line": 13,
+        "column": 4
+      },
+      "sites": [
+        {
+          "file": "src/Indirect.sol",
+          "offset": 342,
+          "length": 28,
+          "line": 13,
+          "column": 4
+        }
+      ],
+      "count": 1,
+      "possibleTargets": []
+    },
+    {
+      "id": "src/Indirect.sol|src/Indirect.sol:IThing|declares|",
+      "kind": "declares",
+      "from": "src/Indirect.sol",
+      "to": "src/Indirect.sol:IThing",
+      "resolution": "heuristic",
+      "src": {
+        "file": "src/Indirect.sol",
+        "offset": 58,
+        "length": 77,
+        "line": 4,
+        "column": 0
+      },
+      "sites": [
+        {
+          "file": "src/Indirect.sol",
+          "offset": 58,
+          "length": 77,
+          "line": 4,
+          "column": 0
+        }
+      ],
+      "count": 1,
+      "possibleTargets": []
+    },
+    {
+      "id": "src/Indirect.sol|src/Indirect.sol:Indirect|declares|",
+      "kind": "declares",
+      "from": "src/Indirect.sol",
+      "to": "src/Indirect.sol:Indirect",
+      "resolution": "heuristic",
+      "src": {
+        "file": "src/Indirect.sol",
+        "offset": 284,
+        "length": 1878,
+        "line": 10,
+        "column": 0
+      },
+      "sites": [
+        {
+          "file": "src/Indirect.sol",
+          "offset": 284,
+          "length": 1878,
+          "line": 10,
+          "column": 0
+        }
+      ],
+      "count": 1,
+      "possibleTargets": []
+    },
+    {
+      "id": "src/Legacy.sol:Legacy#onlyOwner|src/Legacy.sol:Legacy.owner|reads|",
+      "kind": "reads",
+      "from": "src/Legacy.sol:Legacy#onlyOwner",
+      "to": "src/Legacy.sol:Legacy.owner",
+      "resolution": "heuristic",
+      "src": {
+        "file": "src/Legacy.sol",
+        "offset": 458,
+        "length": 5,
+        "line": 16,
+        "column": 30
+      },
+      "sites": [
+        {
+          "file": "src/Legacy.sol",
+          "offset": 458,
+          "length": 5,
+          "line": 16,
+          "column": 30
+        }
+      ],
+      "count": 1,
+      "possibleTargets": []
+    },
+    {
+      "id": "src/Legacy.sol:Legacy.add(uint256)|src/Legacy.sol:Legacy#onlyOwner|modifiedBy|",
+      "kind": "modifiedBy",
+      "from": "src/Legacy.sol:Legacy.add(uint256)",
+      "to": "src/Legacy.sol:Legacy#onlyOwner",
+      "resolution": "heuristic",
+      "src": {
+        "file": "src/Legacy.sol",
+        "offset": 501,
+        "length": 78,
+        "line": 20,
+        "column": 4
+      },
+      "sites": [
+        {
+          "file": "src/Legacy.sol",
+          "offset": 501,
+          "length": 78,
+          "line": 20,
+          "column": 4
+        }
+      ],
+      "count": 1,
+      "possibleTargets": []
+    },
+    {
+      "id": "src/Legacy.sol:Legacy.add(uint256)|src/Legacy.sol:Legacy.total|reads|",
+      "kind": "reads",
+      "from": "src/Legacy.sol:Legacy.add(uint256)",
+      "to": "src/Legacy.sol:Legacy.total",
+      "resolution": "heuristic",
+      "src": {
+        "file": "src/Legacy.sol",
+        "offset": 557,
+        "length": 5,
+        "line": 21,
+        "column": 8
+      },
+      "sites": [
+        {
+          "file": "src/Legacy.sol",
+          "offset": 557,
+          "length": 5,
+          "line": 21,
+          "column": 8
+        }
+      ],
+      "count": 1,
+      "possibleTargets": []
+    },
+    {
+      "id": "src/Legacy.sol:Legacy.add(uint256)|src/Legacy.sol:Legacy.total|writes|",
+      "kind": "writes",
+      "from": "src/Legacy.sol:Legacy.add(uint256)",
+      "to": "src/Legacy.sol:Legacy.total",
+      "resolution": "heuristic",
+      "src": {
+        "file": "src/Legacy.sol",
+        "offset": 557,
+        "length": 5,
+        "line": 21,
+        "column": 8
+      },
+      "sites": [
+        {
+          "file": "src/Legacy.sol",
+          "offset": 557,
+          "length": 5,
+          "line": 21,
+          "column": 8
+        }
+      ],
+      "count": 1,
+      "possibleTargets": []
+    },
+    {
+      "id": "src/Legacy.sol:Legacy.constructor()|src/Legacy.sol:Legacy.owner|writes|",
+      "kind": "writes",
+      "from": "src/Legacy.sol:Legacy.constructor()",
+      "to": "src/Legacy.sol:Legacy.owner",
+      "resolution": "heuristic",
+      "src": {
+        "file": "src/Legacy.sol",
+        "offset": 374,
+        "length": 5,
+        "line": 12,
+        "column": 8
+      },
+      "sites": [
+        {
+          "file": "src/Legacy.sol",
+          "offset": 374,
+          "length": 5,
+          "line": 12,
+          "column": 8
+        }
+      ],
+      "count": 1,
+      "possibleTargets": []
+    },
+    {
+      "id": "src/Legacy.sol:Legacy|src/Legacy.sol:Legacy#onlyOwner|declares|",
+      "kind": "declares",
+      "from": "src/Legacy.sol:Legacy",
+      "to": "src/Legacy.sol:Legacy#onlyOwner",
+      "resolution": "heuristic",
+      "src": {
+        "file": "src/Legacy.sol",
+        "offset": 405,
+        "length": 90,
+        "line": 15,
+        "column": 4
+      },
+      "sites": [
+        {
+          "file": "src/Legacy.sol",
+          "offset": 405,
+          "length": 90,
+          "line": 15,
+          "column": 4
+        }
+      ],
+      "count": 1,
+      "possibleTargets": []
+    },
+    {
+      "id": "src/Legacy.sol:Legacy|src/Legacy.sol:Legacy.add(uint256)|declares|",
+      "kind": "declares",
+      "from": "src/Legacy.sol:Legacy",
+      "to": "src/Legacy.sol:Legacy.add(uint256)",
+      "resolution": "heuristic",
+      "src": {
+        "file": "src/Legacy.sol",
+        "offset": 501,
+        "length": 78,
+        "line": 20,
+        "column": 4
+      },
+      "sites": [
+        {
+          "file": "src/Legacy.sol",
+          "offset": 501,
+          "length": 78,
+          "line": 20,
+          "column": 4
+        }
+      ],
+      "count": 1,
+      "possibleTargets": []
+    },
+    {
+      "id": "src/Legacy.sol:Legacy|src/Legacy.sol:Legacy.constructor()|declares|",
+      "kind": "declares",
+      "from": "src/Legacy.sol:Legacy",
+      "to": "src/Legacy.sol:Legacy.constructor()",
+      "resolution": "heuristic",
+      "src": {
+        "file": "src/Legacy.sol",
+        "offset": 343,
+        "length": 56,
+        "line": 11,
+        "column": 4
+      },
+      "sites": [
+        {
+          "file": "src/Legacy.sol",
+          "offset": 343,
+          "length": 56,
+          "line": 11,
+          "column": 4
+        }
+      ],
+      "count": 1,
+      "possibleTargets": []
+    },
+    {
+      "id": "src/Legacy.sol:Legacy|src/Legacy.sol:Legacy.owner|declares|",
+      "kind": "declares",
+      "from": "src/Legacy.sol:Legacy",
+      "to": "src/Legacy.sol:Legacy.owner",
+      "resolution": "heuristic",
+      "src": {
+        "file": "src/Legacy.sol",
+        "offset": 290,
+        "length": 21,
+        "line": 8,
+        "column": 4
+      },
+      "sites": [
+        {
+          "file": "src/Legacy.sol",
+          "offset": 290,
+          "length": 21,
+          "line": 8,
+          "column": 4
+        }
+      ],
+      "count": 1,
+      "possibleTargets": []
+    },
+    {
+      "id": "src/Legacy.sol:Legacy|src/Legacy.sol:Legacy.total|declares|",
+      "kind": "declares",
+      "from": "src/Legacy.sol:Legacy",
+      "to": "src/Legacy.sol:Legacy.total",
+      "resolution": "heuristic",
+      "src": {
+        "file": "src/Legacy.sol",
+        "offset": 316,
+        "length": 21,
+        "line": 9,
+        "column": 4
+      },
+      "sites": [
+        {
+          "file": "src/Legacy.sol",
+          "offset": 316,
+          "length": 21,
+          "line": 9,
+          "column": 4
+        }
+      ],
+      "count": 1,
+      "possibleTargets": []
+    },
+    {
+      "id": "src/Legacy.sol|src/Legacy.sol:Legacy|declares|",
+      "kind": "declares",
+      "from": "src/Legacy.sol",
+      "to": "src/Legacy.sol:Legacy",
+      "resolution": "heuristic",
+      "src": {
+        "file": "src/Legacy.sol",
+        "offset": 268,
+        "length": 313,
+        "line": 7,
+        "column": 0
+      },
+      "sites": [
+        {
+          "file": "src/Legacy.sol",
+          "offset": 268,
+          "length": 313,
+          "line": 7,
+          "column": 0
+        }
+      ],
+      "count": 1,
+      "possibleTargets": []
+    },
+    {
+      "id": "src/Proxy.sol:Implementation.mint(uint256)|src/Proxy.sol:Implementation.balances|reads|",
+      "kind": "reads",
+      "from": "src/Proxy.sol:Implementation.mint(uint256)",
+      "to": "src/Proxy.sol:Implementation.balances",
+      "resolution": "heuristic",
+      "src": {
+        "file": "src/Proxy.sol",
+        "offset": 1397,
+        "length": 8,
+        "line": 44,
+        "column": 8
+      },
+      "sites": [
+        {
+          "file": "src/Proxy.sol",
+          "offset": 1397,
+          "length": 8,
+          "line": 44,
+          "column": 8
+        }
+      ],
+      "count": 1,
+      "possibleTargets": []
+    },
+    {
+      "id": "src/Proxy.sol:Implementation.mint(uint256)|src/Proxy.sol:Implementation.balances|writes|",
+      "kind": "writes",
+      "from": "src/Proxy.sol:Implementation.mint(uint256)",
+      "to": "src/Proxy.sol:Implementation.balances",
+      "resolution": "heuristic",
+      "src": {
+        "file": "src/Proxy.sol",
+        "offset": 1397,
+        "length": 8,
+        "line": 44,
+        "column": 8
+      },
+      "sites": [
+        {
+          "file": "src/Proxy.sol",
+          "offset": 1397,
+          "length": 8,
+          "line": 44,
+          "column": 8
+        }
+      ],
+      "count": 1,
+      "possibleTargets": []
+    },
+    {
+      "id": "src/Proxy.sol:Implementation.mint(uint256)|src/Proxy.sol:Implementation.totalSupply|reads|",
+      "kind": "reads",
+      "from": "src/Proxy.sol:Implementation.mint(uint256)",
+      "to": "src/Proxy.sol:Implementation.totalSupply",
+      "resolution": "heuristic",
+      "src": {
+        "file": "src/Proxy.sol",
+        "offset": 1366,
+        "length": 11,
+        "line": 43,
+        "column": 8
+      },
+      "sites": [
+        {
+          "file": "src/Proxy.sol",
+          "offset": 1366,
+          "length": 11,
+          "line": 43,
+          "column": 8
+        }
+      ],
+      "count": 1,
+      "possibleTargets": []
+    },
+    {
+      "id": "src/Proxy.sol:Implementation.mint(uint256)|src/Proxy.sol:Implementation.totalSupply|writes|",
+      "kind": "writes",
+      "from": "src/Proxy.sol:Implementation.mint(uint256)",
+      "to": "src/Proxy.sol:Implementation.totalSupply",
+      "resolution": "heuristic",
+      "src": {
+        "file": "src/Proxy.sol",
+        "offset": 1366,
+        "length": 11,
+        "line": 43,
+        "column": 8
+      },
+      "sites": [
+        {
+          "file": "src/Proxy.sol",
+          "offset": 1366,
+          "length": 11,
+          "line": 43,
+          "column": 8
+        }
+      ],
+      "count": 1,
+      "possibleTargets": []
+    },
+    {
+      "id": "src/Proxy.sol:Implementation|src/Proxy.sol:Implementation.balances|declares|",
+      "kind": "declares",
+      "from": "src/Proxy.sol:Implementation",
+      "to": "src/Proxy.sol:Implementation.balances",
+      "resolution": "heuristic",
+      "src": {
+        "file": "src/Proxy.sol",
+        "offset": 1267,
+        "length": 44,
+        "line": 40,
+        "column": 4
+      },
+      "sites": [
+        {
+          "file": "src/Proxy.sol",
+          "offset": 1267,
+          "length": 44,
+          "line": 40,
+          "column": 4
+        }
+      ],
+      "count": 1,
+      "possibleTargets": []
+    },
+    {
+      "id": "src/Proxy.sol:Implementation|src/Proxy.sol:Implementation.mint(uint256)|declares|",
+      "kind": "declares",
+      "from": "src/Proxy.sol:Implementation",
+      "to": "src/Proxy.sol:Implementation.mint(uint256)",
+      "resolution": "heuristic",
+      "src": {
+        "file": "src/Proxy.sol",
+        "offset": 1317,
+        "length": 117,
+        "line": 42,
+        "column": 4
+      },
+      "sites": [
+        {
+          "file": "src/Proxy.sol",
+          "offset": 1317,
+          "length": 117,
+          "line": 42,
+          "column": 4
+        }
+      ],
+      "count": 1,
+      "possibleTargets": []
+    },
+    {
+      "id": "src/Proxy.sol:Implementation|src/Proxy.sol:Implementation.totalSupply|declares|",
+      "kind": "declares",
+      "from": "src/Proxy.sol:Implementation",
+      "to": "src/Proxy.sol:Implementation.totalSupply",
+      "resolution": "heuristic",
+      "src": {
+        "file": "src/Proxy.sol",
+        "offset": 1235,
+        "length": 27,
+        "line": 39,
+        "column": 4
+      },
+      "sites": [
+        {
+          "file": "src/Proxy.sol",
+          "offset": 1235,
+          "length": 27,
+          "line": 39,
+          "column": 4
+        }
+      ],
+      "count": 1,
+      "possibleTargets": []
+    },
+    {
+      "id": "src/Proxy.sol:Proxy.constructor(address)|src/Proxy.sol:Proxy.admin|writes|",
+      "kind": "writes",
+      "from": "src/Proxy.sol:Proxy.constructor(address)",
+      "to": "src/Proxy.sol:Proxy.admin",
+      "resolution": "heuristic",
+      "src": {
+        "file": "src/Proxy.sol",
+        "offset": 277,
+        "length": 5,
+        "line": 11,
+        "column": 8
+      },
+      "sites": [
+        {
+          "file": "src/Proxy.sol",
+          "offset": 277,
+          "length": 5,
+          "line": 11,
+          "column": 8
+        }
+      ],
+      "count": 1,
+      "possibleTargets": []
+    },
+    {
+      "id": "src/Proxy.sol:Proxy.constructor(address)|src/Proxy.sol:Proxy.implementation|writes|",
+      "kind": "writes",
+      "from": "src/Proxy.sol:Proxy.constructor(address)",
+      "to": "src/Proxy.sol:Proxy.implementation",
+      "resolution": "heuristic",
+      "src": {
+        "file": "src/Proxy.sol",
+        "offset": 246,
+        "length": 14,
+        "line": 10,
+        "column": 8
+      },
+      "sites": [
+        {
+          "file": "src/Proxy.sol",
+          "offset": 246,
+          "length": 14,
+          "line": 10,
+          "column": 8
+        }
+      ],
+      "count": 1,
+      "possibleTargets": []
+    },
+    {
+      "id": "src/Proxy.sol:Proxy.fallback()|src/Proxy.sol:Proxy.implementation|reads|",
+      "kind": "reads",
+      "from": "src/Proxy.sol:Proxy.fallback()",
+      "to": "src/Proxy.sol:Proxy.implementation",
+      "resolution": "heuristic",
+      "src": {
+        "file": "src/Proxy.sol",
+        "offset": 363,
+        "length": 14,
+        "line": 15,
+        "column": 25
+      },
+      "sites": [
+        {
+          "file": "src/Proxy.sol",
+          "offset": 363,
+          "length": 14,
+          "line": 15,
+          "column": 25
+        }
+      ],
+      "count": 1,
+      "possibleTargets": []
+    },
+    {
+      "id": "src/Proxy.sol:Proxy.upgradeTo(address)|src/Proxy.sol:Proxy.admin|reads|",
+      "kind": "reads",
+      "from": "src/Proxy.sol:Proxy.upgradeTo(address)",
+      "to": "src/Proxy.sol:Proxy.admin",
+      "resolution": "heuristic",
+      "src": {
+        "file": "src/Proxy.sol",
+        "offset": 826,
+        "length": 5,
+        "line": 29,
+        "column": 30
+      },
+      "sites": [
+        {
+          "file": "src/Proxy.sol",
+          "offset": 826,
+          "length": 5,
+          "line": 29,
+          "column": 30
+        }
+      ],
+      "count": 1,
+      "possibleTargets": []
+    },
+    {
+      "id": "src/Proxy.sol:Proxy.upgradeTo(address)|src/Proxy.sol:Proxy.implementation|writes|",
+      "kind": "writes",
+      "from": "src/Proxy.sol:Proxy.upgradeTo(address)",
+      "to": "src/Proxy.sol:Proxy.implementation",
+      "resolution": "heuristic",
+      "src": {
+        "file": "src/Proxy.sol",
+        "offset": 855,
+        "length": 14,
+        "line": 30,
+        "column": 8
+      },
+      "sites": [
+        {
+          "file": "src/Proxy.sol",
+          "offset": 855,
+          "length": 14,
+          "line": 30,
+          "column": 8
+        }
+      ],
+      "count": 1,
+      "possibleTargets": []
+    },
+    {
+      "id": "src/Proxy.sol:Proxy|src/Proxy.sol:Proxy.admin|declares|",
+      "kind": "declares",
+      "from": "src/Proxy.sol:Proxy",
+      "to": "src/Proxy.sol:Proxy.admin",
+      "resolution": "heuristic",
+      "src": {
+        "file": "src/Proxy.sol",
+        "offset": 183,
+        "length": 21,
+        "line": 7,
+        "column": 4
+      },
+      "sites": [
+        {
+          "file": "src/Proxy.sol",
+          "offset": 183,
+          "length": 21,
+          "line": 7,
+          "column": 4
+        }
+      ],
+      "count": 1,
+      "possibleTargets": []
+    },
+    {
+      "id": "src/Proxy.sol:Proxy|src/Proxy.sol:Proxy.constructor(address)|declares|",
+      "kind": "declares",
+      "from": "src/Proxy.sol:Proxy",
+      "to": "src/Proxy.sol:Proxy.constructor(address)",
+      "resolution": "heuristic",
+      "src": {
+        "file": "src/Proxy.sol",
+        "offset": 210,
+        "length": 92,
+        "line": 9,
+        "column": 4
+      },
+      "sites": [
+        {
+          "file": "src/Proxy.sol",
+          "offset": 210,
+          "length": 92,
+          "line": 9,
+          "column": 4
+        }
+      ],
+      "count": 1,
+      "possibleTargets": []
+    },
+    {
+      "id": "src/Proxy.sol:Proxy|src/Proxy.sol:Proxy.fallback()|declares|",
+      "kind": "declares",
+      "from": "src/Proxy.sol:Proxy",
+      "to": "src/Proxy.sol:Proxy.fallback()",
+      "resolution": "heuristic",
+      "src": {
+        "file": "src/Proxy.sol",
+        "offset": 308,
+        "length": 403,
+        "line": 14,
+        "column": 4
+      },
+      "sites": [
+        {
+          "file": "src/Proxy.sol",
+          "offset": 308,
+          "length": 403,
+          "line": 14,
+          "column": 4
+        }
+      ],
+      "count": 1,
+      "possibleTargets": []
+    },
+    {
+      "id": "src/Proxy.sol:Proxy|src/Proxy.sol:Proxy.implementation|declares|",
+      "kind": "declares",
+      "from": "src/Proxy.sol:Proxy",
+      "to": "src/Proxy.sol:Proxy.implementation",
+      "resolution": "heuristic",
+      "src": {
+        "file": "src/Proxy.sol",
+        "offset": 148,
+        "length": 30,
+        "line": 6,
+        "column": 4
+      },
+      "sites": [
+        {
+          "file": "src/Proxy.sol",
+          "offset": 148,
+          "length": 30,
+          "line": 6,
+          "column": 4
+        }
+      ],
+      "count": 1,
+      "possibleTargets": []
+    },
+    {
+      "id": "src/Proxy.sol:Proxy|src/Proxy.sol:Proxy.receive()|declares|",
+      "kind": "declares",
+      "from": "src/Proxy.sol:Proxy",
+      "to": "src/Proxy.sol:Proxy.receive()",
+      "resolution": "heuristic",
+      "src": {
+        "file": "src/Proxy.sol",
+        "offset": 717,
+        "length": 29,
+        "line": 26,
+        "column": 4
+      },
+      "sites": [
+        {
+          "file": "src/Proxy.sol",
+          "offset": 717,
+          "length": 29,
+          "line": 26,
+          "column": 4
+        }
+      ],
+      "count": 1,
+      "possibleTargets": []
+    },
+    {
+      "id": "src/Proxy.sol:Proxy|src/Proxy.sol:Proxy.upgradeTo(address)|declares|",
+      "kind": "declares",
+      "from": "src/Proxy.sol:Proxy",
+      "to": "src/Proxy.sol:Proxy.upgradeTo(address)",
+      "resolution": "heuristic",
+      "src": {
+        "file": "src/Proxy.sol",
+        "offset": 752,
+        "length": 131,
+        "line": 28,
+        "column": 4
+      },
+      "sites": [
+        {
+          "file": "src/Proxy.sol",
+          "offset": 752,
+          "length": 131,
+          "line": 28,
+          "column": 4
+        }
+      ],
+      "count": 1,
+      "possibleTargets": []
+    },
+    {
+      "id": "src/Proxy.sol|src/Proxy.sol:Implementation|declares|",
+      "kind": "declares",
+      "from": "src/Proxy.sol",
+      "to": "src/Proxy.sol:Implementation",
+      "resolution": "heuristic",
+      "src": {
+        "file": "src/Proxy.sol",
+        "offset": 1205,
+        "length": 231,
+        "line": 38,
+        "column": 0
+      },
+      "sites": [
+        {
+          "file": "src/Proxy.sol",
+          "offset": 1205,
+          "length": 231,
+          "line": 38,
+          "column": 0
+        }
+      ],
+      "count": 1,
+      "possibleTargets": []
+    },
+    {
+      "id": "src/Proxy.sol|src/Proxy.sol:Proxy|declares|",
+      "kind": "declares",
+      "from": "src/Proxy.sol",
+      "to": "src/Proxy.sol:Proxy",
+      "resolution": "heuristic",
+      "src": {
+        "file": "src/Proxy.sol",
+        "offset": 127,
+        "length": 758,
+        "line": 5,
+        "column": 0
+      },
+      "sites": [
+        {
+          "file": "src/Proxy.sol",
+          "offset": 127,
+          "length": 758,
+          "line": 5,
+          "column": 0
+        }
+      ],
+      "count": 1,
+      "possibleTargets": []
+    },
+    {
+      "id": "src/SyntaxError.sol:AfterTheError|src/SyntaxError.sol:AfterTheError.stillHere()|declares|",
+      "kind": "declares",
+      "from": "src/SyntaxError.sol:AfterTheError",
+      "to": "src/SyntaxError.sol:AfterTheError.stillHere()",
+      "resolution": "heuristic",
+      "src": {
+        "file": "src/SyntaxError.sol",
+        "offset": 664,
+        "length": 79,
+        "line": 28,
+        "column": 4
+      },
+      "sites": [
+        {
+          "file": "src/SyntaxError.sol",
+          "offset": 664,
+          "length": 79,
+          "line": 28,
+          "column": 4
+        }
+      ],
+      "count": 1,
+      "possibleTargets": []
+    },
+    {
+      "id": "src/SyntaxError.sol:BeforeTheError.fine()|src/SyntaxError.sol:BeforeTheError.intact|reads|",
+      "kind": "reads",
+      "from": "src/SyntaxError.sol:BeforeTheError.fine()",
+      "to": "src/SyntaxError.sol:BeforeTheError.intact",
+      "resolution": "heuristic",
+      "src": {
+        "file": "src/SyntaxError.sol",
+        "offset": 401,
+        "length": 6,
+        "line": 11,
+        "column": 15
+      },
+      "sites": [
+        {
+          "file": "src/SyntaxError.sol",
+          "offset": 401,
+          "length": 6,
+          "line": 11,
+          "column": 15
+        }
+      ],
+      "count": 1,
+      "possibleTargets": []
+    },
+    {
+      "id": "src/SyntaxError.sol:BeforeTheError|src/SyntaxError.sol:BeforeTheError.fine()|declares|",
+      "kind": "declares",
+      "from": "src/SyntaxError.sol:BeforeTheError",
+      "to": "src/SyntaxError.sol:BeforeTheError.fine()",
+      "resolution": "heuristic",
+      "src": {
+        "file": "src/SyntaxError.sol",
+        "offset": 336,
+        "length": 78,
+        "line": 10,
+        "column": 4
+      },
+      "sites": [
+        {
+          "file": "src/SyntaxError.sol",
+          "offset": 336,
+          "length": 78,
+          "line": 10,
+          "column": 4
+        }
+      ],
+      "count": 1,
+      "possibleTargets": []
+    },
+    {
+      "id": "src/SyntaxError.sol:BeforeTheError|src/SyntaxError.sol:BeforeTheError.intact|declares|",
+      "kind": "declares",
+      "from": "src/SyntaxError.sol:BeforeTheError",
+      "to": "src/SyntaxError.sol:BeforeTheError.intact",
+      "resolution": "heuristic",
+      "src": {
+        "file": "src/SyntaxError.sol",
+        "offset": 308,
+        "length": 22,
+        "line": 8,
+        "column": 4
+      },
+      "sites": [
+        {
+          "file": "src/SyntaxError.sol",
+          "offset": 308,
+          "length": 22,
+          "line": 8,
+          "column": 4
+        }
+      ],
+      "count": 1,
+      "possibleTargets": []
+    },
+    {
+      "id": "src/SyntaxError.sol:Broken|src/SyntaxError.sol:Broken.afterTheError()|declares|",
+      "kind": "declares",
+      "from": "src/SyntaxError.sol:Broken",
+      "to": "src/SyntaxError.sol:Broken.afterTheError()",
+      "resolution": "heuristic",
+      "src": {
+        "file": "src/SyntaxError.sol",
+        "offset": 549,
+        "length": 82,
+        "line": 22,
+        "column": 4
+      },
+      "sites": [
+        {
+          "file": "src/SyntaxError.sol",
+          "offset": 549,
+          "length": 82,
+          "line": 22,
+          "column": 4
+        }
+      ],
+      "count": 1,
+      "possibleTargets": []
+    },
+    {
+      "id": "src/SyntaxError.sol:Broken|src/SyntaxError.sol:Broken.alsoIntact|declares|",
+      "kind": "declares",
+      "from": "src/SyntaxError.sol:Broken",
+      "to": "src/SyntaxError.sol:Broken.alsoIntact",
+      "resolution": "heuristic",
+      "src": {
+        "file": "src/SyntaxError.sol",
+        "offset": 440,
+        "length": 26,
+        "line": 16,
+        "column": 4
+      },
+      "sites": [
+        {
+          "file": "src/SyntaxError.sol",
+          "offset": 440,
+          "length": 26,
+          "line": 16,
+          "column": 4
+        }
+      ],
+      "count": 1,
+      "possibleTargets": []
+    },
+    {
+      "id": "src/SyntaxError.sol:Broken|src/SyntaxError.sol:Broken.truncated(uint256)|declares|",
+      "kind": "declares",
+      "from": "src/SyntaxError.sol:Broken",
+      "to": "src/SyntaxError.sol:Broken.truncated(uint256)",
+      "resolution": "heuristic",
+      "src": {
+        "file": "src/SyntaxError.sol",
+        "offset": 472,
+        "length": 71,
+        "line": 18,
+        "column": 4
+      },
+      "sites": [
+        {
+          "file": "src/SyntaxError.sol",
+          "offset": 472,
+          "length": 71,
+          "line": 18,
+          "column": 4
+        }
+      ],
+      "count": 1,
+      "possibleTargets": []
+    },
+    {
+      "id": "src/SyntaxError.sol|src/SyntaxError.sol:AfterTheError|declares|",
+      "kind": "declares",
+      "from": "src/SyntaxError.sol",
+      "to": "src/SyntaxError.sol:AfterTheError",
+      "resolution": "heuristic",
+      "src": {
+        "file": "src/SyntaxError.sol",
+        "offset": 635,
+        "length": 110,
+        "line": 27,
+        "column": 0
+      },
+      "sites": [
+        {
+          "file": "src/SyntaxError.sol",
+          "offset": 635,
+          "length": 110,
+          "line": 27,
+          "column": 0
+        }
+      ],
+      "count": 1,
+      "possibleTargets": []
+    },
+    {
+      "id": "src/SyntaxError.sol|src/SyntaxError.sol:BeforeTheError|declares|",
+      "kind": "declares",
+      "from": "src/SyntaxError.sol",
+      "to": "src/SyntaxError.sol:BeforeTheError",
+      "resolution": "heuristic",
+      "src": {
+        "file": "src/SyntaxError.sol",
+        "offset": 278,
+        "length": 138,
+        "line": 7,
+        "column": 0
+      },
+      "sites": [
+        {
+          "file": "src/SyntaxError.sol",
+          "offset": 278,
+          "length": 138,
+          "line": 7,
+          "column": 0
+        }
+      ],
+      "count": 1,
+      "possibleTargets": []
+    },
+    {
+      "id": "src/SyntaxError.sol|src/SyntaxError.sol:Broken|declares|",
+      "kind": "declares",
+      "from": "src/SyntaxError.sol",
+      "to": "src/SyntaxError.sol:Broken",
+      "resolution": "heuristic",
+      "src": {
+        "file": "src/SyntaxError.sol",
+        "offset": 418,
+        "length": 215,
+        "line": 15,
+        "column": 0
+      },
+      "sites": [
+        {
+          "file": "src/SyntaxError.sol",
+          "offset": 418,
+          "length": 215,
+          "line": 15,
+          "column": 0
+        }
+      ],
+      "count": 1,
+      "possibleTargets": []
+    },
+    {
+      "id": "src/dup-a/Duplicate.sol:Duplicate|src/dup-a/Duplicate.sol:Duplicate.which|declares|",
+      "kind": "declares",
+      "from": "src/dup-a/Duplicate.sol:Duplicate",
+      "to": "src/dup-a/Duplicate.sol:Duplicate.which",
+      "resolution": "heuristic",
+      "src": {
+        "file": "src/dup-a/Duplicate.sol",
+        "offset": 221,
+        "length": 25,
+        "line": 7,
+        "column": 4
+      },
+      "sites": [
+        {
+          "file": "src/dup-a/Duplicate.sol",
+          "offset": 221,
+          "length": 25,
+          "line": 7,
+          "column": 4
+        }
+      ],
+      "count": 1,
+      "possibleTargets": []
+    },
+    {
+      "id": "src/dup-a/Duplicate.sol:Duplicate|src/dup-a/Duplicate.sol:Duplicate.whoAmI()|declares|",
+      "kind": "declares",
+      "from": "src/dup-a/Duplicate.sol:Duplicate",
+      "to": "src/dup-a/Duplicate.sol:Duplicate.whoAmI()",
+      "resolution": "heuristic",
+      "src": {
+        "file": "src/dup-a/Duplicate.sol",
+        "offset": 252,
+        "length": 87,
+        "line": 9,
+        "column": 4
+      },
+      "sites": [
+        {
+          "file": "src/dup-a/Duplicate.sol",
+          "offset": 252,
+          "length": 87,
+          "line": 9,
+          "column": 4
+        }
+      ],
+      "count": 1,
+      "possibleTargets": []
+    },
+    {
+      "id": "src/dup-a/Duplicate.sol|src/dup-a/Duplicate.sol:Duplicate|declares|",
+      "kind": "declares",
+      "from": "src/dup-a/Duplicate.sol",
+      "to": "src/dup-a/Duplicate.sol:Duplicate",
+      "resolution": "heuristic",
+      "src": {
+        "file": "src/dup-a/Duplicate.sol",
+        "offset": 196,
+        "length": 145,
+        "line": 6,
+        "column": 0
+      },
+      "sites": [
+        {
+          "file": "src/dup-a/Duplicate.sol",
+          "offset": 196,
+          "length": 145,
+          "line": 6,
+          "column": 0
+        }
+      ],
+      "count": 1,
+      "possibleTargets": []
+    },
+    {
+      "id": "src/dup-b/Duplicate.sol:Duplicate.claim()|src/dup-b/Duplicate.sol:Duplicate.owner|writes|",
+      "kind": "writes",
+      "from": "src/dup-b/Duplicate.sol:Duplicate.claim()",
+      "to": "src/dup-b/Duplicate.sol:Duplicate.owner",
+      "resolution": "heuristic",
+      "src": {
+        "file": "src/dup-b/Duplicate.sol",
+        "offset": 350,
+        "length": 5,
+        "line": 14,
+        "column": 8
+      },
+      "sites": [
+        {
+          "file": "src/dup-b/Duplicate.sol",
+          "offset": 350,
+          "length": 5,
+          "line": 14,
+          "column": 8
+        }
+      ],
+      "count": 1,
+      "possibleTargets": []
+    },
+    {
+      "id": "src/dup-b/Duplicate.sol:Duplicate|src/dup-b/Duplicate.sol:Duplicate.claim()|declares|",
+      "kind": "declares",
+      "from": "src/dup-b/Duplicate.sol:Duplicate",
+      "to": "src/dup-b/Duplicate.sol:Duplicate.claim()",
+      "resolution": "heuristic",
+      "src": {
+        "file": "src/dup-b/Duplicate.sol",
+        "offset": 314,
+        "length": 61,
+        "line": 13,
+        "column": 4
+      },
+      "sites": [
+        {
+          "file": "src/dup-b/Duplicate.sol",
+          "offset": 314,
+          "length": 61,
+          "line": 13,
+          "column": 4
+        }
+      ],
+      "count": 1,
+      "possibleTargets": []
+    },
+    {
+      "id": "src/dup-b/Duplicate.sol:Duplicate|src/dup-b/Duplicate.sol:Duplicate.owner|declares|",
+      "kind": "declares",
+      "from": "src/dup-b/Duplicate.sol:Duplicate",
+      "to": "src/dup-b/Duplicate.sol:Duplicate.owner",
+      "resolution": "heuristic",
+      "src": {
+        "file": "src/dup-b/Duplicate.sol",
+        "offset": 194,
+        "length": 21,
+        "line": 7,
+        "column": 4
+      },
+      "sites": [
+        {
+          "file": "src/dup-b/Duplicate.sol",
+          "offset": 194,
+          "length": 21,
+          "line": 7,
+          "column": 4
+        }
+      ],
+      "count": 1,
+      "possibleTargets": []
+    },
+    {
+      "id": "src/dup-b/Duplicate.sol:Duplicate|src/dup-b/Duplicate.sol:Duplicate.which|declares|",
+      "kind": "declares",
+      "from": "src/dup-b/Duplicate.sol:Duplicate",
+      "to": "src/dup-b/Duplicate.sol:Duplicate.which",
+      "resolution": "heuristic",
+      "src": {
+        "file": "src/dup-b/Duplicate.sol",
+        "offset": 164,
+        "length": 25,
+        "line": 6,
+        "column": 4
+      },
+      "sites": [
+        {
+          "file": "src/dup-b/Duplicate.sol",
+          "offset": 164,
+          "length": 25,
+          "line": 6,
+          "column": 4
+        }
+      ],
+      "count": 1,
+      "possibleTargets": []
+    },
+    {
+      "id": "src/dup-b/Duplicate.sol:Duplicate|src/dup-b/Duplicate.sol:Duplicate.whoAmI()|declares|",
+      "kind": "declares",
+      "from": "src/dup-b/Duplicate.sol:Duplicate",
+      "to": "src/dup-b/Duplicate.sol:Duplicate.whoAmI()",
+      "resolution": "heuristic",
+      "src": {
+        "file": "src/dup-b/Duplicate.sol",
+        "offset": 221,
+        "length": 87,
+        "line": 9,
+        "column": 4
+      },
+      "sites": [
+        {
+          "file": "src/dup-b/Duplicate.sol",
+          "offset": 221,
+          "length": 87,
+          "line": 9,
+          "column": 4
+        }
+      ],
+      "count": 1,
+      "possibleTargets": []
+    },
+    {
+      "id": "src/dup-b/Duplicate.sol|src/dup-b/Duplicate.sol:Duplicate|declares|",
+      "kind": "declares",
+      "from": "src/dup-b/Duplicate.sol",
+      "to": "src/dup-b/Duplicate.sol:Duplicate",
+      "resolution": "heuristic",
+      "src": {
+        "file": "src/dup-b/Duplicate.sol",
+        "offset": 139,
+        "length": 238,
+        "line": 5,
+        "column": 0
+      },
+      "sites": [
+        {
+          "file": "src/dup-b/Duplicate.sol",
+          "offset": 139,
+          "length": 238,
+          "line": 5,
+          "column": 0
+        }
+      ],
+      "count": 1,
+      "possibleTargets": []
+    }
+  ]
+}

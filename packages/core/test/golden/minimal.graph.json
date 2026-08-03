@@ -1,0 +1,3056 @@
+{
+  "schemaVersion": 1,
+  "generator": {
+    "name": "axiomap",
+    "parser": "treesitter",
+    "hashVersion": 1
+  },
+  "project": {
+    "kind": "foundry",
+    "sources": [
+      "src"
+    ],
+    "files": 5
+  },
+  "mode": "heuristic",
+  "modeReason": "No build artifacts. 75% of call edges resolved confidently, at or above the 70% threshold; edges are labelled with their confidence.",
+  "score": {
+    "overall": {
+      "semantic": 0,
+      "heuristic": 34,
+      "ambiguous": 0,
+      "unresolved": 2,
+      "total": 36,
+      "confident": 0.9444444444444444
+    },
+    "calls": {
+      "semantic": 0,
+      "heuristic": 6,
+      "ambiguous": 0,
+      "unresolved": 2,
+      "total": 8,
+      "confident": 0.75
+    },
+    "excludedFiles": 0
+  },
+  "diagnostics": [],
+  "nodes": [
+    {
+      "id": "?call",
+      "kind": "Unresolved",
+      "name": "call",
+      "file": "src/Vault.sol",
+      "scope": null,
+      "src": {
+        "file": "src/Vault.sol",
+        "offset": 1822,
+        "length": 41,
+        "line": 58,
+        "column": 21
+      },
+      "synthetic": true,
+      "reason": "call on address: the target is determined at runtime"
+    },
+    {
+      "id": "?delegatecall",
+      "kind": "Unresolved",
+      "name": "delegatecall",
+      "file": "src/Vault.sol",
+      "scope": null,
+      "src": {
+        "file": "src/Vault.sol",
+        "offset": 1655,
+        "length": 33,
+        "line": 53,
+        "column": 21
+      },
+      "synthetic": true,
+      "reason": "delegatecall on address: the target is determined at runtime"
+    },
+    {
+      "id": "src/Base.sol",
+      "kind": "SourceUnit",
+      "name": "src/Base.sol",
+      "file": "src/Base.sol",
+      "scope": null,
+      "src": {
+        "file": "src/Base.sol",
+        "offset": 0,
+        "length": 0,
+        "line": 1,
+        "column": 0
+      },
+      "pragma": "pragma solidity ^0.8.20;",
+      "versionSupport": "supported",
+      "recovered": false,
+      "unresolvedImports": []
+    },
+    {
+      "id": "src/Base.sol:Base",
+      "name": "Base",
+      "file": "src/Base.sol",
+      "scope": null,
+      "src": {
+        "file": "src/Base.sol",
+        "offset": 187,
+        "length": 413,
+        "line": 7,
+        "column": 0
+      },
+      "kind": "Contract",
+      "contractKind": "abstract",
+      "baseNames": [],
+      "linearizedBases": [
+        "src/Base.sol:Base"
+      ],
+      "linearizationCertainty": "certain",
+      "isFullyImplemented": true,
+      "isTest": false,
+      "isMock": false
+    },
+    {
+      "id": "src/Base.sol:Base#onlyOwner",
+      "name": "onlyOwner",
+      "file": "src/Base.sol",
+      "scope": "src/Base.sol:Base",
+      "src": {
+        "file": "src/Base.sol",
+        "offset": 243,
+        "length": 130,
+        "line": 10,
+        "column": 4
+      },
+      "kind": "Function",
+      "subkind": "modifier",
+      "visibility": "default",
+      "stateMutability": "nonpayable",
+      "isVirtual": false,
+      "isOverride": false,
+      "modifiers": [],
+      "params": [],
+      "returns": [],
+      "hasBody": true,
+      "bodyHash": "e81eed813adbe346",
+      "interfaceHash": "c160fd051bbea45c",
+      "metrics": {
+        "sloc": 6,
+        "cyclomatic": 2,
+        "maxDepth": 2
+      },
+      "flags": {
+        "hasAssembly": false,
+        "hasDelegatecall": false,
+        "hasLowLevelCall": false,
+        "hasSelfdestruct": false,
+        "hasCreate": false,
+        "sendsValue": false,
+        "hasUnchecked": false,
+        "hasTryCatch": false,
+        "readsState": true,
+        "writesState": false
+      }
+    },
+    {
+      "id": "src/Base.sol:Base.constructor()",
+      "name": "constructor",
+      "file": "src/Base.sol",
+      "scope": "src/Base.sol:Base",
+      "src": {
+        "file": "src/Base.sol",
+        "offset": 379,
+        "length": 49,
+        "line": 17,
+        "column": 4
+      },
+      "kind": "Function",
+      "subkind": "constructor",
+      "visibility": "default",
+      "stateMutability": "nonpayable",
+      "isVirtual": false,
+      "isOverride": false,
+      "modifiers": [],
+      "params": [],
+      "returns": [],
+      "hasBody": true,
+      "bodyHash": "7ed1888ca7c3d0cd",
+      "interfaceHash": "af0d2cd02d81da76",
+      "metrics": {
+        "sloc": 3,
+        "cyclomatic": 1,
+        "maxDepth": 1
+      },
+      "flags": {
+        "hasAssembly": false,
+        "hasDelegatecall": false,
+        "hasLowLevelCall": false,
+        "hasSelfdestruct": false,
+        "hasCreate": false,
+        "sendsValue": false,
+        "hasUnchecked": false,
+        "hasTryCatch": false,
+        "readsState": false,
+        "writesState": true
+      }
+    },
+    {
+      "id": "src/Base.sol:Base.owner",
+      "name": "owner",
+      "file": "src/Base.sol",
+      "scope": "src/Base.sol:Base",
+      "src": {
+        "file": "src/Base.sol",
+        "offset": 216,
+        "length": 21,
+        "line": 8,
+        "column": 4
+      },
+      "kind": "StateVariable",
+      "type": "address",
+      "visibility": "public",
+      "isConstant": false,
+      "isImmutable": false,
+      "isTransient": false,
+      "isMapping": false
+    },
+    {
+      "id": "src/Base.sol:Base.tag()",
+      "name": "tag",
+      "file": "src/Base.sol",
+      "scope": "src/Base.sol:Base",
+      "src": {
+        "file": "src/Base.sol",
+        "offset": 509,
+        "length": 89,
+        "line": 22,
+        "column": 4
+      },
+      "kind": "Function",
+      "subkind": "function",
+      "visibility": "public",
+      "stateMutability": "view",
+      "isVirtual": true,
+      "isOverride": false,
+      "modifiers": [],
+      "params": [],
+      "returns": [
+        {
+          "name": null,
+          "type": "string"
+        }
+      ],
+      "hasBody": true,
+      "bodyHash": "37a68f975eb1cacd",
+      "interfaceHash": "372430326073029a",
+      "metrics": {
+        "sloc": 3,
+        "cyclomatic": 1,
+        "maxDepth": 1
+      },
+      "flags": {
+        "hasAssembly": false,
+        "hasDelegatecall": false,
+        "hasLowLevelCall": false,
+        "hasSelfdestruct": false,
+        "hasCreate": false,
+        "sendsValue": false,
+        "hasUnchecked": false,
+        "hasTryCatch": false,
+        "readsState": false,
+        "writesState": false
+      }
+    },
+    {
+      "id": "src/IVault.sol",
+      "kind": "SourceUnit",
+      "name": "src/IVault.sol",
+      "file": "src/IVault.sol",
+      "scope": null,
+      "src": {
+        "file": "src/IVault.sol",
+        "offset": 0,
+        "length": 0,
+        "line": 1,
+        "column": 0
+      },
+      "pragma": "pragma solidity ^0.8.20;",
+      "versionSupport": "supported",
+      "recovered": false,
+      "unresolvedImports": []
+    },
+    {
+      "id": "src/IVault.sol:IVault",
+      "name": "IVault",
+      "file": "src/IVault.sol",
+      "scope": null,
+      "src": {
+        "file": "src/IVault.sol",
+        "offset": 102,
+        "length": 197,
+        "line": 5,
+        "column": 0
+      },
+      "kind": "Contract",
+      "contractKind": "interface",
+      "baseNames": [],
+      "linearizedBases": [
+        "src/IVault.sol:IVault"
+      ],
+      "linearizationCertainty": "certain",
+      "isFullyImplemented": false,
+      "isTest": false,
+      "isMock": false
+    },
+    {
+      "id": "src/IVault.sol:IVault.deposit(uint256)",
+      "name": "deposit",
+      "file": "src/IVault.sol",
+      "scope": "src/IVault.sol:IVault",
+      "src": {
+        "file": "src/IVault.sol",
+        "offset": 186,
+        "length": 50,
+        "line": 8,
+        "column": 4
+      },
+      "kind": "Function",
+      "subkind": "function",
+      "visibility": "external",
+      "stateMutability": "payable",
+      "isVirtual": false,
+      "isOverride": false,
+      "modifiers": [],
+      "params": [
+        {
+          "name": "amount",
+          "type": "uint256"
+        }
+      ],
+      "returns": [],
+      "hasBody": false,
+      "bodyHash": "3498efb3aa3800ea",
+      "interfaceHash": "58633351802ad486",
+      "metrics": {
+        "sloc": 0,
+        "cyclomatic": 1,
+        "maxDepth": 0
+      },
+      "flags": {
+        "hasAssembly": false,
+        "hasDelegatecall": false,
+        "hasLowLevelCall": false,
+        "hasSelfdestruct": false,
+        "hasCreate": false,
+        "sendsValue": false,
+        "hasUnchecked": false,
+        "hasTryCatch": false,
+        "readsState": false,
+        "writesState": false
+      }
+    },
+    {
+      "id": "src/IVault.sol:IVault.totalAssets()",
+      "name": "totalAssets",
+      "file": "src/IVault.sol",
+      "scope": "src/IVault.sol:IVault",
+      "src": {
+        "file": "src/IVault.sol",
+        "offset": 242,
+        "length": 55,
+        "line": 10,
+        "column": 4
+      },
+      "kind": "Function",
+      "subkind": "function",
+      "visibility": "external",
+      "stateMutability": "view",
+      "isVirtual": false,
+      "isOverride": false,
+      "modifiers": [],
+      "params": [],
+      "returns": [
+        {
+          "name": null,
+          "type": "uint256"
+        }
+      ],
+      "hasBody": false,
+      "bodyHash": "3498efb3aa3800ea",
+      "interfaceHash": "78d4c1387b74f3c2",
+      "metrics": {
+        "sloc": 0,
+        "cyclomatic": 1,
+        "maxDepth": 0
+      },
+      "flags": {
+        "hasAssembly": false,
+        "hasDelegatecall": false,
+        "hasLowLevelCall": false,
+        "hasSelfdestruct": false,
+        "hasCreate": false,
+        "sendsValue": false,
+        "hasUnchecked": false,
+        "hasTryCatch": false,
+        "readsState": false,
+        "writesState": false
+      }
+    },
+    {
+      "id": "src/IVault.sol:IVault^Deposited(address,uint256)",
+      "name": "Deposited",
+      "file": "src/IVault.sol",
+      "scope": "src/IVault.sol:IVault",
+      "src": {
+        "file": "src/IVault.sol",
+        "offset": 125,
+        "length": 55,
+        "line": 6,
+        "column": 4
+      },
+      "kind": "Event",
+      "params": [
+        {
+          "name": "owner",
+          "type": "address"
+        },
+        {
+          "name": "amount",
+          "type": "uint256"
+        }
+      ],
+      "isAnonymous": false
+    },
+    {
+      "id": "src/Token.sol",
+      "kind": "SourceUnit",
+      "name": "src/Token.sol",
+      "file": "src/Token.sol",
+      "scope": null,
+      "src": {
+        "file": "src/Token.sol",
+        "offset": 0,
+        "length": 0,
+        "line": 1,
+        "column": 0
+      },
+      "pragma": "pragma solidity ^0.8.20;",
+      "versionSupport": "supported",
+      "recovered": false,
+      "unresolvedImports": []
+    },
+    {
+      "id": "src/Token.sol:Token",
+      "name": "Token",
+      "file": "src/Token.sol",
+      "scope": null,
+      "src": {
+        "file": "src/Token.sol",
+        "offset": 124,
+        "length": 165,
+        "line": 5,
+        "column": 0
+      },
+      "kind": "Contract",
+      "contractKind": "contract",
+      "baseNames": [],
+      "linearizedBases": [
+        "src/Token.sol:Token"
+      ],
+      "linearizationCertainty": "certain",
+      "isFullyImplemented": true,
+      "isTest": false,
+      "isMock": false
+    },
+    {
+      "id": "src/Token.sol:Token.balanceOf",
+      "name": "balanceOf",
+      "file": "src/Token.sol",
+      "scope": "src/Token.sol:Token",
+      "src": {
+        "file": "src/Token.sol",
+        "offset": 145,
+        "length": 45,
+        "line": 6,
+        "column": 4
+      },
+      "kind": "StateVariable",
+      "type": "mapping(address => uint256)",
+      "visibility": "public",
+      "isConstant": false,
+      "isImmutable": false,
+      "isTransient": false,
+      "isMapping": true
+    },
+    {
+      "id": "src/Token.sol:Token.mint(address,uint256)",
+      "name": "mint",
+      "file": "src/Token.sol",
+      "scope": "src/Token.sol:Token",
+      "src": {
+        "file": "src/Token.sol",
+        "offset": 196,
+        "length": 91,
+        "line": 8,
+        "column": 4
+      },
+      "kind": "Function",
+      "subkind": "function",
+      "visibility": "external",
+      "stateMutability": "nonpayable",
+      "isVirtual": false,
+      "isOverride": false,
+      "modifiers": [],
+      "params": [
+        {
+          "name": "to",
+          "type": "address"
+        },
+        {
+          "name": "amount",
+          "type": "uint256"
+        }
+      ],
+      "returns": [],
+      "hasBody": true,
+      "bodyHash": "e89deca7f12b4181",
+      "interfaceHash": "ecaf9320ff5a203c",
+      "metrics": {
+        "sloc": 3,
+        "cyclomatic": 1,
+        "maxDepth": 1
+      },
+      "flags": {
+        "hasAssembly": false,
+        "hasDelegatecall": false,
+        "hasLowLevelCall": false,
+        "hasSelfdestruct": false,
+        "hasCreate": false,
+        "sendsValue": false,
+        "hasUnchecked": false,
+        "hasTryCatch": false,
+        "readsState": true,
+        "writesState": true
+      }
+    },
+    {
+      "id": "src/Types.sol",
+      "kind": "SourceUnit",
+      "name": "src/Types.sol",
+      "file": "src/Types.sol",
+      "scope": null,
+      "src": {
+        "file": "src/Types.sol",
+        "offset": 0,
+        "length": 0,
+        "line": 1,
+        "column": 0
+      },
+      "pragma": "pragma solidity ^0.8.20;",
+      "versionSupport": "supported",
+      "recovered": false,
+      "unresolvedImports": []
+    },
+    {
+      "id": "src/Types.sol:!NotAuthorized(address)",
+      "name": "NotAuthorized",
+      "file": "src/Types.sol",
+      "scope": null,
+      "src": {
+        "file": "src/Types.sol",
+        "offset": 356,
+        "length": 36,
+        "line": 21,
+        "column": 0
+      },
+      "kind": "Error",
+      "params": [
+        {
+          "name": "caller",
+          "type": "address"
+        }
+      ]
+    },
+    {
+      "id": "src/Types.sol:MAX_DEPOSIT",
+      "name": "MAX_DEPOSIT",
+      "file": "src/Types.sol",
+      "scope": null,
+      "src": {
+        "file": "src/Types.sol",
+        "offset": 429,
+        "length": 47,
+        "line": 24,
+        "column": 0
+      },
+      "kind": "StateVariable",
+      "type": "uint256",
+      "visibility": "default",
+      "isConstant": true,
+      "isImmutable": false,
+      "isTransient": false,
+      "isMapping": false
+    },
+    {
+      "id": "src/Types.sol:MathLib",
+      "name": "MathLib",
+      "file": "src/Types.sol",
+      "scope": null,
+      "src": {
+        "file": "src/Types.sol",
+        "offset": 682,
+        "length": 118,
+        "line": 32,
+        "column": 0
+      },
+      "kind": "Contract",
+      "contractKind": "library",
+      "baseNames": [],
+      "linearizedBases": [
+        "src/Types.sol:MathLib"
+      ],
+      "linearizationCertainty": "certain",
+      "isFullyImplemented": true,
+      "isTest": false,
+      "isMock": false
+    },
+    {
+      "id": "src/Types.sol:MathLib.half(uint256)",
+      "name": "half",
+      "file": "src/Types.sol",
+      "scope": "src/Types.sol:MathLib",
+      "src": {
+        "file": "src/Types.sol",
+        "offset": 704,
+        "length": 94,
+        "line": 33,
+        "column": 4
+      },
+      "kind": "Function",
+      "subkind": "function",
+      "visibility": "internal",
+      "stateMutability": "pure",
+      "isVirtual": false,
+      "isOverride": false,
+      "modifiers": [],
+      "params": [
+        {
+          "name": "value",
+          "type": "uint256"
+        }
+      ],
+      "returns": [
+        {
+          "name": null,
+          "type": "uint256"
+        }
+      ],
+      "hasBody": true,
+      "bodyHash": "9755e64fc9d2c9f0",
+      "interfaceHash": "e96cb36aaf168cc2",
+      "metrics": {
+        "sloc": 3,
+        "cyclomatic": 1,
+        "maxDepth": 1
+      },
+      "flags": {
+        "hasAssembly": false,
+        "hasDelegatecall": false,
+        "hasLowLevelCall": false,
+        "hasSelfdestruct": false,
+        "hasCreate": false,
+        "sendsValue": false,
+        "hasUnchecked": false,
+        "hasTryCatch": false,
+        "readsState": false,
+        "writesState": false
+      }
+    },
+    {
+      "id": "src/Types.sol:scale(uint256,uint256)",
+      "name": "scale",
+      "file": "src/Types.sol",
+      "scope": null,
+      "src": {
+        "file": "src/Types.sol",
+        "offset": 518,
+        "length": 101,
+        "line": 27,
+        "column": 0
+      },
+      "kind": "Function",
+      "subkind": "function",
+      "visibility": "default",
+      "stateMutability": "pure",
+      "isVirtual": false,
+      "isOverride": false,
+      "modifiers": [],
+      "params": [
+        {
+          "name": "amount",
+          "type": "uint256"
+        },
+        {
+          "name": "factor",
+          "type": "uint256"
+        }
+      ],
+      "returns": [
+        {
+          "name": null,
+          "type": "uint256"
+        }
+      ],
+      "hasBody": true,
+      "bodyHash": "bd76e80bd5f53df8",
+      "interfaceHash": "9609727c03bf83c6",
+      "metrics": {
+        "sloc": 3,
+        "cyclomatic": 1,
+        "maxDepth": 1
+      },
+      "flags": {
+        "hasAssembly": false,
+        "hasDelegatecall": false,
+        "hasLowLevelCall": false,
+        "hasSelfdestruct": false,
+        "hasCreate": false,
+        "sendsValue": false,
+        "hasUnchecked": false,
+        "hasTryCatch": false,
+        "readsState": false,
+        "writesState": false
+      }
+    },
+    {
+      "id": "src/Types.sol:~Deposit",
+      "name": "Deposit",
+      "file": "src/Types.sol",
+      "scope": null,
+      "src": {
+        "file": "src/Types.sol",
+        "offset": 184,
+        "length": 57,
+        "line": 8,
+        "column": 0
+      },
+      "kind": "Struct"
+    },
+    {
+      "id": "src/Types.sol:~Shares",
+      "name": "Shares",
+      "file": "src/Types.sol",
+      "scope": null,
+      "src": {
+        "file": "src/Types.sol",
+        "offset": 126,
+        "length": 23,
+        "line": 5,
+        "column": 0
+      },
+      "kind": "UserDefinedValueType"
+    },
+    {
+      "id": "src/Types.sol:~Status",
+      "name": "Status",
+      "file": "src/Types.sol",
+      "scope": null,
+      "src": {
+        "file": "src/Types.sol",
+        "offset": 274,
+        "length": 48,
+        "line": 14,
+        "column": 0
+      },
+      "kind": "Enum"
+    },
+    {
+      "id": "src/Vault.sol",
+      "kind": "SourceUnit",
+      "name": "src/Vault.sol",
+      "file": "src/Vault.sol",
+      "scope": null,
+      "src": {
+        "file": "src/Vault.sol",
+        "offset": 0,
+        "length": 0,
+        "line": 1,
+        "column": 0
+      },
+      "pragma": "pragma solidity ^0.8.20;",
+      "versionSupport": "supported",
+      "recovered": false,
+      "unresolvedImports": []
+    },
+    {
+      "id": "src/Vault.sol:Vault",
+      "name": "Vault",
+      "file": "src/Vault.sol",
+      "scope": null,
+      "src": {
+        "file": "src/Vault.sol",
+        "offset": 326,
+        "length": 1722,
+        "line": 10,
+        "column": 0
+      },
+      "kind": "Contract",
+      "contractKind": "contract",
+      "baseNames": [
+        "Base",
+        "IVault"
+      ],
+      "linearizedBases": [
+        "src/Vault.sol:Vault",
+        "src/IVault.sol:IVault",
+        "src/Base.sol:Base"
+      ],
+      "linearizationCertainty": "certain",
+      "isFullyImplemented": true,
+      "isTest": false,
+      "isMock": false
+    },
+    {
+      "id": "src/Vault.sol:Vault!DepositTooLarge(uint256)",
+      "name": "DepositTooLarge",
+      "file": "src/Vault.sol",
+      "scope": "src/Vault.sol:Vault",
+      "src": {
+        "file": "src/Vault.sol",
+        "offset": 463,
+        "length": 38,
+        "line": 14,
+        "column": 4
+      },
+      "kind": "Error",
+      "params": [
+        {
+          "name": "amount",
+          "type": "uint256"
+        }
+      ]
+    },
+    {
+      "id": "src/Vault.sol:Vault._record(uint256)",
+      "name": "_record",
+      "file": "src/Vault.sol",
+      "scope": "src/Vault.sol:Vault",
+      "src": {
+        "file": "src/Vault.sol",
+        "offset": 1937,
+        "length": 109,
+        "line": 63,
+        "column": 4
+      },
+      "kind": "Function",
+      "subkind": "function",
+      "visibility": "internal",
+      "stateMutability": "nonpayable",
+      "isVirtual": false,
+      "isOverride": false,
+      "modifiers": [],
+      "params": [
+        {
+          "name": "amount",
+          "type": "uint256"
+        }
+      ],
+      "returns": [],
+      "hasBody": true,
+      "bodyHash": "11311a4cf4c6dfff",
+      "interfaceHash": "74e98ab3ec50e0cf",
+      "metrics": {
+        "sloc": 3,
+        "cyclomatic": 2,
+        "maxDepth": 1
+      },
+      "flags": {
+        "hasAssembly": false,
+        "hasDelegatecall": false,
+        "hasLowLevelCall": false,
+        "hasSelfdestruct": false,
+        "hasCreate": false,
+        "sendsValue": false,
+        "hasUnchecked": false,
+        "hasTryCatch": false,
+        "readsState": false,
+        "writesState": true
+      }
+    },
+    {
+      "id": "src/Vault.sol:Vault.assets",
+      "name": "assets",
+      "file": "src/Vault.sol",
+      "scope": "src/Vault.sol:Vault",
+      "src": {
+        "file": "src/Vault.sol",
+        "offset": 640,
+        "length": 24,
+        "line": 20,
+        "column": 4
+      },
+      "kind": "StateVariable",
+      "type": "uint256",
+      "visibility": "internal",
+      "isConstant": false,
+      "isImmutable": false,
+      "isTransient": false,
+      "isMapping": false
+    },
+    {
+      "id": "src/Vault.sol:Vault.constructor(address)",
+      "name": "constructor",
+      "file": "src/Vault.sol",
+      "scope": "src/Vault.sol:Vault",
+      "src": {
+        "file": "src/Vault.sol",
+        "offset": 764,
+        "length": 125,
+        "line": 25,
+        "column": 4
+      },
+      "kind": "Function",
+      "subkind": "constructor",
+      "visibility": "default",
+      "stateMutability": "nonpayable",
+      "isVirtual": false,
+      "isOverride": false,
+      "modifiers": [],
+      "params": [
+        {
+          "name": "impl",
+          "type": "address"
+        }
+      ],
+      "returns": [],
+      "hasBody": true,
+      "bodyHash": "ca79f6a6f36f1d2b",
+      "interfaceHash": "ef1a75c1225700c1",
+      "metrics": {
+        "sloc": 5,
+        "cyclomatic": 1,
+        "maxDepth": 1
+      },
+      "flags": {
+        "hasAssembly": false,
+        "hasDelegatecall": false,
+        "hasLowLevelCall": false,
+        "hasSelfdestruct": false,
+        "hasCreate": true,
+        "sendsValue": false,
+        "hasUnchecked": false,
+        "hasTryCatch": false,
+        "readsState": false,
+        "writesState": true
+      }
+    },
+    {
+      "id": "src/Vault.sol:Vault.deposit(uint256)",
+      "name": "deposit",
+      "file": "src/Vault.sol",
+      "scope": "src/Vault.sol:Vault",
+      "src": {
+        "file": "src/Vault.sol",
+        "offset": 922,
+        "length": 360,
+        "line": 32,
+        "column": 4
+      },
+      "kind": "Function",
+      "subkind": "function",
+      "visibility": "external",
+      "stateMutability": "payable",
+      "isVirtual": false,
+      "isOverride": true,
+      "modifiers": [],
+      "params": [
+        {
+          "name": "amount",
+          "type": "uint256"
+        }
+      ],
+      "returns": [],
+      "hasBody": true,
+      "bodyHash": "83f747497186c27b",
+      "interfaceHash": "58633351802ad486",
+      "metrics": {
+        "sloc": 10,
+        "cyclomatic": 2,
+        "maxDepth": 2
+      },
+      "flags": {
+        "hasAssembly": false,
+        "hasDelegatecall": false,
+        "hasLowLevelCall": false,
+        "hasSelfdestruct": false,
+        "hasCreate": false,
+        "sendsValue": false,
+        "hasUnchecked": false,
+        "hasTryCatch": false,
+        "readsState": true,
+        "writesState": true
+      }
+    },
+    {
+      "id": "src/Vault.sol:Vault.deposits",
+      "name": "deposits",
+      "file": "src/Vault.sol",
+      "scope": "src/Vault.sol:Vault",
+      "src": {
+        "file": "src/Vault.sol",
+        "offset": 695,
+        "length": 28,
+        "line": 22,
+        "column": 4
+      },
+      "kind": "StateVariable",
+      "type": "Deposit[]",
+      "visibility": "internal",
+      "isConstant": false,
+      "isImmutable": false,
+      "isTransient": false,
+      "isMapping": false
+    },
+    {
+      "id": "src/Vault.sol:Vault.implementation",
+      "name": "implementation",
+      "file": "src/Vault.sol",
+      "scope": "src/Vault.sol:Vault",
+      "src": {
+        "file": "src/Vault.sol",
+        "offset": 728,
+        "length": 30,
+        "line": 23,
+        "column": 4
+      },
+      "kind": "StateVariable",
+      "type": "address",
+      "visibility": "public",
+      "isConstant": false,
+      "isImmutable": false,
+      "isTransient": false,
+      "isMapping": false
+    },
+    {
+      "id": "src/Vault.sol:Vault.status",
+      "name": "status",
+      "file": "src/Vault.sol",
+      "scope": "src/Vault.sol:Vault",
+      "src": {
+        "file": "src/Vault.sol",
+        "offset": 669,
+        "length": 21,
+        "line": 21,
+        "column": 4
+      },
+      "kind": "StateVariable",
+      "type": "Status",
+      "visibility": "public",
+      "isConstant": false,
+      "isImmutable": false,
+      "isTransient": false,
+      "isMapping": false
+    },
+    {
+      "id": "src/Vault.sol:Vault.sweep(address payable)",
+      "name": "sweep",
+      "file": "src/Vault.sol",
+      "scope": "src/Vault.sol:Vault",
+      "src": {
+        "file": "src/Vault.sol",
+        "offset": 1745,
+        "length": 186,
+        "line": 57,
+        "column": 4
+      },
+      "kind": "Function",
+      "subkind": "function",
+      "visibility": "external",
+      "stateMutability": "nonpayable",
+      "isVirtual": false,
+      "isOverride": false,
+      "modifiers": [
+        "src/Base.sol:Base#onlyOwner"
+      ],
+      "params": [
+        {
+          "name": "to",
+          "type": "address payable"
+        }
+      ],
+      "returns": [],
+      "hasBody": true,
+      "bodyHash": "9152fd34f2cf6d03",
+      "interfaceHash": "7e61d49ee95cb9a3",
+      "metrics": {
+        "sloc": 5,
+        "cyclomatic": 1,
+        "maxDepth": 1
+      },
+      "flags": {
+        "hasAssembly": false,
+        "hasDelegatecall": false,
+        "hasLowLevelCall": true,
+        "hasSelfdestruct": false,
+        "hasCreate": false,
+        "sendsValue": true,
+        "hasUnchecked": false,
+        "hasTryCatch": false,
+        "readsState": false,
+        "writesState": false
+      }
+    },
+    {
+      "id": "src/Vault.sol:Vault.tag()",
+      "name": "tag",
+      "file": "src/Vault.sol",
+      "scope": "src/Vault.sol:Vault",
+      "src": {
+        "file": "src/Vault.sol",
+        "offset": 1441,
+        "length": 128,
+        "line": 48,
+        "column": 4
+      },
+      "kind": "Function",
+      "subkind": "function",
+      "visibility": "public",
+      "stateMutability": "view",
+      "isVirtual": true,
+      "isOverride": true,
+      "modifiers": [],
+      "params": [],
+      "returns": [
+        {
+          "name": null,
+          "type": "string"
+        }
+      ],
+      "hasBody": true,
+      "bodyHash": "30b5e2115ff90885",
+      "interfaceHash": "372430326073029a",
+      "metrics": {
+        "sloc": 3,
+        "cyclomatic": 1,
+        "maxDepth": 1
+      },
+      "flags": {
+        "hasAssembly": false,
+        "hasDelegatecall": false,
+        "hasLowLevelCall": false,
+        "hasSelfdestruct": false,
+        "hasCreate": false,
+        "sendsValue": false,
+        "hasUnchecked": false,
+        "hasTryCatch": false,
+        "readsState": false,
+        "writesState": false
+      }
+    },
+    {
+      "id": "src/Vault.sol:Vault.token",
+      "name": "token",
+      "file": "src/Vault.sol",
+      "scope": "src/Vault.sol:Vault",
+      "src": {
+        "file": "src/Vault.sol",
+        "offset": 616,
+        "length": 19,
+        "line": 19,
+        "column": 4
+      },
+      "kind": "StateVariable",
+      "type": "Token",
+      "visibility": "public",
+      "isConstant": false,
+      "isImmutable": false,
+      "isTransient": false,
+      "isMapping": false
+    },
+    {
+      "id": "src/Vault.sol:Vault.totalAssets()",
+      "name": "totalAssets",
+      "file": "src/Vault.sol",
+      "scope": "src/Vault.sol:Vault",
+      "src": {
+        "file": "src/Vault.sol",
+        "offset": 1315,
+        "length": 120,
+        "line": 44,
+        "column": 4
+      },
+      "kind": "Function",
+      "subkind": "function",
+      "visibility": "external",
+      "stateMutability": "view",
+      "isVirtual": false,
+      "isOverride": true,
+      "modifiers": [],
+      "params": [],
+      "returns": [
+        {
+          "name": null,
+          "type": "uint256"
+        }
+      ],
+      "hasBody": true,
+      "bodyHash": "82c6dfe34d28c003",
+      "interfaceHash": "78d4c1387b74f3c2",
+      "metrics": {
+        "sloc": 3,
+        "cyclomatic": 1,
+        "maxDepth": 1
+      },
+      "flags": {
+        "hasAssembly": false,
+        "hasDelegatecall": false,
+        "hasLowLevelCall": false,
+        "hasSelfdestruct": false,
+        "hasCreate": false,
+        "sendsValue": false,
+        "hasUnchecked": false,
+        "hasTryCatch": false,
+        "readsState": true,
+        "writesState": false
+      }
+    },
+    {
+      "id": "src/Vault.sol:Vault.upgrade(bytes)",
+      "name": "upgrade",
+      "file": "src/Vault.sol",
+      "scope": "src/Vault.sol:Vault",
+      "src": {
+        "file": "src/Vault.sol",
+        "offset": 1575,
+        "length": 164,
+        "line": 52,
+        "column": 4
+      },
+      "kind": "Function",
+      "subkind": "function",
+      "visibility": "external",
+      "stateMutability": "nonpayable",
+      "isVirtual": false,
+      "isOverride": false,
+      "modifiers": [
+        "src/Base.sol:Base#onlyOwner"
+      ],
+      "params": [
+        {
+          "name": "data",
+          "type": "bytes"
+        }
+      ],
+      "returns": [],
+      "hasBody": true,
+      "bodyHash": "eff191a945560ab3",
+      "interfaceHash": "66b23b06b6801265",
+      "metrics": {
+        "sloc": 4,
+        "cyclomatic": 1,
+        "maxDepth": 1
+      },
+      "flags": {
+        "hasAssembly": false,
+        "hasDelegatecall": true,
+        "hasLowLevelCall": false,
+        "hasSelfdestruct": false,
+        "hasCreate": false,
+        "sendsValue": false,
+        "hasUnchecked": false,
+        "hasTryCatch": false,
+        "readsState": true,
+        "writesState": false
+      }
+    },
+    {
+      "id": "src/Vault.sol:Vault^Swept(address)",
+      "name": "Swept",
+      "file": "src/Vault.sol",
+      "scope": "src/Vault.sol:Vault",
+      "src": {
+        "file": "src/Vault.sol",
+        "offset": 578,
+        "length": 32,
+        "line": 17,
+        "column": 4
+      },
+      "kind": "Event",
+      "params": [
+        {
+          "name": "to",
+          "type": "address"
+        }
+      ],
+      "isAnonymous": false
+    }
+  ],
+  "edges": [
+    {
+      "id": "src/Base.sol:Base#onlyOwner|src/Base.sol:Base.owner|reads|",
+      "kind": "reads",
+      "from": "src/Base.sol:Base#onlyOwner",
+      "to": "src/Base.sol:Base.owner",
+      "resolution": "heuristic",
+      "src": {
+        "file": "src/Base.sol",
+        "offset": 292,
+        "length": 5,
+        "line": 11,
+        "column": 26
+      },
+      "sites": [
+        {
+          "file": "src/Base.sol",
+          "offset": 292,
+          "length": 5,
+          "line": 11,
+          "column": 26
+        }
+      ],
+      "count": 1,
+      "possibleTargets": []
+    },
+    {
+      "id": "src/Base.sol:Base#onlyOwner|src/Types.sol:!NotAuthorized(address)|reverts|",
+      "kind": "reverts",
+      "from": "src/Base.sol:Base#onlyOwner",
+      "to": "src/Types.sol:!NotAuthorized(address)",
+      "resolution": "heuristic",
+      "src": {
+        "file": "src/Base.sol",
+        "offset": 313,
+        "length": 33,
+        "line": 12,
+        "column": 12
+      },
+      "sites": [
+        {
+          "file": "src/Base.sol",
+          "offset": 313,
+          "length": 33,
+          "line": 12,
+          "column": 12
+        }
+      ],
+      "count": 1,
+      "possibleTargets": []
+    },
+    {
+      "id": "src/Base.sol:Base.constructor()|src/Base.sol:Base.owner|writes|",
+      "kind": "writes",
+      "from": "src/Base.sol:Base.constructor()",
+      "to": "src/Base.sol:Base.owner",
+      "resolution": "heuristic",
+      "src": {
+        "file": "src/Base.sol",
+        "offset": 403,
+        "length": 5,
+        "line": 18,
+        "column": 8
+      },
+      "sites": [
+        {
+          "file": "src/Base.sol",
+          "offset": 403,
+          "length": 5,
+          "line": 18,
+          "column": 8
+        }
+      ],
+      "count": 1,
+      "possibleTargets": []
+    },
+    {
+      "id": "src/Base.sol:Base|src/Base.sol:Base#onlyOwner|declares|",
+      "kind": "declares",
+      "from": "src/Base.sol:Base",
+      "to": "src/Base.sol:Base#onlyOwner",
+      "resolution": "heuristic",
+      "src": {
+        "file": "src/Base.sol",
+        "offset": 243,
+        "length": 130,
+        "line": 10,
+        "column": 4
+      },
+      "sites": [
+        {
+          "file": "src/Base.sol",
+          "offset": 243,
+          "length": 130,
+          "line": 10,
+          "column": 4
+        }
+      ],
+      "count": 1,
+      "possibleTargets": []
+    },
+    {
+      "id": "src/Base.sol:Base|src/Base.sol:Base.constructor()|declares|",
+      "kind": "declares",
+      "from": "src/Base.sol:Base",
+      "to": "src/Base.sol:Base.constructor()",
+      "resolution": "heuristic",
+      "src": {
+        "file": "src/Base.sol",
+        "offset": 379,
+        "length": 49,
+        "line": 17,
+        "column": 4
+      },
+      "sites": [
+        {
+          "file": "src/Base.sol",
+          "offset": 379,
+          "length": 49,
+          "line": 17,
+          "column": 4
+        }
+      ],
+      "count": 1,
+      "possibleTargets": []
+    },
+    {
+      "id": "src/Base.sol:Base|src/Base.sol:Base.owner|declares|",
+      "kind": "declares",
+      "from": "src/Base.sol:Base",
+      "to": "src/Base.sol:Base.owner",
+      "resolution": "heuristic",
+      "src": {
+        "file": "src/Base.sol",
+        "offset": 216,
+        "length": 21,
+        "line": 8,
+        "column": 4
+      },
+      "sites": [
+        {
+          "file": "src/Base.sol",
+          "offset": 216,
+          "length": 21,
+          "line": 8,
+          "column": 4
+        }
+      ],
+      "count": 1,
+      "possibleTargets": []
+    },
+    {
+      "id": "src/Base.sol:Base|src/Base.sol:Base.tag()|declares|",
+      "kind": "declares",
+      "from": "src/Base.sol:Base",
+      "to": "src/Base.sol:Base.tag()",
+      "resolution": "heuristic",
+      "src": {
+        "file": "src/Base.sol",
+        "offset": 509,
+        "length": 89,
+        "line": 22,
+        "column": 4
+      },
+      "sites": [
+        {
+          "file": "src/Base.sol",
+          "offset": 509,
+          "length": 89,
+          "line": 22,
+          "column": 4
+        }
+      ],
+      "count": 1,
+      "possibleTargets": []
+    },
+    {
+      "id": "src/Base.sol|src/Base.sol:Base|declares|",
+      "kind": "declares",
+      "from": "src/Base.sol",
+      "to": "src/Base.sol:Base",
+      "resolution": "heuristic",
+      "src": {
+        "file": "src/Base.sol",
+        "offset": 187,
+        "length": 413,
+        "line": 7,
+        "column": 0
+      },
+      "sites": [
+        {
+          "file": "src/Base.sol",
+          "offset": 187,
+          "length": 413,
+          "line": 7,
+          "column": 0
+        }
+      ],
+      "count": 1,
+      "possibleTargets": []
+    },
+    {
+      "id": "src/IVault.sol:IVault|src/IVault.sol:IVault.deposit(uint256)|declares|",
+      "kind": "declares",
+      "from": "src/IVault.sol:IVault",
+      "to": "src/IVault.sol:IVault.deposit(uint256)",
+      "resolution": "heuristic",
+      "src": {
+        "file": "src/IVault.sol",
+        "offset": 186,
+        "length": 50,
+        "line": 8,
+        "column": 4
+      },
+      "sites": [
+        {
+          "file": "src/IVault.sol",
+          "offset": 186,
+          "length": 50,
+          "line": 8,
+          "column": 4
+        }
+      ],
+      "count": 1,
+      "possibleTargets": []
+    },
+    {
+      "id": "src/IVault.sol:IVault|src/IVault.sol:IVault.totalAssets()|declares|",
+      "kind": "declares",
+      "from": "src/IVault.sol:IVault",
+      "to": "src/IVault.sol:IVault.totalAssets()",
+      "resolution": "heuristic",
+      "src": {
+        "file": "src/IVault.sol",
+        "offset": 242,
+        "length": 55,
+        "line": 10,
+        "column": 4
+      },
+      "sites": [
+        {
+          "file": "src/IVault.sol",
+          "offset": 242,
+          "length": 55,
+          "line": 10,
+          "column": 4
+        }
+      ],
+      "count": 1,
+      "possibleTargets": []
+    },
+    {
+      "id": "src/IVault.sol:IVault|src/IVault.sol:IVault^Deposited(address,uint256)|declares|",
+      "kind": "declares",
+      "from": "src/IVault.sol:IVault",
+      "to": "src/IVault.sol:IVault^Deposited(address,uint256)",
+      "resolution": "heuristic",
+      "src": {
+        "file": "src/IVault.sol",
+        "offset": 125,
+        "length": 55,
+        "line": 6,
+        "column": 4
+      },
+      "sites": [
+        {
+          "file": "src/IVault.sol",
+          "offset": 125,
+          "length": 55,
+          "line": 6,
+          "column": 4
+        }
+      ],
+      "count": 1,
+      "possibleTargets": []
+    },
+    {
+      "id": "src/IVault.sol|src/IVault.sol:IVault|declares|",
+      "kind": "declares",
+      "from": "src/IVault.sol",
+      "to": "src/IVault.sol:IVault",
+      "resolution": "heuristic",
+      "src": {
+        "file": "src/IVault.sol",
+        "offset": 102,
+        "length": 197,
+        "line": 5,
+        "column": 0
+      },
+      "sites": [
+        {
+          "file": "src/IVault.sol",
+          "offset": 102,
+          "length": 197,
+          "line": 5,
+          "column": 0
+        }
+      ],
+      "count": 1,
+      "possibleTargets": []
+    },
+    {
+      "id": "src/Token.sol:Token.mint(address,uint256)|src/Token.sol:Token.balanceOf|reads|",
+      "kind": "reads",
+      "from": "src/Token.sol:Token.mint(address,uint256)",
+      "to": "src/Token.sol:Token.balanceOf",
+      "resolution": "heuristic",
+      "src": {
+        "file": "src/Token.sol",
+        "offset": 257,
+        "length": 9,
+        "line": 9,
+        "column": 8
+      },
+      "sites": [
+        {
+          "file": "src/Token.sol",
+          "offset": 257,
+          "length": 9,
+          "line": 9,
+          "column": 8
+        }
+      ],
+      "count": 1,
+      "possibleTargets": []
+    },
+    {
+      "id": "src/Token.sol:Token.mint(address,uint256)|src/Token.sol:Token.balanceOf|writes|",
+      "kind": "writes",
+      "from": "src/Token.sol:Token.mint(address,uint256)",
+      "to": "src/Token.sol:Token.balanceOf",
+      "resolution": "heuristic",
+      "src": {
+        "file": "src/Token.sol",
+        "offset": 257,
+        "length": 9,
+        "line": 9,
+        "column": 8
+      },
+      "sites": [
+        {
+          "file": "src/Token.sol",
+          "offset": 257,
+          "length": 9,
+          "line": 9,
+          "column": 8
+        }
+      ],
+      "count": 1,
+      "possibleTargets": []
+    },
+    {
+      "id": "src/Token.sol:Token|src/Token.sol:Token.balanceOf|declares|",
+      "kind": "declares",
+      "from": "src/Token.sol:Token",
+      "to": "src/Token.sol:Token.balanceOf",
+      "resolution": "heuristic",
+      "src": {
+        "file": "src/Token.sol",
+        "offset": 145,
+        "length": 45,
+        "line": 6,
+        "column": 4
+      },
+      "sites": [
+        {
+          "file": "src/Token.sol",
+          "offset": 145,
+          "length": 45,
+          "line": 6,
+          "column": 4
+        }
+      ],
+      "count": 1,
+      "possibleTargets": []
+    },
+    {
+      "id": "src/Token.sol:Token|src/Token.sol:Token.mint(address,uint256)|declares|",
+      "kind": "declares",
+      "from": "src/Token.sol:Token",
+      "to": "src/Token.sol:Token.mint(address,uint256)",
+      "resolution": "heuristic",
+      "src": {
+        "file": "src/Token.sol",
+        "offset": 196,
+        "length": 91,
+        "line": 8,
+        "column": 4
+      },
+      "sites": [
+        {
+          "file": "src/Token.sol",
+          "offset": 196,
+          "length": 91,
+          "line": 8,
+          "column": 4
+        }
+      ],
+      "count": 1,
+      "possibleTargets": []
+    },
+    {
+      "id": "src/Token.sol|src/Token.sol:Token|declares|",
+      "kind": "declares",
+      "from": "src/Token.sol",
+      "to": "src/Token.sol:Token",
+      "resolution": "heuristic",
+      "src": {
+        "file": "src/Token.sol",
+        "offset": 124,
+        "length": 165,
+        "line": 5,
+        "column": 0
+      },
+      "sites": [
+        {
+          "file": "src/Token.sol",
+          "offset": 124,
+          "length": 165,
+          "line": 5,
+          "column": 0
+        }
+      ],
+      "count": 1,
+      "possibleTargets": []
+    },
+    {
+      "id": "src/Types.sol:MathLib|src/Types.sol:MathLib.half(uint256)|declares|",
+      "kind": "declares",
+      "from": "src/Types.sol:MathLib",
+      "to": "src/Types.sol:MathLib.half(uint256)",
+      "resolution": "heuristic",
+      "src": {
+        "file": "src/Types.sol",
+        "offset": 704,
+        "length": 94,
+        "line": 33,
+        "column": 4
+      },
+      "sites": [
+        {
+          "file": "src/Types.sol",
+          "offset": 704,
+          "length": 94,
+          "line": 33,
+          "column": 4
+        }
+      ],
+      "count": 1,
+      "possibleTargets": []
+    },
+    {
+      "id": "src/Types.sol|src/Types.sol:!NotAuthorized(address)|declares|",
+      "kind": "declares",
+      "from": "src/Types.sol",
+      "to": "src/Types.sol:!NotAuthorized(address)",
+      "resolution": "heuristic",
+      "src": {
+        "file": "src/Types.sol",
+        "offset": 356,
+        "length": 36,
+        "line": 21,
+        "column": 0
+      },
+      "sites": [
+        {
+          "file": "src/Types.sol",
+          "offset": 356,
+          "length": 36,
+          "line": 21,
+          "column": 0
+        }
+      ],
+      "count": 1,
+      "possibleTargets": []
+    },
+    {
+      "id": "src/Types.sol|src/Types.sol:MAX_DEPOSIT|declares|",
+      "kind": "declares",
+      "from": "src/Types.sol",
+      "to": "src/Types.sol:MAX_DEPOSIT",
+      "resolution": "heuristic",
+      "src": {
+        "file": "src/Types.sol",
+        "offset": 429,
+        "length": 47,
+        "line": 24,
+        "column": 0
+      },
+      "sites": [
+        {
+          "file": "src/Types.sol",
+          "offset": 429,
+          "length": 47,
+          "line": 24,
+          "column": 0
+        }
+      ],
+      "count": 1,
+      "possibleTargets": []
+    },
+    {
+      "id": "src/Types.sol|src/Types.sol:MathLib|declares|",
+      "kind": "declares",
+      "from": "src/Types.sol",
+      "to": "src/Types.sol:MathLib",
+      "resolution": "heuristic",
+      "src": {
+        "file": "src/Types.sol",
+        "offset": 682,
+        "length": 118,
+        "line": 32,
+        "column": 0
+      },
+      "sites": [
+        {
+          "file": "src/Types.sol",
+          "offset": 682,
+          "length": 118,
+          "line": 32,
+          "column": 0
+        }
+      ],
+      "count": 1,
+      "possibleTargets": []
+    },
+    {
+      "id": "src/Types.sol|src/Types.sol:scale(uint256,uint256)|declares|",
+      "kind": "declares",
+      "from": "src/Types.sol",
+      "to": "src/Types.sol:scale(uint256,uint256)",
+      "resolution": "heuristic",
+      "src": {
+        "file": "src/Types.sol",
+        "offset": 518,
+        "length": 101,
+        "line": 27,
+        "column": 0
+      },
+      "sites": [
+        {
+          "file": "src/Types.sol",
+          "offset": 518,
+          "length": 101,
+          "line": 27,
+          "column": 0
+        }
+      ],
+      "count": 1,
+      "possibleTargets": []
+    },
+    {
+      "id": "src/Types.sol|src/Types.sol:~Deposit|declares|",
+      "kind": "declares",
+      "from": "src/Types.sol",
+      "to": "src/Types.sol:~Deposit",
+      "resolution": "heuristic",
+      "src": {
+        "file": "src/Types.sol",
+        "offset": 184,
+        "length": 57,
+        "line": 8,
+        "column": 0
+      },
+      "sites": [
+        {
+          "file": "src/Types.sol",
+          "offset": 184,
+          "length": 57,
+          "line": 8,
+          "column": 0
+        }
+      ],
+      "count": 1,
+      "possibleTargets": []
+    },
+    {
+      "id": "src/Types.sol|src/Types.sol:~Shares|declares|",
+      "kind": "declares",
+      "from": "src/Types.sol",
+      "to": "src/Types.sol:~Shares",
+      "resolution": "heuristic",
+      "src": {
+        "file": "src/Types.sol",
+        "offset": 126,
+        "length": 23,
+        "line": 5,
+        "column": 0
+      },
+      "sites": [
+        {
+          "file": "src/Types.sol",
+          "offset": 126,
+          "length": 23,
+          "line": 5,
+          "column": 0
+        }
+      ],
+      "count": 1,
+      "possibleTargets": []
+    },
+    {
+      "id": "src/Types.sol|src/Types.sol:~Status|declares|",
+      "kind": "declares",
+      "from": "src/Types.sol",
+      "to": "src/Types.sol:~Status",
+      "resolution": "heuristic",
+      "src": {
+        "file": "src/Types.sol",
+        "offset": 274,
+        "length": 48,
+        "line": 14,
+        "column": 0
+      },
+      "sites": [
+        {
+          "file": "src/Types.sol",
+          "offset": 274,
+          "length": 48,
+          "line": 14,
+          "column": 0
+        }
+      ],
+      "count": 1,
+      "possibleTargets": []
+    },
+    {
+      "id": "src/Vault.sol:Vault._record(uint256)|src/Vault.sol:Vault.status|writes|",
+      "kind": "writes",
+      "from": "src/Vault.sol:Vault._record(uint256)",
+      "to": "src/Vault.sol:Vault.status",
+      "resolution": "heuristic",
+      "src": {
+        "file": "src/Vault.sol",
+        "offset": 1989,
+        "length": 6,
+        "line": 64,
+        "column": 8
+      },
+      "sites": [
+        {
+          "file": "src/Vault.sol",
+          "offset": 1989,
+          "length": 6,
+          "line": 64,
+          "column": 8
+        }
+      ],
+      "count": 1,
+      "possibleTargets": []
+    },
+    {
+      "id": "src/Vault.sol:Vault.constructor(address)|src/Token.sol:Token|creates|",
+      "kind": "creates",
+      "from": "src/Vault.sol:Vault.constructor(address)",
+      "to": "src/Token.sol:Token",
+      "resolution": "heuristic",
+      "src": {
+        "file": "src/Vault.sol",
+        "offset": 808,
+        "length": 11,
+        "line": 26,
+        "column": 16
+      },
+      "sites": [
+        {
+          "file": "src/Vault.sol",
+          "offset": 808,
+          "length": 11,
+          "line": 26,
+          "column": 16
+        }
+      ],
+      "count": 1,
+      "possibleTargets": []
+    },
+    {
+      "id": "src/Vault.sol:Vault.constructor(address)|src/Vault.sol:Vault.implementation|writes|",
+      "kind": "writes",
+      "from": "src/Vault.sol:Vault.constructor(address)",
+      "to": "src/Vault.sol:Vault.implementation",
+      "resolution": "heuristic",
+      "src": {
+        "file": "src/Vault.sol",
+        "offset": 829,
+        "length": 14,
+        "line": 27,
+        "column": 8
+      },
+      "sites": [
+        {
+          "file": "src/Vault.sol",
+          "offset": 829,
+          "length": 14,
+          "line": 27,
+          "column": 8
+        }
+      ],
+      "count": 1,
+      "possibleTargets": []
+    },
+    {
+      "id": "src/Vault.sol:Vault.constructor(address)|src/Vault.sol:Vault.status|writes|",
+      "kind": "writes",
+      "from": "src/Vault.sol:Vault.constructor(address)",
+      "to": "src/Vault.sol:Vault.status",
+      "resolution": "heuristic",
+      "src": {
+        "file": "src/Vault.sol",
+        "offset": 860,
+        "length": 6,
+        "line": 28,
+        "column": 8
+      },
+      "sites": [
+        {
+          "file": "src/Vault.sol",
+          "offset": 860,
+          "length": 6,
+          "line": 28,
+          "column": 8
+        }
+      ],
+      "count": 1,
+      "possibleTargets": []
+    },
+    {
+      "id": "src/Vault.sol:Vault.constructor(address)|src/Vault.sol:Vault.token|writes|",
+      "kind": "writes",
+      "from": "src/Vault.sol:Vault.constructor(address)",
+      "to": "src/Vault.sol:Vault.token",
+      "resolution": "heuristic",
+      "src": {
+        "file": "src/Vault.sol",
+        "offset": 800,
+        "length": 5,
+        "line": 26,
+        "column": 8
+      },
+      "sites": [
+        {
+          "file": "src/Vault.sol",
+          "offset": 800,
+          "length": 5,
+          "line": 26,
+          "column": 8
+        }
+      ],
+      "count": 1,
+      "possibleTargets": []
+    },
+    {
+      "id": "src/Vault.sol:Vault.deposit(uint256)|src/IVault.sol:IVault.deposit(uint256)|implements|",
+      "kind": "implements",
+      "from": "src/Vault.sol:Vault.deposit(uint256)",
+      "to": "src/IVault.sol:IVault.deposit(uint256)",
+      "resolution": "heuristic",
+      "src": {
+        "file": "src/Vault.sol",
+        "offset": 922,
+        "length": 360,
+        "line": 32,
+        "column": 4
+      },
+      "sites": [
+        {
+          "file": "src/Vault.sol",
+          "offset": 922,
+          "length": 360,
+          "line": 32,
+          "column": 4
+        }
+      ],
+      "count": 1,
+      "possibleTargets": []
+    },
+    {
+      "id": "src/Vault.sol:Vault.deposit(uint256)|src/IVault.sol:IVault^Deposited(address,uint256)|emits|",
+      "kind": "emits",
+      "from": "src/Vault.sol:Vault.deposit(uint256)",
+      "to": "src/IVault.sol:IVault^Deposited(address,uint256)",
+      "resolution": "heuristic",
+      "src": {
+        "file": "src/Vault.sol",
+        "offset": 1241,
+        "length": 35,
+        "line": 40,
+        "column": 8
+      },
+      "sites": [
+        {
+          "file": "src/Vault.sol",
+          "offset": 1241,
+          "length": 35,
+          "line": 40,
+          "column": 8
+        }
+      ],
+      "count": 1,
+      "possibleTargets": []
+    },
+    {
+      "id": "src/Vault.sol:Vault.deposit(uint256)|src/Token.sol:Token.mint(address,uint256)|calls|external",
+      "kind": "calls",
+      "from": "src/Vault.sol:Vault.deposit(uint256)",
+      "to": "src/Token.sol:Token.mint(address,uint256)",
+      "resolution": "heuristic",
+      "src": {
+        "file": "src/Vault.sol",
+        "offset": 1176,
+        "length": 30,
+        "line": 38,
+        "column": 8
+      },
+      "sites": [
+        {
+          "file": "src/Vault.sol",
+          "offset": 1176,
+          "length": 30,
+          "line": 38,
+          "column": 8
+        }
+      ],
+      "count": 1,
+      "possibleTargets": [],
+      "subkind": "external"
+    },
+    {
+      "id": "src/Vault.sol:Vault.deposit(uint256)|src/Types.sol:MAX_DEPOSIT|reads|",
+      "kind": "reads",
+      "from": "src/Vault.sol:Vault.deposit(uint256)",
+      "to": "src/Types.sol:MAX_DEPOSIT",
+      "resolution": "heuristic",
+      "src": {
+        "file": "src/Vault.sol",
+        "offset": 1004,
+        "length": 11,
+        "line": 33,
+        "column": 21
+      },
+      "sites": [
+        {
+          "file": "src/Vault.sol",
+          "offset": 1004,
+          "length": 11,
+          "line": 33,
+          "column": 21
+        }
+      ],
+      "count": 1,
+      "possibleTargets": []
+    },
+    {
+      "id": "src/Vault.sol:Vault.deposit(uint256)|src/Vault.sol:Vault!DepositTooLarge(uint256)|reverts|",
+      "kind": "reverts",
+      "from": "src/Vault.sol:Vault.deposit(uint256)",
+      "to": "src/Vault.sol:Vault!DepositTooLarge(uint256)",
+      "resolution": "heuristic",
+      "src": {
+        "file": "src/Vault.sol",
+        "offset": 1031,
+        "length": 31,
+        "line": 34,
+        "column": 12
+      },
+      "sites": [
+        {
+          "file": "src/Vault.sol",
+          "offset": 1031,
+          "length": 31,
+          "line": 34,
+          "column": 12
+        }
+      ],
+      "count": 1,
+      "possibleTargets": []
+    },
+    {
+      "id": "src/Vault.sol:Vault.deposit(uint256)|src/Vault.sol:Vault._record(uint256)|calls|internal",
+      "kind": "calls",
+      "from": "src/Vault.sol:Vault.deposit(uint256)",
+      "to": "src/Vault.sol:Vault._record(uint256)",
+      "resolution": "heuristic",
+      "src": {
+        "file": "src/Vault.sol",
+        "offset": 1216,
+        "length": 15,
+        "line": 39,
+        "column": 8
+      },
+      "sites": [
+        {
+          "file": "src/Vault.sol",
+          "offset": 1216,
+          "length": 15,
+          "line": 39,
+          "column": 8
+        }
+      ],
+      "count": 1,
+      "possibleTargets": [],
+      "subkind": "internal"
+    },
+    {
+      "id": "src/Vault.sol:Vault.deposit(uint256)|src/Vault.sol:Vault.assets|reads|",
+      "kind": "reads",
+      "from": "src/Vault.sol:Vault.deposit(uint256)",
+      "to": "src/Vault.sol:Vault.assets",
+      "resolution": "heuristic",
+      "src": {
+        "file": "src/Vault.sol",
+        "offset": 1081,
+        "length": 6,
+        "line": 36,
+        "column": 8
+      },
+      "sites": [
+        {
+          "file": "src/Vault.sol",
+          "offset": 1081,
+          "length": 6,
+          "line": 36,
+          "column": 8
+        }
+      ],
+      "count": 1,
+      "possibleTargets": []
+    },
+    {
+      "id": "src/Vault.sol:Vault.deposit(uint256)|src/Vault.sol:Vault.assets|writes|",
+      "kind": "writes",
+      "from": "src/Vault.sol:Vault.deposit(uint256)",
+      "to": "src/Vault.sol:Vault.assets",
+      "resolution": "heuristic",
+      "src": {
+        "file": "src/Vault.sol",
+        "offset": 1081,
+        "length": 6,
+        "line": 36,
+        "column": 8
+      },
+      "sites": [
+        {
+          "file": "src/Vault.sol",
+          "offset": 1081,
+          "length": 6,
+          "line": 36,
+          "column": 8
+        }
+      ],
+      "count": 1,
+      "possibleTargets": []
+    },
+    {
+      "id": "src/Vault.sol:Vault.deposit(uint256)|src/Vault.sol:Vault.deposits|reads|",
+      "kind": "reads",
+      "from": "src/Vault.sol:Vault.deposit(uint256)",
+      "to": "src/Vault.sol:Vault.deposits",
+      "resolution": "heuristic",
+      "src": {
+        "file": "src/Vault.sol",
+        "offset": 1107,
+        "length": 8,
+        "line": 37,
+        "column": 8
+      },
+      "sites": [
+        {
+          "file": "src/Vault.sol",
+          "offset": 1107,
+          "length": 8,
+          "line": 37,
+          "column": 8
+        }
+      ],
+      "count": 1,
+      "possibleTargets": []
+    },
+    {
+      "id": "src/Vault.sol:Vault.deposit(uint256)|src/Vault.sol:Vault.deposits|writes|",
+      "kind": "writes",
+      "from": "src/Vault.sol:Vault.deposit(uint256)",
+      "to": "src/Vault.sol:Vault.deposits",
+      "resolution": "heuristic",
+      "src": {
+        "file": "src/Vault.sol",
+        "offset": 1107,
+        "length": 8,
+        "line": 37,
+        "column": 8
+      },
+      "sites": [
+        {
+          "file": "src/Vault.sol",
+          "offset": 1107,
+          "length": 8,
+          "line": 37,
+          "column": 8
+        }
+      ],
+      "count": 1,
+      "possibleTargets": []
+    },
+    {
+      "id": "src/Vault.sol:Vault.deposit(uint256)|src/Vault.sol:Vault.token|reads|",
+      "kind": "reads",
+      "from": "src/Vault.sol:Vault.deposit(uint256)",
+      "to": "src/Vault.sol:Vault.token",
+      "resolution": "heuristic",
+      "src": {
+        "file": "src/Vault.sol",
+        "offset": 1176,
+        "length": 5,
+        "line": 38,
+        "column": 8
+      },
+      "sites": [
+        {
+          "file": "src/Vault.sol",
+          "offset": 1176,
+          "length": 5,
+          "line": 38,
+          "column": 8
+        }
+      ],
+      "count": 1,
+      "possibleTargets": []
+    },
+    {
+      "id": "src/Vault.sol:Vault.sweep(address payable)|?call|calls|lowlevel",
+      "kind": "calls",
+      "from": "src/Vault.sol:Vault.sweep(address payable)",
+      "to": "?call",
+      "resolution": "unresolved",
+      "src": {
+        "file": "src/Vault.sol",
+        "offset": 1822,
+        "length": 41,
+        "line": 58,
+        "column": 21
+      },
+      "sites": [
+        {
+          "file": "src/Vault.sol",
+          "offset": 1822,
+          "length": 41,
+          "line": 58,
+          "column": 21
+        }
+      ],
+      "count": 1,
+      "possibleTargets": [],
+      "subkind": "lowlevel",
+      "reason": "call on address: the target is determined at runtime"
+    },
+    {
+      "id": "src/Vault.sol:Vault.sweep(address payable)|src/Base.sol:Base#onlyOwner|modifiedBy|",
+      "kind": "modifiedBy",
+      "from": "src/Vault.sol:Vault.sweep(address payable)",
+      "to": "src/Base.sol:Base#onlyOwner",
+      "resolution": "heuristic",
+      "src": {
+        "file": "src/Vault.sol",
+        "offset": 1745,
+        "length": 186,
+        "line": 57,
+        "column": 4
+      },
+      "sites": [
+        {
+          "file": "src/Vault.sol",
+          "offset": 1745,
+          "length": 186,
+          "line": 57,
+          "column": 4
+        }
+      ],
+      "count": 1,
+      "possibleTargets": []
+    },
+    {
+      "id": "src/Vault.sol:Vault.sweep(address payable)|src/Vault.sol:Vault^Swept(address)|emits|",
+      "kind": "emits",
+      "from": "src/Vault.sol:Vault.sweep(address payable)",
+      "to": "src/Vault.sol:Vault^Swept(address)",
+      "resolution": "heuristic",
+      "src": {
+        "file": "src/Vault.sol",
+        "offset": 1910,
+        "length": 15,
+        "line": 60,
+        "column": 8
+      },
+      "sites": [
+        {
+          "file": "src/Vault.sol",
+          "offset": 1910,
+          "length": 15,
+          "line": 60,
+          "column": 8
+        }
+      ],
+      "count": 1,
+      "possibleTargets": []
+    },
+    {
+      "id": "src/Vault.sol:Vault.tag()|src/Base.sol:Base.tag()|calls|super",
+      "kind": "calls",
+      "from": "src/Vault.sol:Vault.tag()",
+      "to": "src/Base.sol:Base.tag()",
+      "resolution": "heuristic",
+      "src": {
+        "file": "src/Vault.sol",
+        "offset": 1540,
+        "length": 11,
+        "line": 49,
+        "column": 29
+      },
+      "sites": [
+        {
+          "file": "src/Vault.sol",
+          "offset": 1540,
+          "length": 11,
+          "line": 49,
+          "column": 29
+        }
+      ],
+      "count": 1,
+      "possibleTargets": [],
+      "subkind": "super"
+    },
+    {
+      "id": "src/Vault.sol:Vault.tag()|src/Base.sol:Base.tag()|overrides|",
+      "kind": "overrides",
+      "from": "src/Vault.sol:Vault.tag()",
+      "to": "src/Base.sol:Base.tag()",
+      "resolution": "heuristic",
+      "src": {
+        "file": "src/Vault.sol",
+        "offset": 1441,
+        "length": 128,
+        "line": 48,
+        "column": 4
+      },
+      "sites": [
+        {
+          "file": "src/Vault.sol",
+          "offset": 1441,
+          "length": 128,
+          "line": 48,
+          "column": 4
+        }
+      ],
+      "count": 1,
+      "possibleTargets": []
+    },
+    {
+      "id": "src/Vault.sol:Vault.totalAssets()|src/IVault.sol:IVault.totalAssets()|implements|",
+      "kind": "implements",
+      "from": "src/Vault.sol:Vault.totalAssets()",
+      "to": "src/IVault.sol:IVault.totalAssets()",
+      "resolution": "heuristic",
+      "src": {
+        "file": "src/Vault.sol",
+        "offset": 1315,
+        "length": 120,
+        "line": 44,
+        "column": 4
+      },
+      "sites": [
+        {
+          "file": "src/Vault.sol",
+          "offset": 1315,
+          "length": 120,
+          "line": 44,
+          "column": 4
+        }
+      ],
+      "count": 1,
+      "possibleTargets": []
+    },
+    {
+      "id": "src/Vault.sol:Vault.totalAssets()|src/Types.sol:MathLib.half(uint256)|calls|library",
+      "kind": "calls",
+      "from": "src/Vault.sol:Vault.totalAssets()",
+      "to": "src/Types.sol:MathLib.half(uint256)",
+      "resolution": "heuristic",
+      "src": {
+        "file": "src/Vault.sol",
+        "offset": 1396,
+        "length": 13,
+        "line": 45,
+        "column": 15
+      },
+      "sites": [
+        {
+          "file": "src/Vault.sol",
+          "offset": 1396,
+          "length": 13,
+          "line": 45,
+          "column": 15
+        }
+      ],
+      "count": 1,
+      "possibleTargets": [],
+      "subkind": "library"
+    },
+    {
+      "id": "src/Vault.sol:Vault.totalAssets()|src/Types.sol:scale(uint256,uint256)|calls|internal",
+      "kind": "calls",
+      "from": "src/Vault.sol:Vault.totalAssets()",
+      "to": "src/Types.sol:scale(uint256,uint256)",
+      "resolution": "heuristic",
+      "src": {
+        "file": "src/Vault.sol",
+        "offset": 1412,
+        "length": 16,
+        "line": 45,
+        "column": 31
+      },
+      "sites": [
+        {
+          "file": "src/Vault.sol",
+          "offset": 1412,
+          "length": 16,
+          "line": 45,
+          "column": 31
+        }
+      ],
+      "count": 1,
+      "possibleTargets": [],
+      "subkind": "internal"
+    },
+    {
+      "id": "src/Vault.sol:Vault.totalAssets()|src/Vault.sol:Vault.assets|reads|",
+      "kind": "reads",
+      "from": "src/Vault.sol:Vault.totalAssets()",
+      "to": "src/Vault.sol:Vault.assets",
+      "resolution": "heuristic",
+      "src": {
+        "file": "src/Vault.sol",
+        "offset": 1396,
+        "length": 6,
+        "line": 45,
+        "column": 15
+      },
+      "sites": [
+        {
+          "file": "src/Vault.sol",
+          "offset": 1396,
+          "length": 6,
+          "line": 45,
+          "column": 15
+        },
+        {
+          "file": "src/Vault.sol",
+          "offset": 1418,
+          "length": 6,
+          "line": 45,
+          "column": 37
+        }
+      ],
+      "count": 2,
+      "possibleTargets": []
+    },
+    {
+      "id": "src/Vault.sol:Vault.upgrade(bytes)|?delegatecall|calls|delegatecall",
+      "kind": "calls",
+      "from": "src/Vault.sol:Vault.upgrade(bytes)",
+      "to": "?delegatecall",
+      "resolution": "unresolved",
+      "src": {
+        "file": "src/Vault.sol",
+        "offset": 1655,
+        "length": 33,
+        "line": 53,
+        "column": 21
+      },
+      "sites": [
+        {
+          "file": "src/Vault.sol",
+          "offset": 1655,
+          "length": 33,
+          "line": 53,
+          "column": 21
+        }
+      ],
+      "count": 1,
+      "possibleTargets": [],
+      "subkind": "delegatecall",
+      "reason": "delegatecall on address: the target is determined at runtime"
+    },
+    {
+      "id": "src/Vault.sol:Vault.upgrade(bytes)|src/Base.sol:Base#onlyOwner|modifiedBy|",
+      "kind": "modifiedBy",
+      "from": "src/Vault.sol:Vault.upgrade(bytes)",
+      "to": "src/Base.sol:Base#onlyOwner",
+      "resolution": "heuristic",
+      "src": {
+        "file": "src/Vault.sol",
+        "offset": 1575,
+        "length": 164,
+        "line": 52,
+        "column": 4
+      },
+      "sites": [
+        {
+          "file": "src/Vault.sol",
+          "offset": 1575,
+          "length": 164,
+          "line": 52,
+          "column": 4
+        }
+      ],
+      "count": 1,
+      "possibleTargets": []
+    },
+    {
+      "id": "src/Vault.sol:Vault.upgrade(bytes)|src/Vault.sol:Vault.implementation|reads|",
+      "kind": "reads",
+      "from": "src/Vault.sol:Vault.upgrade(bytes)",
+      "to": "src/Vault.sol:Vault.implementation",
+      "resolution": "heuristic",
+      "src": {
+        "file": "src/Vault.sol",
+        "offset": 1655,
+        "length": 14,
+        "line": 53,
+        "column": 21
+      },
+      "sites": [
+        {
+          "file": "src/Vault.sol",
+          "offset": 1655,
+          "length": 14,
+          "line": 53,
+          "column": 21
+        }
+      ],
+      "count": 1,
+      "possibleTargets": []
+    },
+    {
+      "id": "src/Vault.sol:Vault|src/Base.sol:Base|inherits|",
+      "kind": "inherits",
+      "from": "src/Vault.sol:Vault",
+      "to": "src/Base.sol:Base",
+      "resolution": "heuristic",
+      "src": {
+        "file": "src/Vault.sol",
+        "offset": 326,
+        "length": 1722,
+        "line": 10,
+        "column": 0
+      },
+      "sites": [
+        {
+          "file": "src/Vault.sol",
+          "offset": 326,
+          "length": 1722,
+          "line": 10,
+          "column": 0
+        }
+      ],
+      "count": 1,
+      "possibleTargets": [],
+      "linearizationIndex": 2
+    },
+    {
+      "id": "src/Vault.sol:Vault|src/IVault.sol:IVault|inherits|",
+      "kind": "inherits",
+      "from": "src/Vault.sol:Vault",
+      "to": "src/IVault.sol:IVault",
+      "resolution": "heuristic",
+      "src": {
+        "file": "src/Vault.sol",
+        "offset": 326,
+        "length": 1722,
+        "line": 10,
+        "column": 0
+      },
+      "sites": [
+        {
+          "file": "src/Vault.sol",
+          "offset": 326,
+          "length": 1722,
+          "line": 10,
+          "column": 0
+        }
+      ],
+      "count": 1,
+      "possibleTargets": [],
+      "linearizationIndex": 1
+    },
+    {
+      "id": "src/Vault.sol:Vault|src/Vault.sol:Vault!DepositTooLarge(uint256)|declares|",
+      "kind": "declares",
+      "from": "src/Vault.sol:Vault",
+      "to": "src/Vault.sol:Vault!DepositTooLarge(uint256)",
+      "resolution": "heuristic",
+      "src": {
+        "file": "src/Vault.sol",
+        "offset": 463,
+        "length": 38,
+        "line": 14,
+        "column": 4
+      },
+      "sites": [
+        {
+          "file": "src/Vault.sol",
+          "offset": 463,
+          "length": 38,
+          "line": 14,
+          "column": 4
+        }
+      ],
+      "count": 1,
+      "possibleTargets": []
+    },
+    {
+      "id": "src/Vault.sol:Vault|src/Vault.sol:Vault._record(uint256)|declares|",
+      "kind": "declares",
+      "from": "src/Vault.sol:Vault",
+      "to": "src/Vault.sol:Vault._record(uint256)",
+      "resolution": "heuristic",
+      "src": {
+        "file": "src/Vault.sol",
+        "offset": 1937,
+        "length": 109,
+        "line": 63,
+        "column": 4
+      },
+      "sites": [
+        {
+          "file": "src/Vault.sol",
+          "offset": 1937,
+          "length": 109,
+          "line": 63,
+          "column": 4
+        }
+      ],
+      "count": 1,
+      "possibleTargets": []
+    },
+    {
+      "id": "src/Vault.sol:Vault|src/Vault.sol:Vault.assets|declares|",
+      "kind": "declares",
+      "from": "src/Vault.sol:Vault",
+      "to": "src/Vault.sol:Vault.assets",
+      "resolution": "heuristic",
+      "src": {
+        "file": "src/Vault.sol",
+        "offset": 640,
+        "length": 24,
+        "line": 20,
+        "column": 4
+      },
+      "sites": [
+        {
+          "file": "src/Vault.sol",
+          "offset": 640,
+          "length": 24,
+          "line": 20,
+          "column": 4
+        }
+      ],
+      "count": 1,
+      "possibleTargets": []
+    },
+    {
+      "id": "src/Vault.sol:Vault|src/Vault.sol:Vault.constructor(address)|declares|",
+      "kind": "declares",
+      "from": "src/Vault.sol:Vault",
+      "to": "src/Vault.sol:Vault.constructor(address)",
+      "resolution": "heuristic",
+      "src": {
+        "file": "src/Vault.sol",
+        "offset": 764,
+        "length": 125,
+        "line": 25,
+        "column": 4
+      },
+      "sites": [
+        {
+          "file": "src/Vault.sol",
+          "offset": 764,
+          "length": 125,
+          "line": 25,
+          "column": 4
+        }
+      ],
+      "count": 1,
+      "possibleTargets": []
+    },
+    {
+      "id": "src/Vault.sol:Vault|src/Vault.sol:Vault.deposit(uint256)|declares|",
+      "kind": "declares",
+      "from": "src/Vault.sol:Vault",
+      "to": "src/Vault.sol:Vault.deposit(uint256)",
+      "resolution": "heuristic",
+      "src": {
+        "file": "src/Vault.sol",
+        "offset": 922,
+        "length": 360,
+        "line": 32,
+        "column": 4
+      },
+      "sites": [
+        {
+          "file": "src/Vault.sol",
+          "offset": 922,
+          "length": 360,
+          "line": 32,
+          "column": 4
+        }
+      ],
+      "count": 1,
+      "possibleTargets": []
+    },
+    {
+      "id": "src/Vault.sol:Vault|src/Vault.sol:Vault.deposits|declares|",
+      "kind": "declares",
+      "from": "src/Vault.sol:Vault",
+      "to": "src/Vault.sol:Vault.deposits",
+      "resolution": "heuristic",
+      "src": {
+        "file": "src/Vault.sol",
+        "offset": 695,
+        "length": 28,
+        "line": 22,
+        "column": 4
+      },
+      "sites": [
+        {
+          "file": "src/Vault.sol",
+          "offset": 695,
+          "length": 28,
+          "line": 22,
+          "column": 4
+        }
+      ],
+      "count": 1,
+      "possibleTargets": []
+    },
+    {
+      "id": "src/Vault.sol:Vault|src/Vault.sol:Vault.implementation|declares|",
+      "kind": "declares",
+      "from": "src/Vault.sol:Vault",
+      "to": "src/Vault.sol:Vault.implementation",
+      "resolution": "heuristic",
+      "src": {
+        "file": "src/Vault.sol",
+        "offset": 728,
+        "length": 30,
+        "line": 23,
+        "column": 4
+      },
+      "sites": [
+        {
+          "file": "src/Vault.sol",
+          "offset": 728,
+          "length": 30,
+          "line": 23,
+          "column": 4
+        }
+      ],
+      "count": 1,
+      "possibleTargets": []
+    },
+    {
+      "id": "src/Vault.sol:Vault|src/Vault.sol:Vault.status|declares|",
+      "kind": "declares",
+      "from": "src/Vault.sol:Vault",
+      "to": "src/Vault.sol:Vault.status",
+      "resolution": "heuristic",
+      "src": {
+        "file": "src/Vault.sol",
+        "offset": 669,
+        "length": 21,
+        "line": 21,
+        "column": 4
+      },
+      "sites": [
+        {
+          "file": "src/Vault.sol",
+          "offset": 669,
+          "length": 21,
+          "line": 21,
+          "column": 4
+        }
+      ],
+      "count": 1,
+      "possibleTargets": []
+    },
+    {
+      "id": "src/Vault.sol:Vault|src/Vault.sol:Vault.sweep(address payable)|declares|",
+      "kind": "declares",
+      "from": "src/Vault.sol:Vault",
+      "to": "src/Vault.sol:Vault.sweep(address payable)",
+      "resolution": "heuristic",
+      "src": {
+        "file": "src/Vault.sol",
+        "offset": 1745,
+        "length": 186,
+        "line": 57,
+        "column": 4
+      },
+      "sites": [
+        {
+          "file": "src/Vault.sol",
+          "offset": 1745,
+          "length": 186,
+          "line": 57,
+          "column": 4
+        }
+      ],
+      "count": 1,
+      "possibleTargets": []
+    },
+    {
+      "id": "src/Vault.sol:Vault|src/Vault.sol:Vault.tag()|declares|",
+      "kind": "declares",
+      "from": "src/Vault.sol:Vault",
+      "to": "src/Vault.sol:Vault.tag()",
+      "resolution": "heuristic",
+      "src": {
+        "file": "src/Vault.sol",
+        "offset": 1441,
+        "length": 128,
+        "line": 48,
+        "column": 4
+      },
+      "sites": [
+        {
+          "file": "src/Vault.sol",
+          "offset": 1441,
+          "length": 128,
+          "line": 48,
+          "column": 4
+        }
+      ],
+      "count": 1,
+      "possibleTargets": []
+    },
+    {
+      "id": "src/Vault.sol:Vault|src/Vault.sol:Vault.token|declares|",
+      "kind": "declares",
+      "from": "src/Vault.sol:Vault",
+      "to": "src/Vault.sol:Vault.token",
+      "resolution": "heuristic",
+      "src": {
+        "file": "src/Vault.sol",
+        "offset": 616,
+        "length": 19,
+        "line": 19,
+        "column": 4
+      },
+      "sites": [
+        {
+          "file": "src/Vault.sol",
+          "offset": 616,
+          "length": 19,
+          "line": 19,
+          "column": 4
+        }
+      ],
+      "count": 1,
+      "possibleTargets": []
+    },
+    {
+      "id": "src/Vault.sol:Vault|src/Vault.sol:Vault.totalAssets()|declares|",
+      "kind": "declares",
+      "from": "src/Vault.sol:Vault",
+      "to": "src/Vault.sol:Vault.totalAssets()",
+      "resolution": "heuristic",
+      "src": {
+        "file": "src/Vault.sol",
+        "offset": 1315,
+        "length": 120,
+        "line": 44,
+        "column": 4
+      },
+      "sites": [
+        {
+          "file": "src/Vault.sol",
+          "offset": 1315,
+          "length": 120,
+          "line": 44,
+          "column": 4
+        }
+      ],
+      "count": 1,
+      "possibleTargets": []
+    },
+    {
+      "id": "src/Vault.sol:Vault|src/Vault.sol:Vault.upgrade(bytes)|declares|",
+      "kind": "declares",
+      "from": "src/Vault.sol:Vault",
+      "to": "src/Vault.sol:Vault.upgrade(bytes)",
+      "resolution": "heuristic",
+      "src": {
+        "file": "src/Vault.sol",
+        "offset": 1575,
+        "length": 164,
+        "line": 52,
+        "column": 4
+      },
+      "sites": [
+        {
+          "file": "src/Vault.sol",
+          "offset": 1575,
+          "length": 164,
+          "line": 52,
+          "column": 4
+        }
+      ],
+      "count": 1,
+      "possibleTargets": []
+    },
+    {
+      "id": "src/Vault.sol:Vault|src/Vault.sol:Vault^Swept(address)|declares|",
+      "kind": "declares",
+      "from": "src/Vault.sol:Vault",
+      "to": "src/Vault.sol:Vault^Swept(address)",
+      "resolution": "heuristic",
+      "src": {
+        "file": "src/Vault.sol",
+        "offset": 578,
+        "length": 32,
+        "line": 17,
+        "column": 4
+      },
+      "sites": [
+        {
+          "file": "src/Vault.sol",
+          "offset": 578,
+          "length": 32,
+          "line": 17,
+          "column": 4
+        }
+      ],
+      "count": 1,
+      "possibleTargets": []
+    },
+    {
+      "id": "src/Vault.sol|src/Vault.sol:Vault|declares|",
+      "kind": "declares",
+      "from": "src/Vault.sol",
+      "to": "src/Vault.sol:Vault",
+      "resolution": "heuristic",
+      "src": {
+        "file": "src/Vault.sol",
+        "offset": 326,
+        "length": 1722,
+        "line": 10,
+        "column": 0
+      },
+      "sites": [
+        {
+          "file": "src/Vault.sol",
+          "offset": 326,
+          "length": 1722,
+          "line": 10,
+          "column": 0
+        }
+      ],
+      "count": 1,
+      "possibleTargets": []
+    }
+  ]
+}

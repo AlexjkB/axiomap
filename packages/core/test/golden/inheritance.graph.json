@@ -1,0 +1,3079 @@
+{
+  "schemaVersion": 1,
+  "generator": {
+    "name": "axiomap",
+    "parser": "treesitter",
+    "hashVersion": 1
+  },
+  "project": {
+    "kind": "foundry",
+    "sources": [
+      "src"
+    ],
+    "files": 28
+  },
+  "mode": "heuristic",
+  "modeReason": "No build artifacts. 88% of call edges resolved confidently, at or above the 70% threshold; edges are labelled with their confidence.",
+  "score": {
+    "overall": {
+      "semantic": 0,
+      "heuristic": 443,
+      "ambiguous": 13,
+      "unresolved": 15,
+      "total": 471,
+      "confident": 0.940552016985138
+    },
+    "calls": {
+      "semantic": 0,
+      "heuristic": 197,
+      "ambiguous": 13,
+      "unresolved": 15,
+      "total": 225,
+      "confident": 0.8755555555555555
+    },
+    "excludedFiles": 0
+  },
+  "diagnostics": [],
+  "nodes": [
+    {
+      "id": "src/Diamond.sol",
+      "kind": "SourceUnit",
+      "name": "src/Diamond.sol",
+      "file": "src/Diamond.sol",
+      "scope": null,
+      "src": {
+        "file": "src/Diamond.sol",
+        "offset": 0,
+        "length": 0,
+        "line": 1,
+        "column": 0
+      },
+      "pragma": "pragma solidity ^0.8.20;",
+      "versionSupport": "supported",
+      "recovered": false,
+      "unresolvedImports": []
+    },
+    {
+      "id": "src/Diamond.sol:A",
+      "name": "A",
+      "file": "src/Diamond.sol",
+      "scope": null,
+      "src": {
+        "file": "src/Diamond.sol",
+        "offset": 195,
+        "length": 125,
+        "line": 6,
+        "column": 0
+      },
+      "kind": "Contract",
+      "contractKind": "abstract",
+      "baseNames": [],
+      "linearizedBases": [
+        "src/Diamond.sol:A"
+      ],
+      "linearizationCertainty": "certain",
+      "isFullyImplemented": true,
+      "isTest": false,
+      "isMock": false
+    },
+    {
+      "id": "src/Diamond.sol:A.ping()",
+      "name": "ping",
+      "file": "src/Diamond.sol",
+      "scope": "src/Diamond.sol:A",
+      "src": {
+        "file": "src/Diamond.sol",
+        "offset": 248,
+        "length": 70,
+        "line": 9,
+        "column": 4
+      },
+      "kind": "Function",
+      "subkind": "function",
+      "visibility": "public",
+      "stateMutability": "nonpayable",
+      "isVirtual": true,
+      "isOverride": false,
+      "modifiers": [],
+      "params": [],
+      "returns": [],
+      "hasBody": true,
+      "bodyHash": "d76b1b2f31f21489",
+      "interfaceHash": "e57485c9887b8c99",
+      "metrics": {
+        "sloc": 3,
+        "cyclomatic": 1,
+        "maxDepth": 1
+      },
+      "flags": {
+        "hasAssembly": false,
+        "hasDelegatecall": false,
+        "hasLowLevelCall": false,
+        "hasSelfdestruct": false,
+        "hasCreate": false,
+        "sendsValue": false,
+        "hasUnchecked": false,
+        "hasTryCatch": false,
+        "readsState": true,
+        "writesState": true
+      }
+    },
+    {
+      "id": "src/Diamond.sol:A.trail",
+      "name": "trail",
+      "file": "src/Diamond.sol",
+      "scope": "src/Diamond.sol:A",
+      "src": {
+        "file": "src/Diamond.sol",
+        "offset": 221,
+        "length": 21,
+        "line": 7,
+        "column": 4
+      },
+      "kind": "StateVariable",
+      "type": "uint256",
+      "visibility": "public",
+      "isConstant": false,
+      "isImmutable": false,
+      "isTransient": false,
+      "isMapping": false
+    },
+    {
+      "id": "src/Diamond.sol:B",
+      "name": "B",
+      "file": "src/Diamond.sol",
+      "scope": null,
+      "src": {
+        "file": "src/Diamond.sol",
+        "offset": 322,
+        "length": 134,
+        "line": 14,
+        "column": 0
+      },
+      "kind": "Contract",
+      "contractKind": "abstract",
+      "baseNames": [
+        "A"
+      ],
+      "linearizedBases": [
+        "src/Diamond.sol:B",
+        "src/Diamond.sol:A"
+      ],
+      "linearizationCertainty": "certain",
+      "isFullyImplemented": true,
+      "isTest": false,
+      "isMock": false
+    },
+    {
+      "id": "src/Diamond.sol:B.ping()",
+      "name": "ping",
+      "file": "src/Diamond.sol",
+      "scope": "src/Diamond.sol:B",
+      "src": {
+        "file": "src/Diamond.sol",
+        "offset": 353,
+        "length": 101,
+        "line": 15,
+        "column": 4
+      },
+      "kind": "Function",
+      "subkind": "function",
+      "visibility": "public",
+      "stateMutability": "nonpayable",
+      "isVirtual": true,
+      "isOverride": true,
+      "modifiers": [],
+      "params": [],
+      "returns": [],
+      "hasBody": true,
+      "bodyHash": "9dbb7e6a7b759059",
+      "interfaceHash": "e57485c9887b8c99",
+      "metrics": {
+        "sloc": 4,
+        "cyclomatic": 1,
+        "maxDepth": 1
+      },
+      "flags": {
+        "hasAssembly": false,
+        "hasDelegatecall": false,
+        "hasLowLevelCall": false,
+        "hasSelfdestruct": false,
+        "hasCreate": false,
+        "sendsValue": false,
+        "hasUnchecked": false,
+        "hasTryCatch": false,
+        "readsState": true,
+        "writesState": true
+      }
+    },
+    {
+      "id": "src/Diamond.sol:C",
+      "name": "C",
+      "file": "src/Diamond.sol",
+      "scope": null,
+      "src": {
+        "file": "src/Diamond.sol",
+        "offset": 458,
+        "length": 134,
+        "line": 21,
+        "column": 0
+      },
+      "kind": "Contract",
+      "contractKind": "abstract",
+      "baseNames": [
+        "A"
+      ],
+      "linearizedBases": [
+        "src/Diamond.sol:C",
+        "src/Diamond.sol:A"
+      ],
+      "linearizationCertainty": "certain",
+      "isFullyImplemented": true,
+      "isTest": false,
+      "isMock": false
+    },
+    {
+      "id": "src/Diamond.sol:C.ping()",
+      "name": "ping",
+      "file": "src/Diamond.sol",
+      "scope": "src/Diamond.sol:C",
+      "src": {
+        "file": "src/Diamond.sol",
+        "offset": 489,
+        "length": 101,
+        "line": 22,
+        "column": 4
+      },
+      "kind": "Function",
+      "subkind": "function",
+      "visibility": "public",
+      "stateMutability": "nonpayable",
+      "isVirtual": true,
+      "isOverride": true,
+      "modifiers": [],
+      "params": [],
+      "returns": [],
+      "hasBody": true,
+      "bodyHash": "c602c5af8ccbbcbc",
+      "interfaceHash": "e57485c9887b8c99",
+      "metrics": {
+        "sloc": 4,
+        "cyclomatic": 1,
+        "maxDepth": 1
+      },
+      "flags": {
+        "hasAssembly": false,
+        "hasDelegatecall": false,
+        "hasLowLevelCall": false,
+        "hasSelfdestruct": false,
+        "hasCreate": false,
+        "sendsValue": false,
+        "hasUnchecked": false,
+        "hasTryCatch": false,
+        "readsState": true,
+        "writesState": true
+      }
+    },
+    {
+      "id": "src/Diamond.sol:D",
+      "name": "D",
+      "file": "src/Diamond.sol",
+      "scope": null,
+      "src": {
+        "file": "src/Diamond.sol",
+        "offset": 594,
+        "length": 126,
+        "line": 28,
+        "column": 0
+      },
+      "kind": "Contract",
+      "contractKind": "contract",
+      "baseNames": [
+        "B",
+        "C"
+      ],
+      "linearizedBases": [
+        "src/Diamond.sol:D",
+        "src/Diamond.sol:C",
+        "src/Diamond.sol:B",
+        "src/Diamond.sol:A"
+      ],
+      "linearizationCertainty": "certain",
+      "isFullyImplemented": true,
+      "isTest": false,
+      "isMock": false
+    },
+    {
+      "id": "src/Diamond.sol:D.ping()",
+      "name": "ping",
+      "file": "src/Diamond.sol",
+      "scope": "src/Diamond.sol:D",
+      "src": {
+        "file": "src/Diamond.sol",
+        "offset": 619,
+        "length": 99,
+        "line": 29,
+        "column": 4
+      },
+      "kind": "Function",
+      "subkind": "function",
+      "visibility": "public",
+      "stateMutability": "nonpayable",
+      "isVirtual": false,
+      "isOverride": true,
+      "modifiers": [],
+      "params": [],
+      "returns": [],
+      "hasBody": true,
+      "bodyHash": "65311d7cfcb3b92b",
+      "interfaceHash": "e57485c9887b8c99",
+      "metrics": {
+        "sloc": 4,
+        "cyclomatic": 1,
+        "maxDepth": 1
+      },
+      "flags": {
+        "hasAssembly": false,
+        "hasDelegatecall": false,
+        "hasLowLevelCall": false,
+        "hasSelfdestruct": false,
+        "hasCreate": false,
+        "sendsValue": false,
+        "hasUnchecked": false,
+        "hasTryCatch": false,
+        "readsState": true,
+        "writesState": true
+      }
+    },
+    {
+      "id": "src/Diamond.sol:E",
+      "name": "E",
+      "file": "src/Diamond.sol",
+      "scope": null,
+      "src": {
+        "file": "src/Diamond.sol",
+        "offset": 884,
+        "length": 126,
+        "line": 37,
+        "column": 0
+      },
+      "kind": "Contract",
+      "contractKind": "contract",
+      "baseNames": [
+        "C",
+        "B"
+      ],
+      "linearizedBases": [
+        "src/Diamond.sol:E",
+        "src/Diamond.sol:B",
+        "src/Diamond.sol:C",
+        "src/Diamond.sol:A"
+      ],
+      "linearizationCertainty": "certain",
+      "isFullyImplemented": true,
+      "isTest": false,
+      "isMock": false
+    },
+    {
+      "id": "src/Diamond.sol:E.ping()",
+      "name": "ping",
+      "file": "src/Diamond.sol",
+      "scope": "src/Diamond.sol:E",
+      "src": {
+        "file": "src/Diamond.sol",
+        "offset": 909,
+        "length": 99,
+        "line": 38,
+        "column": 4
+      },
+      "kind": "Function",
+      "subkind": "function",
+      "visibility": "public",
+      "stateMutability": "nonpayable",
+      "isVirtual": false,
+      "isOverride": true,
+      "modifiers": [],
+      "params": [],
+      "returns": [],
+      "hasBody": true,
+      "bodyHash": "5362e214be52a78f",
+      "interfaceHash": "e57485c9887b8c99",
+      "metrics": {
+        "sloc": 4,
+        "cyclomatic": 1,
+        "maxDepth": 1
+      },
+      "flags": {
+        "hasAssembly": false,
+        "hasDelegatecall": false,
+        "hasLowLevelCall": false,
+        "hasSelfdestruct": false,
+        "hasCreate": false,
+        "sendsValue": false,
+        "hasUnchecked": false,
+        "hasTryCatch": false,
+        "readsState": true,
+        "writesState": true
+      }
+    },
+    {
+      "id": "src/GovernedToken.sol",
+      "kind": "SourceUnit",
+      "name": "src/GovernedToken.sol",
+      "file": "src/GovernedToken.sol",
+      "scope": null,
+      "src": {
+        "file": "src/GovernedToken.sol",
+        "offset": 0,
+        "length": 0,
+        "line": 1,
+        "column": 0
+      },
+      "pragma": "pragma solidity ^0.8.20;",
+      "versionSupport": "supported",
+      "recovered": false,
+      "unresolvedImports": []
+    },
+    {
+      "id": "src/GovernedToken.sol:GovernedToken",
+      "name": "GovernedToken",
+      "file": "src/GovernedToken.sol",
+      "scope": null,
+      "src": {
+        "file": "src/GovernedToken.sol",
+        "offset": 619,
+        "length": 885,
+        "line": 12,
+        "column": 0
+      },
+      "kind": "Contract",
+      "contractKind": "contract",
+      "baseNames": [
+        "ERC20",
+        "ERC20Burnable",
+        "ERC20Pausable",
+        "Ownable2Step"
+      ],
+      "linearizedBases": [
+        "src/GovernedToken.sol:GovernedToken",
+        "lib/openzeppelin-contracts/contracts/access/Ownable2Step.sol:Ownable2Step",
+        "lib/openzeppelin-contracts/contracts/access/Ownable.sol:Ownable",
+        "lib/openzeppelin-contracts/contracts/token/ERC20/extensions/ERC20Pausable.sol:ERC20Pausable",
+        "lib/openzeppelin-contracts/contracts/utils/Pausable.sol:Pausable",
+        "lib/openzeppelin-contracts/contracts/token/ERC20/extensions/ERC20Burnable.sol:ERC20Burnable",
+        "lib/openzeppelin-contracts/contracts/token/ERC20/ERC20.sol:ERC20",
+        "lib/openzeppelin-contracts/contracts/interfaces/draft-IERC6093.sol:IERC20Errors",
+        "lib/openzeppelin-contracts/contracts/token/ERC20/extensions/IERC20Metadata.sol:IERC20Metadata",
+        "lib/openzeppelin-contracts/contracts/token/ERC20/IERC20.sol:IERC20",
+        "lib/openzeppelin-contracts/contracts/utils/Context.sol:Context"
+      ],
+      "linearizationCertainty": "certain",
+      "isFullyImplemented": true,
+      "isTest": false,
+      "isMock": false
+    },
+    {
+      "id": "src/GovernedToken.sol:GovernedToken._transferOwnership(address)",
+      "name": "_transferOwnership",
+      "file": "src/GovernedToken.sol",
+      "scope": "src/GovernedToken.sol:GovernedToken",
+      "src": {
+        "file": "src/GovernedToken.sol",
+        "offset": 1364,
+        "length": 138,
+        "line": 35,
+        "column": 4
+      },
+      "kind": "Function",
+      "subkind": "function",
+      "visibility": "internal",
+      "stateMutability": "nonpayable",
+      "isVirtual": false,
+      "isOverride": true,
+      "modifiers": [],
+      "params": [
+        {
+          "name": "newOwner",
+          "type": "address"
+        }
+      ],
+      "returns": [],
+      "hasBody": true,
+      "bodyHash": "4719f1243a81696a",
+      "interfaceHash": "078c17841eedd140",
+      "metrics": {
+        "sloc": 3,
+        "cyclomatic": 1,
+        "maxDepth": 1
+      },
+      "flags": {
+        "hasAssembly": false,
+        "hasDelegatecall": false,
+        "hasLowLevelCall": false,
+        "hasSelfdestruct": false,
+        "hasCreate": false,
+        "sendsValue": false,
+        "hasUnchecked": false,
+        "hasTryCatch": false,
+        "readsState": false,
+        "writesState": false
+      }
+    },
+    {
+      "id": "src/GovernedToken.sol:GovernedToken._update(address,address,uint256)",
+      "name": "_update",
+      "file": "src/GovernedToken.sol",
+      "scope": "src/GovernedToken.sol:GovernedToken",
+      "src": {
+        "file": "src/GovernedToken.sol",
+        "offset": 1058,
+        "length": 165,
+        "line": 26,
+        "column": 4
+      },
+      "kind": "Function",
+      "subkind": "function",
+      "visibility": "internal",
+      "stateMutability": "nonpayable",
+      "isVirtual": false,
+      "isOverride": true,
+      "modifiers": [],
+      "params": [
+        {
+          "name": "from",
+          "type": "address"
+        },
+        {
+          "name": "to",
+          "type": "address"
+        },
+        {
+          "name": "value",
+          "type": "uint256"
+        }
+      ],
+      "returns": [],
+      "hasBody": true,
+      "bodyHash": "cda587a99d524109",
+      "interfaceHash": "fd499400b7cdb763",
+      "metrics": {
+        "sloc": 3,
+        "cyclomatic": 1,
+        "maxDepth": 1
+      },
+      "flags": {
+        "hasAssembly": false,
+        "hasDelegatecall": false,
+        "hasLowLevelCall": false,
+        "hasSelfdestruct": false,
+        "hasCreate": false,
+        "sendsValue": false,
+        "hasUnchecked": false,
+        "hasTryCatch": false,
+        "readsState": false,
+        "writesState": false
+      }
+    },
+    {
+      "id": "src/GovernedToken.sol:GovernedToken.constructor(address)",
+      "name": "constructor",
+      "file": "src/GovernedToken.sol",
+      "scope": "src/GovernedToken.sol:GovernedToken",
+      "src": {
+        "file": "src/GovernedToken.sol",
+        "offset": 701,
+        "length": 131,
+        "line": 13,
+        "column": 4
+      },
+      "kind": "Function",
+      "subkind": "constructor",
+      "visibility": "default",
+      "stateMutability": "nonpayable",
+      "isVirtual": false,
+      "isOverride": false,
+      "modifiers": [],
+      "params": [
+        {
+          "name": "initialOwner",
+          "type": "address"
+        }
+      ],
+      "returns": [],
+      "hasBody": true,
+      "bodyHash": "1198e21d84770d5b",
+      "interfaceHash": "ea2951d997c9ba17",
+      "metrics": {
+        "sloc": 3,
+        "cyclomatic": 1,
+        "maxDepth": 1
+      },
+      "flags": {
+        "hasAssembly": false,
+        "hasDelegatecall": false,
+        "hasLowLevelCall": false,
+        "hasSelfdestruct": false,
+        "hasCreate": false,
+        "sendsValue": false,
+        "hasUnchecked": false,
+        "hasTryCatch": false,
+        "readsState": false,
+        "writesState": false
+      }
+    },
+    {
+      "id": "src/GovernedToken.sol:GovernedToken.pause()",
+      "name": "pause",
+      "file": "src/GovernedToken.sol",
+      "scope": "src/GovernedToken.sol:GovernedToken",
+      "src": {
+        "file": "src/GovernedToken.sol",
+        "offset": 838,
+        "length": 61,
+        "line": 17,
+        "column": 4
+      },
+      "kind": "Function",
+      "subkind": "function",
+      "visibility": "external",
+      "stateMutability": "nonpayable",
+      "isVirtual": false,
+      "isOverride": false,
+      "modifiers": [
+        "lib/openzeppelin-contracts/contracts/access/Ownable.sol:Ownable#onlyOwner"
+      ],
+      "params": [],
+      "returns": [],
+      "hasBody": true,
+      "bodyHash": "98126481c6626436",
+      "interfaceHash": "e382d288b5fff75a",
+      "metrics": {
+        "sloc": 3,
+        "cyclomatic": 1,
+        "maxDepth": 1
+      },
+      "flags": {
+        "hasAssembly": false,
+        "hasDelegatecall": false,
+        "hasLowLevelCall": false,
+        "hasSelfdestruct": false,
+        "hasCreate": false,
+        "sendsValue": false,
+        "hasUnchecked": false,
+        "hasTryCatch": false,
+        "readsState": false,
+        "writesState": false
+      }
+    },
+    {
+      "id": "src/GovernedToken.sol:GovernedToken.unpause()",
+      "name": "unpause",
+      "file": "src/GovernedToken.sol",
+      "scope": "src/GovernedToken.sol:GovernedToken",
+      "src": {
+        "file": "src/GovernedToken.sol",
+        "offset": 905,
+        "length": 65,
+        "line": 21,
+        "column": 4
+      },
+      "kind": "Function",
+      "subkind": "function",
+      "visibility": "external",
+      "stateMutability": "nonpayable",
+      "isVirtual": false,
+      "isOverride": false,
+      "modifiers": [
+        "lib/openzeppelin-contracts/contracts/access/Ownable.sol:Ownable#onlyOwner"
+      ],
+      "params": [],
+      "returns": [],
+      "hasBody": true,
+      "bodyHash": "05164725c3b51383",
+      "interfaceHash": "c31c276d1778858e",
+      "metrics": {
+        "sloc": 3,
+        "cyclomatic": 1,
+        "maxDepth": 1
+      },
+      "flags": {
+        "hasAssembly": false,
+        "hasDelegatecall": false,
+        "hasLowLevelCall": false,
+        "hasSelfdestruct": false,
+        "hasCreate": false,
+        "sendsValue": false,
+        "hasUnchecked": false,
+        "hasTryCatch": false,
+        "readsState": false,
+        "writesState": false
+      }
+    },
+    {
+      "id": "src/Shadowing.sol",
+      "kind": "SourceUnit",
+      "name": "src/Shadowing.sol",
+      "file": "src/Shadowing.sol",
+      "scope": null,
+      "src": {
+        "file": "src/Shadowing.sol",
+        "offset": 0,
+        "length": 0,
+        "line": 1,
+        "column": 0
+      },
+      "pragma": "pragma solidity ^0.8.20;",
+      "versionSupport": "supported",
+      "recovered": false,
+      "unresolvedImports": []
+    },
+    {
+      "id": "src/Shadowing.sol:Greeter",
+      "name": "Greeter",
+      "file": "src/Shadowing.sol",
+      "scope": null,
+      "src": {
+        "file": "src/Shadowing.sol",
+        "offset": 304,
+        "length": 355,
+        "line": 13,
+        "column": 0
+      },
+      "kind": "Contract",
+      "contractKind": "abstract",
+      "baseNames": [
+        "IGreeter",
+        "INamed"
+      ],
+      "linearizedBases": [
+        "src/Shadowing.sol:Greeter",
+        "src/Shadowing.sol:INamed",
+        "src/Shadowing.sol:IGreeter"
+      ],
+      "linearizationCertainty": "certain",
+      "isFullyImplemented": false,
+      "isTest": false,
+      "isMock": false
+    },
+    {
+      "id": "src/Shadowing.sol:Greeter._greeting",
+      "name": "_greeting",
+      "file": "src/Shadowing.sol",
+      "scope": "src/Shadowing.sol:Greeter",
+      "src": {
+        "file": "src/Shadowing.sol",
+        "offset": 356,
+        "length": 36,
+        "line": 14,
+        "column": 4
+      },
+      "kind": "StateVariable",
+      "type": "string",
+      "visibility": "internal",
+      "isConstant": false,
+      "isImmutable": false,
+      "isTransient": false,
+      "isMapping": false
+    },
+    {
+      "id": "src/Shadowing.sol:Greeter.greet()",
+      "name": "greet",
+      "file": "src/Shadowing.sol",
+      "scope": "src/Shadowing.sol:Greeter",
+      "src": {
+        "file": "src/Shadowing.sol",
+        "offset": 398,
+        "length": 103,
+        "line": 16,
+        "column": 4
+      },
+      "kind": "Function",
+      "subkind": "function",
+      "visibility": "public",
+      "stateMutability": "view",
+      "isVirtual": true,
+      "isOverride": true,
+      "modifiers": [],
+      "params": [],
+      "returns": [
+        {
+          "name": null,
+          "type": "string"
+        }
+      ],
+      "hasBody": true,
+      "bodyHash": "8cd99d3af3347c4a",
+      "interfaceHash": "b8f6dc0c3e96d06f",
+      "metrics": {
+        "sloc": 3,
+        "cyclomatic": 1,
+        "maxDepth": 1
+      },
+      "flags": {
+        "hasAssembly": false,
+        "hasDelegatecall": false,
+        "hasLowLevelCall": false,
+        "hasSelfdestruct": false,
+        "hasCreate": false,
+        "sendsValue": false,
+        "hasUnchecked": false,
+        "hasTryCatch": false,
+        "readsState": true,
+        "writesState": false
+      }
+    },
+    {
+      "id": "src/Shadowing.sol:Greeter.name()",
+      "name": "name",
+      "file": "src/Shadowing.sol",
+      "scope": "src/Shadowing.sol:Greeter",
+      "src": {
+        "file": "src/Shadowing.sol",
+        "offset": 588,
+        "length": 69,
+        "line": 21,
+        "column": 4
+      },
+      "kind": "Function",
+      "subkind": "function",
+      "visibility": "public",
+      "stateMutability": "view",
+      "isVirtual": true,
+      "isOverride": true,
+      "modifiers": [],
+      "params": [],
+      "returns": [
+        {
+          "name": null,
+          "type": "string"
+        }
+      ],
+      "hasBody": false,
+      "bodyHash": "3498efb3aa3800ea",
+      "interfaceHash": "7cbc4e1c8e5aef79",
+      "metrics": {
+        "sloc": 0,
+        "cyclomatic": 1,
+        "maxDepth": 0
+      },
+      "flags": {
+        "hasAssembly": false,
+        "hasDelegatecall": false,
+        "hasLowLevelCall": false,
+        "hasSelfdestruct": false,
+        "hasCreate": false,
+        "sendsValue": false,
+        "hasUnchecked": false,
+        "hasTryCatch": false,
+        "readsState": false,
+        "writesState": false
+      }
+    },
+    {
+      "id": "src/Shadowing.sol:IGreeter",
+      "name": "IGreeter",
+      "file": "src/Shadowing.sol",
+      "scope": null,
+      "src": {
+        "file": "src/Shadowing.sol",
+        "offset": 58,
+        "length": 82,
+        "line": 4,
+        "column": 0
+      },
+      "kind": "Contract",
+      "contractKind": "interface",
+      "baseNames": [],
+      "linearizedBases": [
+        "src/Shadowing.sol:IGreeter"
+      ],
+      "linearizationCertainty": "certain",
+      "isFullyImplemented": false,
+      "isTest": false,
+      "isMock": false
+    },
+    {
+      "id": "src/Shadowing.sol:IGreeter.greet()",
+      "name": "greet",
+      "file": "src/Shadowing.sol",
+      "scope": "src/Shadowing.sol:IGreeter",
+      "src": {
+        "file": "src/Shadowing.sol",
+        "offset": 83,
+        "length": 55,
+        "line": 5,
+        "column": 4
+      },
+      "kind": "Function",
+      "subkind": "function",
+      "visibility": "external",
+      "stateMutability": "view",
+      "isVirtual": false,
+      "isOverride": false,
+      "modifiers": [],
+      "params": [],
+      "returns": [
+        {
+          "name": null,
+          "type": "string"
+        }
+      ],
+      "hasBody": false,
+      "bodyHash": "3498efb3aa3800ea",
+      "interfaceHash": "b28728c34d14ef75",
+      "metrics": {
+        "sloc": 0,
+        "cyclomatic": 1,
+        "maxDepth": 0
+      },
+      "flags": {
+        "hasAssembly": false,
+        "hasDelegatecall": false,
+        "hasLowLevelCall": false,
+        "hasSelfdestruct": false,
+        "hasCreate": false,
+        "sendsValue": false,
+        "hasUnchecked": false,
+        "hasTryCatch": false,
+        "readsState": false,
+        "writesState": false
+      }
+    },
+    {
+      "id": "src/Shadowing.sol:INamed",
+      "name": "INamed",
+      "file": "src/Shadowing.sol",
+      "scope": null,
+      "src": {
+        "file": "src/Shadowing.sol",
+        "offset": 142,
+        "length": 79,
+        "line": 8,
+        "column": 0
+      },
+      "kind": "Contract",
+      "contractKind": "interface",
+      "baseNames": [],
+      "linearizedBases": [
+        "src/Shadowing.sol:INamed"
+      ],
+      "linearizationCertainty": "certain",
+      "isFullyImplemented": false,
+      "isTest": false,
+      "isMock": false
+    },
+    {
+      "id": "src/Shadowing.sol:INamed.name()",
+      "name": "name",
+      "file": "src/Shadowing.sol",
+      "scope": "src/Shadowing.sol:INamed",
+      "src": {
+        "file": "src/Shadowing.sol",
+        "offset": 165,
+        "length": 54,
+        "line": 9,
+        "column": 4
+      },
+      "kind": "Function",
+      "subkind": "function",
+      "visibility": "external",
+      "stateMutability": "view",
+      "isVirtual": false,
+      "isOverride": false,
+      "modifiers": [],
+      "params": [],
+      "returns": [
+        {
+          "name": null,
+          "type": "string"
+        }
+      ],
+      "hasBody": false,
+      "bodyHash": "3498efb3aa3800ea",
+      "interfaceHash": "d5bf5f7c3f28df07",
+      "metrics": {
+        "sloc": 0,
+        "cyclomatic": 1,
+        "maxDepth": 0
+      },
+      "flags": {
+        "hasAssembly": false,
+        "hasDelegatecall": false,
+        "hasLowLevelCall": false,
+        "hasSelfdestruct": false,
+        "hasCreate": false,
+        "sendsValue": false,
+        "hasUnchecked": false,
+        "hasTryCatch": false,
+        "readsState": false,
+        "writesState": false
+      }
+    },
+    {
+      "id": "src/Shadowing.sol:Loud",
+      "name": "Loud",
+      "file": "src/Shadowing.sol",
+      "scope": null,
+      "src": {
+        "file": "src/Shadowing.sol",
+        "offset": 1240,
+        "length": 155,
+        "line": 39,
+        "column": 0
+      },
+      "kind": "Contract",
+      "contractKind": "contract",
+      "baseNames": [
+        "Politeness"
+      ],
+      "linearizedBases": [
+        "src/Shadowing.sol:Loud",
+        "src/Shadowing.sol:Politeness",
+        "src/Shadowing.sol:Greeter",
+        "src/Shadowing.sol:INamed",
+        "src/Shadowing.sol:IGreeter"
+      ],
+      "linearizationCertainty": "certain",
+      "isFullyImplemented": true,
+      "isTest": false,
+      "isMock": false
+    },
+    {
+      "id": "src/Shadowing.sol:Loud.greet()",
+      "name": "greet",
+      "file": "src/Shadowing.sol",
+      "scope": "src/Shadowing.sol:Loud",
+      "src": {
+        "file": "src/Shadowing.sol",
+        "offset": 1274,
+        "length": 119,
+        "line": 40,
+        "column": 4
+      },
+      "kind": "Function",
+      "subkind": "function",
+      "visibility": "public",
+      "stateMutability": "view",
+      "isVirtual": false,
+      "isOverride": true,
+      "modifiers": [],
+      "params": [],
+      "returns": [
+        {
+          "name": null,
+          "type": "string"
+        }
+      ],
+      "hasBody": true,
+      "bodyHash": "e090522e60b5cd36",
+      "interfaceHash": "b8f6dc0c3e96d06f",
+      "metrics": {
+        "sloc": 3,
+        "cyclomatic": 1,
+        "maxDepth": 1
+      },
+      "flags": {
+        "hasAssembly": false,
+        "hasDelegatecall": false,
+        "hasLowLevelCall": false,
+        "hasSelfdestruct": false,
+        "hasCreate": false,
+        "sendsValue": false,
+        "hasUnchecked": false,
+        "hasTryCatch": false,
+        "readsState": false,
+        "writesState": false
+      }
+    },
+    {
+      "id": "src/Shadowing.sol:Politeness",
+      "name": "Politeness",
+      "file": "src/Shadowing.sol",
+      "scope": null,
+      "src": {
+        "file": "src/Shadowing.sol",
+        "offset": 802,
+        "length": 313,
+        "line": 26,
+        "column": 0
+      },
+      "kind": "Contract",
+      "contractKind": "contract",
+      "baseNames": [
+        "Greeter"
+      ],
+      "linearizedBases": [
+        "src/Shadowing.sol:Politeness",
+        "src/Shadowing.sol:Greeter",
+        "src/Shadowing.sol:INamed",
+        "src/Shadowing.sol:IGreeter"
+      ],
+      "linearizationCertainty": "certain",
+      "isFullyImplemented": true,
+      "isTest": false,
+      "isMock": false
+    },
+    {
+      "id": "src/Shadowing.sol:Politeness.greet()",
+      "name": "greet",
+      "file": "src/Shadowing.sol",
+      "scope": "src/Shadowing.sol:Politeness",
+      "src": {
+        "file": "src/Shadowing.sol",
+        "offset": 942,
+        "length": 171,
+        "line": 31,
+        "column": 4
+      },
+      "kind": "Function",
+      "subkind": "function",
+      "visibility": "public",
+      "stateMutability": "view",
+      "isVirtual": false,
+      "isOverride": true,
+      "modifiers": [],
+      "params": [],
+      "returns": [
+        {
+          "name": null,
+          "type": "string"
+        }
+      ],
+      "hasBody": true,
+      "bodyHash": "7461eefda4d93831",
+      "interfaceHash": "b8f6dc0c3e96d06f",
+      "metrics": {
+        "sloc": 4,
+        "cyclomatic": 1,
+        "maxDepth": 1
+      },
+      "flags": {
+        "hasAssembly": false,
+        "hasDelegatecall": false,
+        "hasLowLevelCall": false,
+        "hasSelfdestruct": false,
+        "hasCreate": false,
+        "sendsValue": false,
+        "hasUnchecked": false,
+        "hasTryCatch": false,
+        "readsState": false,
+        "writesState": false
+      }
+    },
+    {
+      "id": "src/Shadowing.sol:Politeness.name()",
+      "name": "name",
+      "file": "src/Shadowing.sol",
+      "scope": "src/Shadowing.sol:Politeness",
+      "src": {
+        "file": "src/Shadowing.sol",
+        "offset": 839,
+        "length": 97,
+        "line": 27,
+        "column": 4
+      },
+      "kind": "Function",
+      "subkind": "function",
+      "visibility": "public",
+      "stateMutability": "pure",
+      "isVirtual": false,
+      "isOverride": true,
+      "modifiers": [],
+      "params": [],
+      "returns": [
+        {
+          "name": null,
+          "type": "string"
+        }
+      ],
+      "hasBody": true,
+      "bodyHash": "37a68f975eb1cacd",
+      "interfaceHash": "556bfecb4949ab4f",
+      "metrics": {
+        "sloc": 3,
+        "cyclomatic": 1,
+        "maxDepth": 1
+      },
+      "flags": {
+        "hasAssembly": false,
+        "hasDelegatecall": false,
+        "hasLowLevelCall": false,
+        "hasSelfdestruct": false,
+        "hasCreate": false,
+        "sendsValue": false,
+        "hasUnchecked": false,
+        "hasTryCatch": false,
+        "readsState": false,
+        "writesState": false
+      }
+    }
+  ],
+  "edges": [
+    {
+      "id": "src/Diamond.sol:A.ping()|src/Diamond.sol:A.trail|reads|",
+      "kind": "reads",
+      "from": "src/Diamond.sol:A.ping()",
+      "to": "src/Diamond.sol:A.trail",
+      "resolution": "heuristic",
+      "src": {
+        "file": "src/Diamond.sol",
+        "offset": 297,
+        "length": 5,
+        "line": 10,
+        "column": 16
+      },
+      "sites": [
+        {
+          "file": "src/Diamond.sol",
+          "offset": 297,
+          "length": 5,
+          "line": 10,
+          "column": 16
+        }
+      ],
+      "count": 1,
+      "possibleTargets": []
+    },
+    {
+      "id": "src/Diamond.sol:A.ping()|src/Diamond.sol:A.trail|writes|",
+      "kind": "writes",
+      "from": "src/Diamond.sol:A.ping()",
+      "to": "src/Diamond.sol:A.trail",
+      "resolution": "heuristic",
+      "src": {
+        "file": "src/Diamond.sol",
+        "offset": 289,
+        "length": 5,
+        "line": 10,
+        "column": 8
+      },
+      "sites": [
+        {
+          "file": "src/Diamond.sol",
+          "offset": 289,
+          "length": 5,
+          "line": 10,
+          "column": 8
+        }
+      ],
+      "count": 1,
+      "possibleTargets": []
+    },
+    {
+      "id": "src/Diamond.sol:A|src/Diamond.sol:A.ping()|declares|",
+      "kind": "declares",
+      "from": "src/Diamond.sol:A",
+      "to": "src/Diamond.sol:A.ping()",
+      "resolution": "heuristic",
+      "src": {
+        "file": "src/Diamond.sol",
+        "offset": 248,
+        "length": 70,
+        "line": 9,
+        "column": 4
+      },
+      "sites": [
+        {
+          "file": "src/Diamond.sol",
+          "offset": 248,
+          "length": 70,
+          "line": 9,
+          "column": 4
+        }
+      ],
+      "count": 1,
+      "possibleTargets": []
+    },
+    {
+      "id": "src/Diamond.sol:A|src/Diamond.sol:A.trail|declares|",
+      "kind": "declares",
+      "from": "src/Diamond.sol:A",
+      "to": "src/Diamond.sol:A.trail",
+      "resolution": "heuristic",
+      "src": {
+        "file": "src/Diamond.sol",
+        "offset": 221,
+        "length": 21,
+        "line": 7,
+        "column": 4
+      },
+      "sites": [
+        {
+          "file": "src/Diamond.sol",
+          "offset": 221,
+          "length": 21,
+          "line": 7,
+          "column": 4
+        }
+      ],
+      "count": 1,
+      "possibleTargets": []
+    },
+    {
+      "id": "src/Diamond.sol:B.ping()|src/Diamond.sol:A.ping()|calls|super",
+      "kind": "calls",
+      "from": "src/Diamond.sol:B.ping()",
+      "to": "src/Diamond.sol:A.ping()",
+      "resolution": "heuristic",
+      "src": {
+        "file": "src/Diamond.sol",
+        "offset": 403,
+        "length": 12,
+        "line": 16,
+        "column": 8
+      },
+      "sites": [
+        {
+          "file": "src/Diamond.sol",
+          "offset": 403,
+          "length": 12,
+          "line": 16,
+          "column": 8
+        }
+      ],
+      "count": 1,
+      "possibleTargets": [],
+      "subkind": "super"
+    },
+    {
+      "id": "src/Diamond.sol:B.ping()|src/Diamond.sol:A.ping()|overrides|",
+      "kind": "overrides",
+      "from": "src/Diamond.sol:B.ping()",
+      "to": "src/Diamond.sol:A.ping()",
+      "resolution": "heuristic",
+      "src": {
+        "file": "src/Diamond.sol",
+        "offset": 353,
+        "length": 101,
+        "line": 15,
+        "column": 4
+      },
+      "sites": [
+        {
+          "file": "src/Diamond.sol",
+          "offset": 353,
+          "length": 101,
+          "line": 15,
+          "column": 4
+        }
+      ],
+      "count": 1,
+      "possibleTargets": []
+    },
+    {
+      "id": "src/Diamond.sol:B.ping()|src/Diamond.sol:A.trail|reads|",
+      "kind": "reads",
+      "from": "src/Diamond.sol:B.ping()",
+      "to": "src/Diamond.sol:A.trail",
+      "resolution": "heuristic",
+      "src": {
+        "file": "src/Diamond.sol",
+        "offset": 433,
+        "length": 5,
+        "line": 17,
+        "column": 16
+      },
+      "sites": [
+        {
+          "file": "src/Diamond.sol",
+          "offset": 433,
+          "length": 5,
+          "line": 17,
+          "column": 16
+        }
+      ],
+      "count": 1,
+      "possibleTargets": []
+    },
+    {
+      "id": "src/Diamond.sol:B.ping()|src/Diamond.sol:A.trail|writes|",
+      "kind": "writes",
+      "from": "src/Diamond.sol:B.ping()",
+      "to": "src/Diamond.sol:A.trail",
+      "resolution": "heuristic",
+      "src": {
+        "file": "src/Diamond.sol",
+        "offset": 425,
+        "length": 5,
+        "line": 17,
+        "column": 8
+      },
+      "sites": [
+        {
+          "file": "src/Diamond.sol",
+          "offset": 425,
+          "length": 5,
+          "line": 17,
+          "column": 8
+        }
+      ],
+      "count": 1,
+      "possibleTargets": []
+    },
+    {
+      "id": "src/Diamond.sol:B|src/Diamond.sol:A|inherits|",
+      "kind": "inherits",
+      "from": "src/Diamond.sol:B",
+      "to": "src/Diamond.sol:A",
+      "resolution": "heuristic",
+      "src": {
+        "file": "src/Diamond.sol",
+        "offset": 322,
+        "length": 134,
+        "line": 14,
+        "column": 0
+      },
+      "sites": [
+        {
+          "file": "src/Diamond.sol",
+          "offset": 322,
+          "length": 134,
+          "line": 14,
+          "column": 0
+        }
+      ],
+      "count": 1,
+      "possibleTargets": [],
+      "linearizationIndex": 1
+    },
+    {
+      "id": "src/Diamond.sol:B|src/Diamond.sol:B.ping()|declares|",
+      "kind": "declares",
+      "from": "src/Diamond.sol:B",
+      "to": "src/Diamond.sol:B.ping()",
+      "resolution": "heuristic",
+      "src": {
+        "file": "src/Diamond.sol",
+        "offset": 353,
+        "length": 101,
+        "line": 15,
+        "column": 4
+      },
+      "sites": [
+        {
+          "file": "src/Diamond.sol",
+          "offset": 353,
+          "length": 101,
+          "line": 15,
+          "column": 4
+        }
+      ],
+      "count": 1,
+      "possibleTargets": []
+    },
+    {
+      "id": "src/Diamond.sol:C.ping()|src/Diamond.sol:A.ping()|calls|super",
+      "kind": "calls",
+      "from": "src/Diamond.sol:C.ping()",
+      "to": "src/Diamond.sol:A.ping()",
+      "resolution": "heuristic",
+      "src": {
+        "file": "src/Diamond.sol",
+        "offset": 539,
+        "length": 12,
+        "line": 23,
+        "column": 8
+      },
+      "sites": [
+        {
+          "file": "src/Diamond.sol",
+          "offset": 539,
+          "length": 12,
+          "line": 23,
+          "column": 8
+        }
+      ],
+      "count": 1,
+      "possibleTargets": [],
+      "subkind": "super"
+    },
+    {
+      "id": "src/Diamond.sol:C.ping()|src/Diamond.sol:A.ping()|overrides|",
+      "kind": "overrides",
+      "from": "src/Diamond.sol:C.ping()",
+      "to": "src/Diamond.sol:A.ping()",
+      "resolution": "heuristic",
+      "src": {
+        "file": "src/Diamond.sol",
+        "offset": 489,
+        "length": 101,
+        "line": 22,
+        "column": 4
+      },
+      "sites": [
+        {
+          "file": "src/Diamond.sol",
+          "offset": 489,
+          "length": 101,
+          "line": 22,
+          "column": 4
+        }
+      ],
+      "count": 1,
+      "possibleTargets": []
+    },
+    {
+      "id": "src/Diamond.sol:C.ping()|src/Diamond.sol:A.trail|reads|",
+      "kind": "reads",
+      "from": "src/Diamond.sol:C.ping()",
+      "to": "src/Diamond.sol:A.trail",
+      "resolution": "heuristic",
+      "src": {
+        "file": "src/Diamond.sol",
+        "offset": 569,
+        "length": 5,
+        "line": 24,
+        "column": 16
+      },
+      "sites": [
+        {
+          "file": "src/Diamond.sol",
+          "offset": 569,
+          "length": 5,
+          "line": 24,
+          "column": 16
+        }
+      ],
+      "count": 1,
+      "possibleTargets": []
+    },
+    {
+      "id": "src/Diamond.sol:C.ping()|src/Diamond.sol:A.trail|writes|",
+      "kind": "writes",
+      "from": "src/Diamond.sol:C.ping()",
+      "to": "src/Diamond.sol:A.trail",
+      "resolution": "heuristic",
+      "src": {
+        "file": "src/Diamond.sol",
+        "offset": 561,
+        "length": 5,
+        "line": 24,
+        "column": 8
+      },
+      "sites": [
+        {
+          "file": "src/Diamond.sol",
+          "offset": 561,
+          "length": 5,
+          "line": 24,
+          "column": 8
+        }
+      ],
+      "count": 1,
+      "possibleTargets": []
+    },
+    {
+      "id": "src/Diamond.sol:C|src/Diamond.sol:A|inherits|",
+      "kind": "inherits",
+      "from": "src/Diamond.sol:C",
+      "to": "src/Diamond.sol:A",
+      "resolution": "heuristic",
+      "src": {
+        "file": "src/Diamond.sol",
+        "offset": 458,
+        "length": 134,
+        "line": 21,
+        "column": 0
+      },
+      "sites": [
+        {
+          "file": "src/Diamond.sol",
+          "offset": 458,
+          "length": 134,
+          "line": 21,
+          "column": 0
+        }
+      ],
+      "count": 1,
+      "possibleTargets": [],
+      "linearizationIndex": 1
+    },
+    {
+      "id": "src/Diamond.sol:C|src/Diamond.sol:C.ping()|declares|",
+      "kind": "declares",
+      "from": "src/Diamond.sol:C",
+      "to": "src/Diamond.sol:C.ping()",
+      "resolution": "heuristic",
+      "src": {
+        "file": "src/Diamond.sol",
+        "offset": 489,
+        "length": 101,
+        "line": 22,
+        "column": 4
+      },
+      "sites": [
+        {
+          "file": "src/Diamond.sol",
+          "offset": 489,
+          "length": 101,
+          "line": 22,
+          "column": 4
+        }
+      ],
+      "count": 1,
+      "possibleTargets": []
+    },
+    {
+      "id": "src/Diamond.sol:D.ping()|src/Diamond.sol:A.ping()|overrides|",
+      "kind": "overrides",
+      "from": "src/Diamond.sol:D.ping()",
+      "to": "src/Diamond.sol:A.ping()",
+      "resolution": "heuristic",
+      "src": {
+        "file": "src/Diamond.sol",
+        "offset": 619,
+        "length": 99,
+        "line": 29,
+        "column": 4
+      },
+      "sites": [
+        {
+          "file": "src/Diamond.sol",
+          "offset": 619,
+          "length": 99,
+          "line": 29,
+          "column": 4
+        }
+      ],
+      "count": 1,
+      "possibleTargets": []
+    },
+    {
+      "id": "src/Diamond.sol:D.ping()|src/Diamond.sol:A.trail|reads|",
+      "kind": "reads",
+      "from": "src/Diamond.sol:D.ping()",
+      "to": "src/Diamond.sol:A.trail",
+      "resolution": "heuristic",
+      "src": {
+        "file": "src/Diamond.sol",
+        "offset": 697,
+        "length": 5,
+        "line": 31,
+        "column": 16
+      },
+      "sites": [
+        {
+          "file": "src/Diamond.sol",
+          "offset": 697,
+          "length": 5,
+          "line": 31,
+          "column": 16
+        }
+      ],
+      "count": 1,
+      "possibleTargets": []
+    },
+    {
+      "id": "src/Diamond.sol:D.ping()|src/Diamond.sol:A.trail|writes|",
+      "kind": "writes",
+      "from": "src/Diamond.sol:D.ping()",
+      "to": "src/Diamond.sol:A.trail",
+      "resolution": "heuristic",
+      "src": {
+        "file": "src/Diamond.sol",
+        "offset": 689,
+        "length": 5,
+        "line": 31,
+        "column": 8
+      },
+      "sites": [
+        {
+          "file": "src/Diamond.sol",
+          "offset": 689,
+          "length": 5,
+          "line": 31,
+          "column": 8
+        }
+      ],
+      "count": 1,
+      "possibleTargets": []
+    },
+    {
+      "id": "src/Diamond.sol:D.ping()|src/Diamond.sol:B.ping()|overrides|",
+      "kind": "overrides",
+      "from": "src/Diamond.sol:D.ping()",
+      "to": "src/Diamond.sol:B.ping()",
+      "resolution": "heuristic",
+      "src": {
+        "file": "src/Diamond.sol",
+        "offset": 619,
+        "length": 99,
+        "line": 29,
+        "column": 4
+      },
+      "sites": [
+        {
+          "file": "src/Diamond.sol",
+          "offset": 619,
+          "length": 99,
+          "line": 29,
+          "column": 4
+        }
+      ],
+      "count": 1,
+      "possibleTargets": []
+    },
+    {
+      "id": "src/Diamond.sol:D.ping()|src/Diamond.sol:C.ping()|calls|super",
+      "kind": "calls",
+      "from": "src/Diamond.sol:D.ping()",
+      "to": "src/Diamond.sol:C.ping()",
+      "resolution": "heuristic",
+      "src": {
+        "file": "src/Diamond.sol",
+        "offset": 667,
+        "length": 12,
+        "line": 30,
+        "column": 8
+      },
+      "sites": [
+        {
+          "file": "src/Diamond.sol",
+          "offset": 667,
+          "length": 12,
+          "line": 30,
+          "column": 8
+        }
+      ],
+      "count": 1,
+      "possibleTargets": [],
+      "subkind": "super"
+    },
+    {
+      "id": "src/Diamond.sol:D.ping()|src/Diamond.sol:C.ping()|overrides|",
+      "kind": "overrides",
+      "from": "src/Diamond.sol:D.ping()",
+      "to": "src/Diamond.sol:C.ping()",
+      "resolution": "heuristic",
+      "src": {
+        "file": "src/Diamond.sol",
+        "offset": 619,
+        "length": 99,
+        "line": 29,
+        "column": 4
+      },
+      "sites": [
+        {
+          "file": "src/Diamond.sol",
+          "offset": 619,
+          "length": 99,
+          "line": 29,
+          "column": 4
+        }
+      ],
+      "count": 1,
+      "possibleTargets": []
+    },
+    {
+      "id": "src/Diamond.sol:D|src/Diamond.sol:B|inherits|",
+      "kind": "inherits",
+      "from": "src/Diamond.sol:D",
+      "to": "src/Diamond.sol:B",
+      "resolution": "heuristic",
+      "src": {
+        "file": "src/Diamond.sol",
+        "offset": 594,
+        "length": 126,
+        "line": 28,
+        "column": 0
+      },
+      "sites": [
+        {
+          "file": "src/Diamond.sol",
+          "offset": 594,
+          "length": 126,
+          "line": 28,
+          "column": 0
+        }
+      ],
+      "count": 1,
+      "possibleTargets": [],
+      "linearizationIndex": 2
+    },
+    {
+      "id": "src/Diamond.sol:D|src/Diamond.sol:C|inherits|",
+      "kind": "inherits",
+      "from": "src/Diamond.sol:D",
+      "to": "src/Diamond.sol:C",
+      "resolution": "heuristic",
+      "src": {
+        "file": "src/Diamond.sol",
+        "offset": 594,
+        "length": 126,
+        "line": 28,
+        "column": 0
+      },
+      "sites": [
+        {
+          "file": "src/Diamond.sol",
+          "offset": 594,
+          "length": 126,
+          "line": 28,
+          "column": 0
+        }
+      ],
+      "count": 1,
+      "possibleTargets": [],
+      "linearizationIndex": 1
+    },
+    {
+      "id": "src/Diamond.sol:D|src/Diamond.sol:D.ping()|declares|",
+      "kind": "declares",
+      "from": "src/Diamond.sol:D",
+      "to": "src/Diamond.sol:D.ping()",
+      "resolution": "heuristic",
+      "src": {
+        "file": "src/Diamond.sol",
+        "offset": 619,
+        "length": 99,
+        "line": 29,
+        "column": 4
+      },
+      "sites": [
+        {
+          "file": "src/Diamond.sol",
+          "offset": 619,
+          "length": 99,
+          "line": 29,
+          "column": 4
+        }
+      ],
+      "count": 1,
+      "possibleTargets": []
+    },
+    {
+      "id": "src/Diamond.sol:E.ping()|src/Diamond.sol:A.ping()|overrides|",
+      "kind": "overrides",
+      "from": "src/Diamond.sol:E.ping()",
+      "to": "src/Diamond.sol:A.ping()",
+      "resolution": "heuristic",
+      "src": {
+        "file": "src/Diamond.sol",
+        "offset": 909,
+        "length": 99,
+        "line": 38,
+        "column": 4
+      },
+      "sites": [
+        {
+          "file": "src/Diamond.sol",
+          "offset": 909,
+          "length": 99,
+          "line": 38,
+          "column": 4
+        }
+      ],
+      "count": 1,
+      "possibleTargets": []
+    },
+    {
+      "id": "src/Diamond.sol:E.ping()|src/Diamond.sol:A.trail|reads|",
+      "kind": "reads",
+      "from": "src/Diamond.sol:E.ping()",
+      "to": "src/Diamond.sol:A.trail",
+      "resolution": "heuristic",
+      "src": {
+        "file": "src/Diamond.sol",
+        "offset": 987,
+        "length": 5,
+        "line": 40,
+        "column": 16
+      },
+      "sites": [
+        {
+          "file": "src/Diamond.sol",
+          "offset": 987,
+          "length": 5,
+          "line": 40,
+          "column": 16
+        }
+      ],
+      "count": 1,
+      "possibleTargets": []
+    },
+    {
+      "id": "src/Diamond.sol:E.ping()|src/Diamond.sol:A.trail|writes|",
+      "kind": "writes",
+      "from": "src/Diamond.sol:E.ping()",
+      "to": "src/Diamond.sol:A.trail",
+      "resolution": "heuristic",
+      "src": {
+        "file": "src/Diamond.sol",
+        "offset": 979,
+        "length": 5,
+        "line": 40,
+        "column": 8
+      },
+      "sites": [
+        {
+          "file": "src/Diamond.sol",
+          "offset": 979,
+          "length": 5,
+          "line": 40,
+          "column": 8
+        }
+      ],
+      "count": 1,
+      "possibleTargets": []
+    },
+    {
+      "id": "src/Diamond.sol:E.ping()|src/Diamond.sol:B.ping()|calls|super",
+      "kind": "calls",
+      "from": "src/Diamond.sol:E.ping()",
+      "to": "src/Diamond.sol:B.ping()",
+      "resolution": "heuristic",
+      "src": {
+        "file": "src/Diamond.sol",
+        "offset": 957,
+        "length": 12,
+        "line": 39,
+        "column": 8
+      },
+      "sites": [
+        {
+          "file": "src/Diamond.sol",
+          "offset": 957,
+          "length": 12,
+          "line": 39,
+          "column": 8
+        }
+      ],
+      "count": 1,
+      "possibleTargets": [],
+      "subkind": "super"
+    },
+    {
+      "id": "src/Diamond.sol:E.ping()|src/Diamond.sol:B.ping()|overrides|",
+      "kind": "overrides",
+      "from": "src/Diamond.sol:E.ping()",
+      "to": "src/Diamond.sol:B.ping()",
+      "resolution": "heuristic",
+      "src": {
+        "file": "src/Diamond.sol",
+        "offset": 909,
+        "length": 99,
+        "line": 38,
+        "column": 4
+      },
+      "sites": [
+        {
+          "file": "src/Diamond.sol",
+          "offset": 909,
+          "length": 99,
+          "line": 38,
+          "column": 4
+        }
+      ],
+      "count": 1,
+      "possibleTargets": []
+    },
+    {
+      "id": "src/Diamond.sol:E.ping()|src/Diamond.sol:C.ping()|overrides|",
+      "kind": "overrides",
+      "from": "src/Diamond.sol:E.ping()",
+      "to": "src/Diamond.sol:C.ping()",
+      "resolution": "heuristic",
+      "src": {
+        "file": "src/Diamond.sol",
+        "offset": 909,
+        "length": 99,
+        "line": 38,
+        "column": 4
+      },
+      "sites": [
+        {
+          "file": "src/Diamond.sol",
+          "offset": 909,
+          "length": 99,
+          "line": 38,
+          "column": 4
+        }
+      ],
+      "count": 1,
+      "possibleTargets": []
+    },
+    {
+      "id": "src/Diamond.sol:E|src/Diamond.sol:B|inherits|",
+      "kind": "inherits",
+      "from": "src/Diamond.sol:E",
+      "to": "src/Diamond.sol:B",
+      "resolution": "heuristic",
+      "src": {
+        "file": "src/Diamond.sol",
+        "offset": 884,
+        "length": 126,
+        "line": 37,
+        "column": 0
+      },
+      "sites": [
+        {
+          "file": "src/Diamond.sol",
+          "offset": 884,
+          "length": 126,
+          "line": 37,
+          "column": 0
+        }
+      ],
+      "count": 1,
+      "possibleTargets": [],
+      "linearizationIndex": 1
+    },
+    {
+      "id": "src/Diamond.sol:E|src/Diamond.sol:C|inherits|",
+      "kind": "inherits",
+      "from": "src/Diamond.sol:E",
+      "to": "src/Diamond.sol:C",
+      "resolution": "heuristic",
+      "src": {
+        "file": "src/Diamond.sol",
+        "offset": 884,
+        "length": 126,
+        "line": 37,
+        "column": 0
+      },
+      "sites": [
+        {
+          "file": "src/Diamond.sol",
+          "offset": 884,
+          "length": 126,
+          "line": 37,
+          "column": 0
+        }
+      ],
+      "count": 1,
+      "possibleTargets": [],
+      "linearizationIndex": 2
+    },
+    {
+      "id": "src/Diamond.sol:E|src/Diamond.sol:E.ping()|declares|",
+      "kind": "declares",
+      "from": "src/Diamond.sol:E",
+      "to": "src/Diamond.sol:E.ping()",
+      "resolution": "heuristic",
+      "src": {
+        "file": "src/Diamond.sol",
+        "offset": 909,
+        "length": 99,
+        "line": 38,
+        "column": 4
+      },
+      "sites": [
+        {
+          "file": "src/Diamond.sol",
+          "offset": 909,
+          "length": 99,
+          "line": 38,
+          "column": 4
+        }
+      ],
+      "count": 1,
+      "possibleTargets": []
+    },
+    {
+      "id": "src/Diamond.sol|src/Diamond.sol:A|declares|",
+      "kind": "declares",
+      "from": "src/Diamond.sol",
+      "to": "src/Diamond.sol:A",
+      "resolution": "heuristic",
+      "src": {
+        "file": "src/Diamond.sol",
+        "offset": 195,
+        "length": 125,
+        "line": 6,
+        "column": 0
+      },
+      "sites": [
+        {
+          "file": "src/Diamond.sol",
+          "offset": 195,
+          "length": 125,
+          "line": 6,
+          "column": 0
+        }
+      ],
+      "count": 1,
+      "possibleTargets": []
+    },
+    {
+      "id": "src/Diamond.sol|src/Diamond.sol:B|declares|",
+      "kind": "declares",
+      "from": "src/Diamond.sol",
+      "to": "src/Diamond.sol:B",
+      "resolution": "heuristic",
+      "src": {
+        "file": "src/Diamond.sol",
+        "offset": 322,
+        "length": 134,
+        "line": 14,
+        "column": 0
+      },
+      "sites": [
+        {
+          "file": "src/Diamond.sol",
+          "offset": 322,
+          "length": 134,
+          "line": 14,
+          "column": 0
+        }
+      ],
+      "count": 1,
+      "possibleTargets": []
+    },
+    {
+      "id": "src/Diamond.sol|src/Diamond.sol:C|declares|",
+      "kind": "declares",
+      "from": "src/Diamond.sol",
+      "to": "src/Diamond.sol:C",
+      "resolution": "heuristic",
+      "src": {
+        "file": "src/Diamond.sol",
+        "offset": 458,
+        "length": 134,
+        "line": 21,
+        "column": 0
+      },
+      "sites": [
+        {
+          "file": "src/Diamond.sol",
+          "offset": 458,
+          "length": 134,
+          "line": 21,
+          "column": 0
+        }
+      ],
+      "count": 1,
+      "possibleTargets": []
+    },
+    {
+      "id": "src/Diamond.sol|src/Diamond.sol:D|declares|",
+      "kind": "declares",
+      "from": "src/Diamond.sol",
+      "to": "src/Diamond.sol:D",
+      "resolution": "heuristic",
+      "src": {
+        "file": "src/Diamond.sol",
+        "offset": 594,
+        "length": 126,
+        "line": 28,
+        "column": 0
+      },
+      "sites": [
+        {
+          "file": "src/Diamond.sol",
+          "offset": 594,
+          "length": 126,
+          "line": 28,
+          "column": 0
+        }
+      ],
+      "count": 1,
+      "possibleTargets": []
+    },
+    {
+      "id": "src/Diamond.sol|src/Diamond.sol:E|declares|",
+      "kind": "declares",
+      "from": "src/Diamond.sol",
+      "to": "src/Diamond.sol:E",
+      "resolution": "heuristic",
+      "src": {
+        "file": "src/Diamond.sol",
+        "offset": 884,
+        "length": 126,
+        "line": 37,
+        "column": 0
+      },
+      "sites": [
+        {
+          "file": "src/Diamond.sol",
+          "offset": 884,
+          "length": 126,
+          "line": 37,
+          "column": 0
+        }
+      ],
+      "count": 1,
+      "possibleTargets": []
+    },
+    {
+      "id": "src/GovernedToken.sol:GovernedToken|src/GovernedToken.sol:GovernedToken._transferOwnership(address)|declares|",
+      "kind": "declares",
+      "from": "src/GovernedToken.sol:GovernedToken",
+      "to": "src/GovernedToken.sol:GovernedToken._transferOwnership(address)",
+      "resolution": "heuristic",
+      "src": {
+        "file": "src/GovernedToken.sol",
+        "offset": 1364,
+        "length": 138,
+        "line": 35,
+        "column": 4
+      },
+      "sites": [
+        {
+          "file": "src/GovernedToken.sol",
+          "offset": 1364,
+          "length": 138,
+          "line": 35,
+          "column": 4
+        }
+      ],
+      "count": 1,
+      "possibleTargets": []
+    },
+    {
+      "id": "src/GovernedToken.sol:GovernedToken|src/GovernedToken.sol:GovernedToken._update(address,address,uint256)|declares|",
+      "kind": "declares",
+      "from": "src/GovernedToken.sol:GovernedToken",
+      "to": "src/GovernedToken.sol:GovernedToken._update(address,address,uint256)",
+      "resolution": "heuristic",
+      "src": {
+        "file": "src/GovernedToken.sol",
+        "offset": 1058,
+        "length": 165,
+        "line": 26,
+        "column": 4
+      },
+      "sites": [
+        {
+          "file": "src/GovernedToken.sol",
+          "offset": 1058,
+          "length": 165,
+          "line": 26,
+          "column": 4
+        }
+      ],
+      "count": 1,
+      "possibleTargets": []
+    },
+    {
+      "id": "src/GovernedToken.sol:GovernedToken|src/GovernedToken.sol:GovernedToken.constructor(address)|declares|",
+      "kind": "declares",
+      "from": "src/GovernedToken.sol:GovernedToken",
+      "to": "src/GovernedToken.sol:GovernedToken.constructor(address)",
+      "resolution": "heuristic",
+      "src": {
+        "file": "src/GovernedToken.sol",
+        "offset": 701,
+        "length": 131,
+        "line": 13,
+        "column": 4
+      },
+      "sites": [
+        {
+          "file": "src/GovernedToken.sol",
+          "offset": 701,
+          "length": 131,
+          "line": 13,
+          "column": 4
+        }
+      ],
+      "count": 1,
+      "possibleTargets": []
+    },
+    {
+      "id": "src/GovernedToken.sol:GovernedToken|src/GovernedToken.sol:GovernedToken.pause()|declares|",
+      "kind": "declares",
+      "from": "src/GovernedToken.sol:GovernedToken",
+      "to": "src/GovernedToken.sol:GovernedToken.pause()",
+      "resolution": "heuristic",
+      "src": {
+        "file": "src/GovernedToken.sol",
+        "offset": 838,
+        "length": 61,
+        "line": 17,
+        "column": 4
+      },
+      "sites": [
+        {
+          "file": "src/GovernedToken.sol",
+          "offset": 838,
+          "length": 61,
+          "line": 17,
+          "column": 4
+        }
+      ],
+      "count": 1,
+      "possibleTargets": []
+    },
+    {
+      "id": "src/GovernedToken.sol:GovernedToken|src/GovernedToken.sol:GovernedToken.unpause()|declares|",
+      "kind": "declares",
+      "from": "src/GovernedToken.sol:GovernedToken",
+      "to": "src/GovernedToken.sol:GovernedToken.unpause()",
+      "resolution": "heuristic",
+      "src": {
+        "file": "src/GovernedToken.sol",
+        "offset": 905,
+        "length": 65,
+        "line": 21,
+        "column": 4
+      },
+      "sites": [
+        {
+          "file": "src/GovernedToken.sol",
+          "offset": 905,
+          "length": 65,
+          "line": 21,
+          "column": 4
+        }
+      ],
+      "count": 1,
+      "possibleTargets": []
+    },
+    {
+      "id": "src/GovernedToken.sol|src/GovernedToken.sol:GovernedToken|declares|",
+      "kind": "declares",
+      "from": "src/GovernedToken.sol",
+      "to": "src/GovernedToken.sol:GovernedToken",
+      "resolution": "heuristic",
+      "src": {
+        "file": "src/GovernedToken.sol",
+        "offset": 619,
+        "length": 885,
+        "line": 12,
+        "column": 0
+      },
+      "sites": [
+        {
+          "file": "src/GovernedToken.sol",
+          "offset": 619,
+          "length": 885,
+          "line": 12,
+          "column": 0
+        }
+      ],
+      "count": 1,
+      "possibleTargets": []
+    },
+    {
+      "id": "src/Shadowing.sol:Greeter.greet()|src/Shadowing.sol:Greeter._greeting|reads|",
+      "kind": "reads",
+      "from": "src/Shadowing.sol:Greeter.greet()",
+      "to": "src/Shadowing.sol:Greeter._greeting",
+      "resolution": "heuristic",
+      "src": {
+        "file": "src/Shadowing.sol",
+        "offset": 485,
+        "length": 9,
+        "line": 17,
+        "column": 15
+      },
+      "sites": [
+        {
+          "file": "src/Shadowing.sol",
+          "offset": 485,
+          "length": 9,
+          "line": 17,
+          "column": 15
+        }
+      ],
+      "count": 1,
+      "possibleTargets": []
+    },
+    {
+      "id": "src/Shadowing.sol:Greeter.greet()|src/Shadowing.sol:IGreeter.greet()|implements|",
+      "kind": "implements",
+      "from": "src/Shadowing.sol:Greeter.greet()",
+      "to": "src/Shadowing.sol:IGreeter.greet()",
+      "resolution": "heuristic",
+      "src": {
+        "file": "src/Shadowing.sol",
+        "offset": 398,
+        "length": 103,
+        "line": 16,
+        "column": 4
+      },
+      "sites": [
+        {
+          "file": "src/Shadowing.sol",
+          "offset": 398,
+          "length": 103,
+          "line": 16,
+          "column": 4
+        }
+      ],
+      "count": 1,
+      "possibleTargets": []
+    },
+    {
+      "id": "src/Shadowing.sol:Greeter.name()|src/Shadowing.sol:INamed.name()|implements|",
+      "kind": "implements",
+      "from": "src/Shadowing.sol:Greeter.name()",
+      "to": "src/Shadowing.sol:INamed.name()",
+      "resolution": "heuristic",
+      "src": {
+        "file": "src/Shadowing.sol",
+        "offset": 588,
+        "length": 69,
+        "line": 21,
+        "column": 4
+      },
+      "sites": [
+        {
+          "file": "src/Shadowing.sol",
+          "offset": 588,
+          "length": 69,
+          "line": 21,
+          "column": 4
+        }
+      ],
+      "count": 1,
+      "possibleTargets": []
+    },
+    {
+      "id": "src/Shadowing.sol:Greeter|src/Shadowing.sol:Greeter._greeting|declares|",
+      "kind": "declares",
+      "from": "src/Shadowing.sol:Greeter",
+      "to": "src/Shadowing.sol:Greeter._greeting",
+      "resolution": "heuristic",
+      "src": {
+        "file": "src/Shadowing.sol",
+        "offset": 356,
+        "length": 36,
+        "line": 14,
+        "column": 4
+      },
+      "sites": [
+        {
+          "file": "src/Shadowing.sol",
+          "offset": 356,
+          "length": 36,
+          "line": 14,
+          "column": 4
+        }
+      ],
+      "count": 1,
+      "possibleTargets": []
+    },
+    {
+      "id": "src/Shadowing.sol:Greeter|src/Shadowing.sol:Greeter.greet()|declares|",
+      "kind": "declares",
+      "from": "src/Shadowing.sol:Greeter",
+      "to": "src/Shadowing.sol:Greeter.greet()",
+      "resolution": "heuristic",
+      "src": {
+        "file": "src/Shadowing.sol",
+        "offset": 398,
+        "length": 103,
+        "line": 16,
+        "column": 4
+      },
+      "sites": [
+        {
+          "file": "src/Shadowing.sol",
+          "offset": 398,
+          "length": 103,
+          "line": 16,
+          "column": 4
+        }
+      ],
+      "count": 1,
+      "possibleTargets": []
+    },
+    {
+      "id": "src/Shadowing.sol:Greeter|src/Shadowing.sol:Greeter.name()|declares|",
+      "kind": "declares",
+      "from": "src/Shadowing.sol:Greeter",
+      "to": "src/Shadowing.sol:Greeter.name()",
+      "resolution": "heuristic",
+      "src": {
+        "file": "src/Shadowing.sol",
+        "offset": 588,
+        "length": 69,
+        "line": 21,
+        "column": 4
+      },
+      "sites": [
+        {
+          "file": "src/Shadowing.sol",
+          "offset": 588,
+          "length": 69,
+          "line": 21,
+          "column": 4
+        }
+      ],
+      "count": 1,
+      "possibleTargets": []
+    },
+    {
+      "id": "src/Shadowing.sol:Greeter|src/Shadowing.sol:IGreeter|inherits|",
+      "kind": "inherits",
+      "from": "src/Shadowing.sol:Greeter",
+      "to": "src/Shadowing.sol:IGreeter",
+      "resolution": "heuristic",
+      "src": {
+        "file": "src/Shadowing.sol",
+        "offset": 304,
+        "length": 355,
+        "line": 13,
+        "column": 0
+      },
+      "sites": [
+        {
+          "file": "src/Shadowing.sol",
+          "offset": 304,
+          "length": 355,
+          "line": 13,
+          "column": 0
+        }
+      ],
+      "count": 1,
+      "possibleTargets": [],
+      "linearizationIndex": 2
+    },
+    {
+      "id": "src/Shadowing.sol:Greeter|src/Shadowing.sol:INamed|inherits|",
+      "kind": "inherits",
+      "from": "src/Shadowing.sol:Greeter",
+      "to": "src/Shadowing.sol:INamed",
+      "resolution": "heuristic",
+      "src": {
+        "file": "src/Shadowing.sol",
+        "offset": 304,
+        "length": 355,
+        "line": 13,
+        "column": 0
+      },
+      "sites": [
+        {
+          "file": "src/Shadowing.sol",
+          "offset": 304,
+          "length": 355,
+          "line": 13,
+          "column": 0
+        }
+      ],
+      "count": 1,
+      "possibleTargets": [],
+      "linearizationIndex": 1
+    },
+    {
+      "id": "src/Shadowing.sol:IGreeter|src/Shadowing.sol:IGreeter.greet()|declares|",
+      "kind": "declares",
+      "from": "src/Shadowing.sol:IGreeter",
+      "to": "src/Shadowing.sol:IGreeter.greet()",
+      "resolution": "heuristic",
+      "src": {
+        "file": "src/Shadowing.sol",
+        "offset": 83,
+        "length": 55,
+        "line": 5,
+        "column": 4
+      },
+      "sites": [
+        {
+          "file": "src/Shadowing.sol",
+          "offset": 83,
+          "length": 55,
+          "line": 5,
+          "column": 4
+        }
+      ],
+      "count": 1,
+      "possibleTargets": []
+    },
+    {
+      "id": "src/Shadowing.sol:INamed|src/Shadowing.sol:INamed.name()|declares|",
+      "kind": "declares",
+      "from": "src/Shadowing.sol:INamed",
+      "to": "src/Shadowing.sol:INamed.name()",
+      "resolution": "heuristic",
+      "src": {
+        "file": "src/Shadowing.sol",
+        "offset": 165,
+        "length": 54,
+        "line": 9,
+        "column": 4
+      },
+      "sites": [
+        {
+          "file": "src/Shadowing.sol",
+          "offset": 165,
+          "length": 54,
+          "line": 9,
+          "column": 4
+        }
+      ],
+      "count": 1,
+      "possibleTargets": []
+    },
+    {
+      "id": "src/Shadowing.sol:Loud.greet()|src/Shadowing.sol:Greeter.greet()|overrides|",
+      "kind": "overrides",
+      "from": "src/Shadowing.sol:Loud.greet()",
+      "to": "src/Shadowing.sol:Greeter.greet()",
+      "resolution": "heuristic",
+      "src": {
+        "file": "src/Shadowing.sol",
+        "offset": 1274,
+        "length": 119,
+        "line": 40,
+        "column": 4
+      },
+      "sites": [
+        {
+          "file": "src/Shadowing.sol",
+          "offset": 1274,
+          "length": 119,
+          "line": 40,
+          "column": 4
+        }
+      ],
+      "count": 1,
+      "possibleTargets": []
+    },
+    {
+      "id": "src/Shadowing.sol:Loud.greet()|src/Shadowing.sol:IGreeter.greet()|implements|",
+      "kind": "implements",
+      "from": "src/Shadowing.sol:Loud.greet()",
+      "to": "src/Shadowing.sol:IGreeter.greet()",
+      "resolution": "heuristic",
+      "src": {
+        "file": "src/Shadowing.sol",
+        "offset": 1274,
+        "length": 119,
+        "line": 40,
+        "column": 4
+      },
+      "sites": [
+        {
+          "file": "src/Shadowing.sol",
+          "offset": 1274,
+          "length": 119,
+          "line": 40,
+          "column": 4
+        }
+      ],
+      "count": 1,
+      "possibleTargets": []
+    },
+    {
+      "id": "src/Shadowing.sol:Loud.greet()|src/Shadowing.sol:Politeness.greet()|calls|super",
+      "kind": "calls",
+      "from": "src/Shadowing.sol:Loud.greet()",
+      "to": "src/Shadowing.sol:Politeness.greet()",
+      "resolution": "heuristic",
+      "src": {
+        "file": "src/Shadowing.sol",
+        "offset": 1367,
+        "length": 13,
+        "line": 41,
+        "column": 29
+      },
+      "sites": [
+        {
+          "file": "src/Shadowing.sol",
+          "offset": 1367,
+          "length": 13,
+          "line": 41,
+          "column": 29
+        }
+      ],
+      "count": 1,
+      "possibleTargets": [],
+      "subkind": "super"
+    },
+    {
+      "id": "src/Shadowing.sol:Loud.greet()|src/Shadowing.sol:Politeness.greet()|overrides|",
+      "kind": "overrides",
+      "from": "src/Shadowing.sol:Loud.greet()",
+      "to": "src/Shadowing.sol:Politeness.greet()",
+      "resolution": "heuristic",
+      "src": {
+        "file": "src/Shadowing.sol",
+        "offset": 1274,
+        "length": 119,
+        "line": 40,
+        "column": 4
+      },
+      "sites": [
+        {
+          "file": "src/Shadowing.sol",
+          "offset": 1274,
+          "length": 119,
+          "line": 40,
+          "column": 4
+        }
+      ],
+      "count": 1,
+      "possibleTargets": []
+    },
+    {
+      "id": "src/Shadowing.sol:Loud|src/Shadowing.sol:Loud.greet()|declares|",
+      "kind": "declares",
+      "from": "src/Shadowing.sol:Loud",
+      "to": "src/Shadowing.sol:Loud.greet()",
+      "resolution": "heuristic",
+      "src": {
+        "file": "src/Shadowing.sol",
+        "offset": 1274,
+        "length": 119,
+        "line": 40,
+        "column": 4
+      },
+      "sites": [
+        {
+          "file": "src/Shadowing.sol",
+          "offset": 1274,
+          "length": 119,
+          "line": 40,
+          "column": 4
+        }
+      ],
+      "count": 1,
+      "possibleTargets": []
+    },
+    {
+      "id": "src/Shadowing.sol:Loud|src/Shadowing.sol:Politeness|inherits|",
+      "kind": "inherits",
+      "from": "src/Shadowing.sol:Loud",
+      "to": "src/Shadowing.sol:Politeness",
+      "resolution": "heuristic",
+      "src": {
+        "file": "src/Shadowing.sol",
+        "offset": 1240,
+        "length": 155,
+        "line": 39,
+        "column": 0
+      },
+      "sites": [
+        {
+          "file": "src/Shadowing.sol",
+          "offset": 1240,
+          "length": 155,
+          "line": 39,
+          "column": 0
+        }
+      ],
+      "count": 1,
+      "possibleTargets": [],
+      "linearizationIndex": 1
+    },
+    {
+      "id": "src/Shadowing.sol:Politeness.greet()|src/Shadowing.sol:Greeter.greet()|calls|super",
+      "kind": "calls",
+      "from": "src/Shadowing.sol:Politeness.greet()",
+      "to": "src/Shadowing.sol:Greeter.greet()",
+      "resolution": "heuristic",
+      "src": {
+        "file": "src/Shadowing.sol",
+        "offset": 1040,
+        "length": 13,
+        "line": 32,
+        "column": 34
+      },
+      "sites": [
+        {
+          "file": "src/Shadowing.sol",
+          "offset": 1040,
+          "length": 13,
+          "line": 32,
+          "column": 34
+        }
+      ],
+      "count": 1,
+      "possibleTargets": [],
+      "subkind": "super"
+    },
+    {
+      "id": "src/Shadowing.sol:Politeness.greet()|src/Shadowing.sol:Greeter.greet()|overrides|",
+      "kind": "overrides",
+      "from": "src/Shadowing.sol:Politeness.greet()",
+      "to": "src/Shadowing.sol:Greeter.greet()",
+      "resolution": "heuristic",
+      "src": {
+        "file": "src/Shadowing.sol",
+        "offset": 942,
+        "length": 171,
+        "line": 31,
+        "column": 4
+      },
+      "sites": [
+        {
+          "file": "src/Shadowing.sol",
+          "offset": 942,
+          "length": 171,
+          "line": 31,
+          "column": 4
+        }
+      ],
+      "count": 1,
+      "possibleTargets": []
+    },
+    {
+      "id": "src/Shadowing.sol:Politeness.greet()|src/Shadowing.sol:IGreeter.greet()|implements|",
+      "kind": "implements",
+      "from": "src/Shadowing.sol:Politeness.greet()",
+      "to": "src/Shadowing.sol:IGreeter.greet()",
+      "resolution": "heuristic",
+      "src": {
+        "file": "src/Shadowing.sol",
+        "offset": 942,
+        "length": 171,
+        "line": 31,
+        "column": 4
+      },
+      "sites": [
+        {
+          "file": "src/Shadowing.sol",
+          "offset": 942,
+          "length": 171,
+          "line": 31,
+          "column": 4
+        }
+      ],
+      "count": 1,
+      "possibleTargets": []
+    },
+    {
+      "id": "src/Shadowing.sol:Politeness.name()|src/Shadowing.sol:Greeter.name()|implements|",
+      "kind": "implements",
+      "from": "src/Shadowing.sol:Politeness.name()",
+      "to": "src/Shadowing.sol:Greeter.name()",
+      "resolution": "heuristic",
+      "src": {
+        "file": "src/Shadowing.sol",
+        "offset": 839,
+        "length": 97,
+        "line": 27,
+        "column": 4
+      },
+      "sites": [
+        {
+          "file": "src/Shadowing.sol",
+          "offset": 839,
+          "length": 97,
+          "line": 27,
+          "column": 4
+        }
+      ],
+      "count": 1,
+      "possibleTargets": []
+    },
+    {
+      "id": "src/Shadowing.sol:Politeness.name()|src/Shadowing.sol:INamed.name()|implements|",
+      "kind": "implements",
+      "from": "src/Shadowing.sol:Politeness.name()",
+      "to": "src/Shadowing.sol:INamed.name()",
+      "resolution": "heuristic",
+      "src": {
+        "file": "src/Shadowing.sol",
+        "offset": 839,
+        "length": 97,
+        "line": 27,
+        "column": 4
+      },
+      "sites": [
+        {
+          "file": "src/Shadowing.sol",
+          "offset": 839,
+          "length": 97,
+          "line": 27,
+          "column": 4
+        }
+      ],
+      "count": 1,
+      "possibleTargets": []
+    },
+    {
+      "id": "src/Shadowing.sol:Politeness|src/Shadowing.sol:Greeter|inherits|",
+      "kind": "inherits",
+      "from": "src/Shadowing.sol:Politeness",
+      "to": "src/Shadowing.sol:Greeter",
+      "resolution": "heuristic",
+      "src": {
+        "file": "src/Shadowing.sol",
+        "offset": 802,
+        "length": 313,
+        "line": 26,
+        "column": 0
+      },
+      "sites": [
+        {
+          "file": "src/Shadowing.sol",
+          "offset": 802,
+          "length": 313,
+          "line": 26,
+          "column": 0
+        }
+      ],
+      "count": 1,
+      "possibleTargets": [],
+      "linearizationIndex": 1
+    },
+    {
+      "id": "src/Shadowing.sol:Politeness|src/Shadowing.sol:Politeness.greet()|declares|",
+      "kind": "declares",
+      "from": "src/Shadowing.sol:Politeness",
+      "to": "src/Shadowing.sol:Politeness.greet()",
+      "resolution": "heuristic",
+      "src": {
+        "file": "src/Shadowing.sol",
+        "offset": 942,
+        "length": 171,
+        "line": 31,
+        "column": 4
+      },
+      "sites": [
+        {
+          "file": "src/Shadowing.sol",
+          "offset": 942,
+          "length": 171,
+          "line": 31,
+          "column": 4
+        }
+      ],
+      "count": 1,
+      "possibleTargets": []
+    },
+    {
+      "id": "src/Shadowing.sol:Politeness|src/Shadowing.sol:Politeness.name()|declares|",
+      "kind": "declares",
+      "from": "src/Shadowing.sol:Politeness",
+      "to": "src/Shadowing.sol:Politeness.name()",
+      "resolution": "heuristic",
+      "src": {
+        "file": "src/Shadowing.sol",
+        "offset": 839,
+        "length": 97,
+        "line": 27,
+        "column": 4
+      },
+      "sites": [
+        {
+          "file": "src/Shadowing.sol",
+          "offset": 839,
+          "length": 97,
+          "line": 27,
+          "column": 4
+        }
+      ],
+      "count": 1,
+      "possibleTargets": []
+    },
+    {
+      "id": "src/Shadowing.sol|src/Shadowing.sol:Greeter|declares|",
+      "kind": "declares",
+      "from": "src/Shadowing.sol",
+      "to": "src/Shadowing.sol:Greeter",
+      "resolution": "heuristic",
+      "src": {
+        "file": "src/Shadowing.sol",
+        "offset": 304,
+        "length": 355,
+        "line": 13,
+        "column": 0
+      },
+      "sites": [
+        {
+          "file": "src/Shadowing.sol",
+          "offset": 304,
+          "length": 355,
+          "line": 13,
+          "column": 0
+        }
+      ],
+      "count": 1,
+      "possibleTargets": []
+    },
+    {
+      "id": "src/Shadowing.sol|src/Shadowing.sol:IGreeter|declares|",
+      "kind": "declares",
+      "from": "src/Shadowing.sol",
+      "to": "src/Shadowing.sol:IGreeter",
+      "resolution": "heuristic",
+      "src": {
+        "file": "src/Shadowing.sol",
+        "offset": 58,
+        "length": 82,
+        "line": 4,
+        "column": 0
+      },
+      "sites": [
+        {
+          "file": "src/Shadowing.sol",
+          "offset": 58,
+          "length": 82,
+          "line": 4,
+          "column": 0
+        }
+      ],
+      "count": 1,
+      "possibleTargets": []
+    },
+    {
+      "id": "src/Shadowing.sol|src/Shadowing.sol:INamed|declares|",
+      "kind": "declares",
+      "from": "src/Shadowing.sol",
+      "to": "src/Shadowing.sol:INamed",
+      "resolution": "heuristic",
+      "src": {
+        "file": "src/Shadowing.sol",
+        "offset": 142,
+        "length": 79,
+        "line": 8,
+        "column": 0
+      },
+      "sites": [
+        {
+          "file": "src/Shadowing.sol",
+          "offset": 142,
+          "length": 79,
+          "line": 8,
+          "column": 0
+        }
+      ],
+      "count": 1,
+      "possibleTargets": []
+    },
+    {
+      "id": "src/Shadowing.sol|src/Shadowing.sol:Loud|declares|",
+      "kind": "declares",
+      "from": "src/Shadowing.sol",
+      "to": "src/Shadowing.sol:Loud",
+      "resolution": "heuristic",
+      "src": {
+        "file": "src/Shadowing.sol",
+        "offset": 1240,
+        "length": 155,
+        "line": 39,
+        "column": 0
+      },
+      "sites": [
+        {
+          "file": "src/Shadowing.sol",
+          "offset": 1240,
+          "length": 155,
+          "line": 39,
+          "column": 0
+        }
+      ],
+      "count": 1,
+      "possibleTargets": []
+    },
+    {
+      "id": "src/Shadowing.sol|src/Shadowing.sol:Politeness|declares|",
+      "kind": "declares",
+      "from": "src/Shadowing.sol",
+      "to": "src/Shadowing.sol:Politeness",
+      "resolution": "heuristic",
+      "src": {
+        "file": "src/Shadowing.sol",
+        "offset": 802,
+        "length": 313,
+        "line": 26,
+        "column": 0
+      },
+      "sites": [
+        {
+          "file": "src/Shadowing.sol",
+          "offset": 802,
+          "length": 313,
+          "line": 26,
+          "column": 0
+        }
+      ],
+      "count": 1,
+      "possibleTargets": []
+    }
+  ]
+}
