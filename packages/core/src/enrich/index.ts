@@ -22,6 +22,16 @@
  * source to the bytes on disk. A file that does not match byte-for-byte is not
  * enriched, and its edges keep the honest heuristic labels they already had.
  *
+ * Per file is the right granularity for *edges*, because a reference into a
+ * file that changed fails to map to a node and degrades to no upgrade —
+ * declarations are joined on their current offsets, so a stale target simply
+ * does not join. It is the wrong granularity for the **storage layout**, which
+ * is a whole-program property: `Derived`'s first variable sits at whatever slot
+ * `Base` left free, so an artifact with one stale source can hand back a
+ * well-formed layout for a file that still matches, computed against a base
+ * that has since changed. Layouts are therefore taken only from an artifact
+ * whose every project source still matches. A wrong slot is worse than no slot.
+ *
  * ### Why not invoke solc
  *
  * §7 offers "or invoke solc directly via `solc-typed-ast`". That library
@@ -94,9 +104,7 @@ const RELATION: Partial<Record<EdgeKind, AstRelation>> = {
 class BuildInfoOverlay implements SemanticOverlay {
   readonly compilers: readonly string[];
   readonly #index: AstIndex;
-  /** Source key as the artifact spells it → project-relative path. */
-  readonly #files: Map<string, string>;
-  /** The reverse, which is what lookups arrive with. */
+  /** Project-relative path → the source key the artifact spells it with. */
   readonly #keys: Map<string, string>;
   readonly #nodes: Map<number, NodeId>;
   readonly #declarations: Map<NodeId, number>;
@@ -109,7 +117,6 @@ class BuildInfoOverlay implements SemanticOverlay {
   }) {
     this.compilers = init.compilers;
     this.#index = init.index;
-    this.#files = init.files;
     this.#keys = new Map([...init.files].map(([key, file]) => [file, key]));
     this.#nodes = init.nodes;
     this.#declarations = new Map([...init.nodes].map(([id, node]) => [node, id]));
@@ -150,11 +157,6 @@ class BuildInfoOverlay implements SemanticOverlay {
     const declaration = this.#declarations.get(id);
     if (declaration === undefined) return undefined;
     return this.#index.storage.get(declaration);
-  }
-
-  /** Source keys that were indexed, for the multi-compiler diagnostics. */
-  get sourceKeys(): string[] {
-    return [...this.#files.keys()];
   }
 }
 
@@ -209,9 +211,27 @@ export function loadSemanticOverlay(
 
   const projectFiles = new Set(table.files.keys());
 
-  /** Project file → the artifact that owns it. Later files win; see `discoverBuildInfo`. */
-  const owner = new Map<string, { info: BuildInfo; key: string }>();
-  let stale = 0;
+  /**
+   * One artifact's verdict on the project files it claims.
+   *
+   * `clean` is what gates the storage layout. A slot is a **whole-program**
+   * property — `Derived`'s first variable sits at whatever slot `Base` left
+   * free — so an artifact with one stale source can hand back a well-formed
+   * layout for a file that still matches, computed against a base that has
+   * since changed. Edges do not have this problem: a reference into a stale
+   * file fails to map to a node and degrades to no upgrade, because
+   * declarations are joined on their *current* offsets.
+   */
+  interface LoadedArtifact {
+    info: BuildInfo;
+    /** Project file → the source key it appears under, for sources that matched. */
+    matched: Map<string, string>;
+    clean: boolean;
+  }
+
+  const loaded: LoadedArtifact[] = [];
+  /** Project files some artifact claimed, matched or not. */
+  const claimed = new Set<string>();
 
   for (const file of files) {
     const read = readBuildInfo(file);
@@ -224,20 +244,48 @@ export function loadSemanticOverlay(
     }
 
     const info = read.info;
+    const matched = new Map<string, string>();
+    let claims = 0;
+
     for (const [key, content] of info.contents) {
       if (!info.asts.has(key)) continue;
-      const match = candidatesFor(key, projectFiles).find(
-        (candidate) => projectFiles.has(candidate) && matchesOnDisk(project.root, candidate, content),
-      );
-      if (match === undefined) {
-        if (candidatesFor(key, projectFiles).some((candidate) => projectFiles.has(candidate))) {
-          stale++;
-        }
-        continue;
-      }
-      owner.set(match, { info, key });
+      const candidates = candidatesFor(key, projectFiles).filter((c) => projectFiles.has(c));
+      // A source the project does not graph — a dependency outside the scan,
+      // usually. Nothing to enrich and nothing to be stale about.
+      if (candidates.length === 0) continue;
+      claims++;
+      const match = candidates.find((c) => matchesOnDisk(project.root, c, content));
+      claimed.add(match ?? candidates[0]!);
+      if (match !== undefined) matched.set(match, key);
+    }
+
+    const clean = matched.size === claims;
+    if (!clean && info.storageLayouts.size > 0 && matched.size > 0) {
+      diagnostics.push({
+        severity: 'warning',
+        message:
+          `Storage layout from ${path.relative(project.root, file)} was not used: ` +
+          `${claims - matched.size} of its sources have changed since it was written. ` +
+          'A slot depends on the whole inheritance chain, so a layout computed against a ' +
+          'stale source can be wrong for a file that still matches.',
+      });
+    }
+
+    loaded.push({ info, matched, clean });
+  }
+
+  /** Project file → the artifact that owns it; first in path order wins. */
+  const owner = new Map<string, { info: BuildInfo; key: string; clean: boolean }>();
+  for (const artifact of loaded) {
+    for (const [file, key] of artifact.matched) {
+      if (!owner.has(file)) owner.set(file, { info: artifact.info, key, clean: artifact.clean });
     }
   }
+
+  // Counted over files rather than over artifacts: a directory of old
+  // build-infos alongside a current one is the normal Foundry state, and
+  // reporting each superseded copy as a stale file would be noise.
+  const stale = [...claimed].filter((file) => !owner.has(file)).length;
 
   if (owner.size === 0) {
     if (stale > 0) {
@@ -264,8 +312,9 @@ export function loadSemanticOverlay(
     indexDeclarations(key, info.asts.get(key), index);
   }
 
-  for (const [, { info, key }] of owner) {
+  for (const [, { info, key, clean }] of owner) {
     indexReferences(key, info.asts.get(key), index);
+    if (!clean) continue;
     for (const layout of info.storageLayouts.get(key)?.values() ?? []) {
       indexStorageLayout(layout, index);
     }

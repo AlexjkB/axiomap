@@ -47,15 +47,23 @@ export function buildInfoDirectories(project: DetectedProject): string[] {
 }
 
 /**
- * Every build-info file in the project, oldest first.
+ * Every build-info file in the project, in a stable order.
  *
- * Order matters when two of them cover the same source: the *newest* file wins,
- * because a stale one is what is left behind when only part of a project was
- * recompiled. Content still has to match the file on disk (see `index.ts`), so
- * this only decides between two artifacts that both could be right.
+ * **Sorted by path, deliberately not by mtime.** Ordering decides which
+ * artifact owns a source when two of them cover it, and mtimes come from
+ * whenever a checkout happened to write the file — so a graph built from a
+ * fresh clone could differ from one built in place, and `axiomap diff` would
+ * report the difference as a change in the code (§8, decision #3). This is the
+ * same failure Phase 2's "byte-identical however many workers" test exists to
+ * prevent, arriving by another route.
+ *
+ * Nothing is lost by dropping mtime: an artifact is only used for a source
+ * whose bytes it still matches, so two artifacts that both qualify are both
+ * right about it, and picking the first is as good as picking the newest and
+ * reproducible besides.
  */
 export function discoverBuildInfo(project: DetectedProject): string[] {
-  const found: { file: string; mtimeMs: number }[] = [];
+  const found: string[] = [];
 
   for (const dir of buildInfoDirectories(project)) {
     const absolute = path.join(project.root, dir);
@@ -67,21 +75,12 @@ export function discoverBuildInfo(project: DetectedProject): string[] {
     }
     for (const entry of entries) {
       if (!entry.isFile() || !entry.name.endsWith('.json')) continue;
-      const file = path.join(absolute, entry.name);
-      let mtimeMs = 0;
-      try {
-        mtimeMs = fs.statSync(file).mtimeMs;
-      } catch {
-        continue;
-      }
-      found.push({ file, mtimeMs });
+      found.push(path.join(absolute, entry.name));
     }
   }
 
-  // mtime first, then path, so a checkout whose files all share one timestamp
-  // still orders deterministically and the graph stays reproducible.
-  found.sort((a, b) => a.mtimeMs - b.mtimeMs || (a.file < b.file ? -1 : a.file > b.file ? 1 : 0));
-  return found.map((entry) => entry.file);
+  found.sort((a, b) => (a < b ? -1 : a > b ? 1 : 0));
+  return found;
 }
 
 function asRecord(value: unknown): Record<string, unknown> | null {
