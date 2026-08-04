@@ -516,3 +516,152 @@ criterion for a reason that is not a resolver bug.
   `inheritance/` (13 real OpenZeppelin cases) and by an inline temp project in
   `resolve.test.ts`. Adding the missing call site to the fixture would change the counts
   Phase 1's `symbols.test.ts` asserts, so it was left alone deliberately.
+
+---
+
+## Phase 3 — Semantic enrichment
+
+**Date:** 2026-08-03
+**Status:** complete. `pnpm check` and `pnpm check:network` both green.
+
+### Exit criteria
+
+| Criterion | Result |
+|---|---|
+| On `defi/` with artifacts, resolution score exceeds 95% semantic | pass — **99%** (138 of 139 weighted edges). The one remainder is the `token.call(...)` in `SafeTransfer`, whose target is chosen at runtime; a compiler does not help with it and must not appear to. `test/enrich.test.ts` |
+| The graph is *identical in shape* to the heuristic-only graph | pass — node set and edge set keyed by `(kind, subkind, from, to)` are equal to `test/golden/defi.graph.json`. Asserted twice: once on §7's shape definition, once field-by-field with only `resolution`, `possibleTargets`, `reason`, `selector`, `slot` and `offset` set aside |
+| Any structural difference is a heuristic-resolver bug; fix it | pass — there were none. A compiler binding that disagrees with a heuristic edge now emits a `warning` diagnostic, and `defi/` produces zero |
+| With `enrich/` stubbed out entirely, the full pipeline still builds a graph for every fixture | pass — `test/enrich-stub.test.ts`, four fixtures. **Keep this test forever** (§7) |
+| Detect build-info: Foundry `out/build-info/`, Hardhat `artifacts/build-info/` | pass — both, and both probed whatever the detected project kind |
+| Upgrade edges via `referencedDeclaration` | pass — every edge kind that required resolving a name reaches `semantic` on `defi/` |
+| Selectors and storage layout where available | pass — `selector` on functions and public getters, `slot`/`offset` on state variables, both absent rather than null when the compiler did not supply them |
+| Multiple solc versions in one project | pass — `test/enrich-artifacts.test.ts`, a 0.7.6 file and a 0.8.20 file with one build-info each |
+| Degrades silently to zero when nothing compiles | pass — `minimal/`, `inheritance/` and `pathological/` build byte-identically with the tier enabled and disabled |
+
+`pnpm check` is green: 218 tests in `core` (165 from Phase 2, 53 new) and 14 repo-level.
+
+### `defi/`, both ways
+
+| | mode | edges | semantic | heuristic | unresolved |
+|---|---|---|---|---|---|
+| no artifacts | heuristic | 139 | 0 | 138 | 1 |
+| with artifacts | **full** | 139 | **138** | 0 | 1 |
+
+Same 139 edges, same endpoints, same call sites. That is the whole criterion: enrichment
+changed what the graph *claims to know*, not what it knows about.
+
+### What was built
+
+- **`enrich/buildinfo.ts`** — discovery and reading. A build-info file is the solc standard
+  JSON input and output together, which is the only artifact carrying all three things this
+  tier needs: ASTs with `referencedDeclaration`, the source text they were built from, and
+  storage layouts. Foundry and Hardhat write the same file with a different `_format`, so
+  both are read the same way. Parsing is hand-rolled rather than a zod schema on purpose —
+  this is someone else's artifact in a format that varies by toolchain and version, and the
+  useful behaviour is to take the fields that are there.
+- **`enrich/solc-ast.ts`** — the AST reader. Reference sites keyed by byte offset,
+  relations (`baseContracts`, `baseFunctions`, `modifiers`), selectors, storage slots.
+- **`enrich/index.ts`** — coverage decided per file, then the two index passes.
+- **`graph/semantic.ts`** — the seam and the application. The interface lives in `graph/`
+  and the implementation in `enrich/`, so the graph consumes the semantic tier without
+  importing it: `enrich/` can be deleted and this file still compiles.
+
+### The join is a byte offset, and that is the whole trick
+
+Both sides already speak byte offsets — solc's `src` is `"start:length:sourceIndex"` in
+bytes, and Phase 1's `PositionIndex` converted the parse to bytes for this exact reason —
+so a call site the heuristic tier found and the same call site in the AST agree on a
+number. No name matching, no scope walking, no signature canonicalisation. §10's warning
+about `src` was protecting this.
+
+Two details were not free:
+
+- **One offset hosts several references.** In `token0.safeTransfer(to, amount)` the
+  identifier `token0`, the member access, and the call all start at the same byte. Indexed
+  naively, the `reads` edge for `token0` matches the library function and gets "corrected"
+  onto it — five of these on `defi/` in the first draft. References are therefore filed by
+  what they *are* (`variable`, `call`, `emit`, `revert`) and looked up by what the edge
+  kind needs.
+- **The callee of a call is not "the first `referencedDeclaration` underneath it".**
+  Following the receiver turns `token.call(data)` — honestly `unresolved`, because `.call`
+  is a builtin with no declaration — into a confident edge pointing at the *variable*
+  `token`. The unwrap follows `FunctionCallOptions` and `NewExpression` and stops.
+
+Four edge kinds have no site to look up: an `inherits` draft carries the contract's own
+`SourceRef`, not the name in the `is` clause, and `implements`/`overrides`/`modifiedBy` are
+the same. Those are confirmed as *relations* from `baseContracts`, `baseFunctions` and
+`modifiers` — which is solc's own answer to the question, and covers §10's
+`overrides`/`implements` split in one list.
+
+### Stale artifacts are the failure mode that matters
+
+Enrichment joins on byte offsets, so an artifact built from a different revision of a file
+does not produce a missing upgrade — it produces a *confident edge pointing at the wrong
+function* and a click that lands in the wrong place. A half-stale artifact set is also the
+normal state of a working tree: you edit one file and the other forty are still current.
+
+So coverage is per file, and a file is covered only if the compiler's copy of the source is
+byte-identical to what is on disk. Bytes, not strings: a comparison that normalised line
+endings would accept an artifact whose every offset past the first newline is wrong, which
+is the same class of bug `pathological/src/Crlf.sol` exists to catch in the parser.
+
+### Deviations from the spec
+
+- **`solc-typed-ast` is not used, and direct solc invocation is deferred.** *(§3's stack row
+  and §7's Phase 3 amended; §16 entry added.)* §7 offered "detect build-info … **or** invoke
+  solc directly via `solc-typed-ast`". That library downloads compiler binaries, so adding
+  it to `@axiomap/core` would put `http`/`https` in the production dependency tree and fail
+  §3's own CI gate — the zero-network invariant, which is a security property the README is
+  meant to be able to point at, not a convention. Reading the standard-JSON ASTs that
+  Foundry and Hardhat already write gets the same information with **no new dependency at
+  all**: core's production tree is still two pure-WASM packages. The gap this leaves is a
+  compilable project with no artifacts, where the answer is `forge build --build-info`;
+  §16 records it with a trigger.
+- **`GRAPH_SCHEMA_VERSION` is 2.** `selector`, `slot`, `offset` and `generator.compilers`
+  are all optional and all absent without artifacts, so the four uncompiled goldens differ
+  from Phase 2's by exactly one line — verified before regenerating, per §6. The bump is
+  not decoration: a v1 reader handed a v2 graph would strip the new fields silently, and
+  refusing a mismatch is the direction the version exists to protect.
+- **The goldens are now built with enrichment off, and `defi/` has a second golden.**
+  `defi/` ships artifacts, so an ordinary build of it is a semantic graph — without this
+  every suite sharing those graphs would silently be testing the wrong tier. The heuristic
+  graph is what §7 makes the baseline, so it stays the golden; `defi.enriched.graph.json`
+  pins the other side, including every selector and every storage slot.
+- **`fixtures/defi/out/build-info/*.json` is committed** (513 KB, under the pre-commit size
+  guard), and the rest of `out/` is gitignored. CI has no solc, and a fixture whose expected
+  output depends on a compiler being installed fails for a reason nobody can read from the
+  diff. The three absolute paths forge writes into `input.allowPaths`/`basePath`/
+  `includePaths` were scrubbed before committing — nothing reads them, and they should not
+  be baked into a public repo.
+- **A failure inside the semantic tier is caught and degraded**, not propagated. This came
+  out of writing the stub test: with the stub throwing, `ingest.ts` failed the whole build,
+  which means the pipeline *did* hard-depend on `enrich/` being present and working. It
+  now catches, emits a warning diagnostic, and returns the syntactic graph. That is
+  decision #1 in one statement — nothing this tier can do may cost the user the graph they
+  would have had without it.
+- **`SemanticOverlayLoad.overlay` is nullable** rather than the load being null. Artifacts
+  that exist but are unusable — stale, truncated, compiled without ASTs — have something to
+  say, and returning nothing would swallow exactly the diagnostic a user needs.
+
+### §16 changes
+
+- **Added Tier 1 — invoking a compiler rather than reading what one already wrote**, with
+  the zero-network reasoning and `loadSemanticOverlay`'s interface as the seam.
+- **Added Tier 1 — storage layout beyond a `slot` per variable**: the `types` half of
+  `storageLayout` (packing, mapping and array slot derivation, struct offsets), which is
+  input to the existing proxy/storage entry rather than a thing on its own.
+
+### Notes for the next session
+
+- **Phase 4 consumes, it does not recompute.** As with Phase 2's C3 linearization and state
+  access: `selector` and `slot`/`offset` are on the nodes, and `resolution === 'semantic'`
+  is how an analysis pass knows an edge is certain rather than inferred.
+- **`selectMode` returns `full` on the first semantic edge**, which is now reachable. The
+  copy was already written for it in Phase 2.
+- **Foundry only writes `storageLayout` when asked** (`--extra-output storageLayout`, as
+  the committed fixture artifact was). Hardhat includes it by default. Absent layout means
+  no slots and nothing else.
+- The `enrich/`-stubbed test has a second half that is easy to overlook: no module outside
+  `enrich/` may import it at runtime, except `ingest.ts`. A type-only import is fine and is
+  how `graph/` names the seam. If that assertion ever fails, the behavioural half has
+  probably stopped meaning anything too.
