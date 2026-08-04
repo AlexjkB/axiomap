@@ -25,7 +25,7 @@ import path from 'node:path';
 
 import { afterEach, describe, expect, it } from 'vitest';
 
-import { buildProjectGraph, type GraphEdge } from '../src/index.js';
+import { buildProjectGraph, detectProject, discoverBuildInfo, type GraphEdge } from '../src/index.js';
 
 const temporary: string[] = [];
 
@@ -667,6 +667,184 @@ describe('semantic tier against hand-written artifacts', () => {
     expect(edgesBetween(file.edges, 'src/B.sol:B.outer()', 'src/B.sol:B.inner()')[0]?.resolution).toBe(
       'heuristic',
     );
+  });
+
+  it('does not trust a storage layout from an artifact with a stale source', async () => {
+    // Slots are a whole-program property: `Derived`'s first variable sits at
+    // whatever slot `Base` left free. So an artifact whose `Base` no longer
+    // matches disk can hand back a perfectly well-formed layout for a `Derived`
+    // that *does* match, computed against a base that has since changed. A
+    // wrong slot is worse than no slot — §16's storage-collision work would
+    // read it as fact.
+    const base = ['pragma solidity ^0.8.20;', 'contract Base {', '    uint256 a;', '}', ''].join('\n');
+    const derived = [
+      'pragma solidity ^0.8.20;',
+      'import "./Base.sol";',
+      'contract Derived is Base {',
+      '    uint256 b;',
+      '}',
+      '',
+    ].join('\n');
+
+    const root = project({
+      'foundry.toml': '[profile.default]\nsrc = "src"\n',
+      'src/Base.sol': base,
+      'src/Derived.sol': derived,
+    });
+
+    writeBuildInfo(root, 'out/build-info', 'x.json', {
+      solcVersion: '0.8.24',
+      sources: {
+        // Compiled when Base had two variables; someone has since deleted one.
+        'src/Base.sol': {
+          content: base.replace('    uint256 a;', '    uint256 a;\n    uint256 gone;'),
+          nodes: [
+            {
+              nodeType: 'ContractDefinition',
+              id: 1,
+              src: at(base, 'contract Base {'),
+              name: 'Base',
+              nodes: [{ nodeType: 'VariableDeclaration', id: 2, src: at(base, 'uint256 a;'), name: 'a' }],
+            },
+          ],
+        },
+        'src/Derived.sol': {
+          content: derived,
+          nodes: [
+            {
+              nodeType: 'ContractDefinition',
+              id: 11,
+              src: at(derived, 'contract Derived is Base {'),
+              name: 'Derived',
+              nodes: [
+                { nodeType: 'VariableDeclaration', id: 12, src: at(derived, 'uint256 b;'), name: 'b' },
+              ],
+            },
+          ],
+          storage: {
+            // Slot 2 was true when Base had two variables. Today `b` is slot 1.
+            storage: [{ astId: 12, contract: 'src/Derived.sol:Derived', label: 'b', offset: 0, slot: '2' }],
+          },
+        },
+      },
+    });
+
+    const { file } = await build(root);
+    const b = file.nodes.find((n) => n.id === 'src/Derived.sol:Derived.b');
+    expect(b?.kind).toBe('StateVariable');
+    expect('slot' in (b ?? {})).toBe(false);
+  });
+
+  it('discovers build-info in an order that does not depend on mtimes', () => {
+    const root = project({ 'foundry.toml': '[profile.default]\nsrc = "src"\n' });
+    fs.mkdirSync(path.join(root, 'out', 'build-info'), { recursive: true });
+    for (const name of ['aaa.json', 'bbb.json']) {
+      fs.writeFileSync(path.join(root, 'out', 'build-info', name), '{}');
+    }
+
+    const order = (): string[] =>
+      discoverBuildInfo(detectProject(root)).map((file) => path.basename(file));
+
+    // Whatever a checkout happened to do to the timestamps.
+    fs.utimesSync(path.join(root, 'out', 'build-info', 'bbb.json'), new Date(1000), new Date(1000));
+    fs.utimesSync(path.join(root, 'out', 'build-info', 'aaa.json'), new Date(2000), new Date(2000));
+    const first = order();
+    fs.utimesSync(path.join(root, 'out', 'build-info', 'bbb.json'), new Date(3000), new Date(3000));
+
+    // Ordering decides which artifact owns a source when two cover it, so an
+    // mtime-dependent order means a graph built from a fresh clone can differ
+    // from one built in place — and `axiomap diff` reports it as a code change.
+    expect(order()).toEqual(first);
+    expect(first).toEqual(['aaa.json', 'bbb.json']);
+  });
+
+  it('does not report a superseded artifact as a stale source', async () => {
+    // The normal Foundry state: `out/build-info/` accumulates a file per
+    // compile and nothing prunes it. The old ones do not match the source any
+    // more, which is not news and must not be reported as a changed file.
+    const source = ['pragma solidity ^0.8.20;', 'contract C {', '    function f() external {}', '}', ''].join('\n');
+    const root = project({
+      'foundry.toml': '[profile.default]\nsrc = "src"\n',
+      'src/C.sol': source,
+    });
+
+    const nodes = (): AstNode[] => [
+      {
+        nodeType: 'ContractDefinition',
+        id: 1,
+        src: at(source, 'contract C {'),
+        name: 'C',
+        nodes: [
+          {
+            nodeType: 'FunctionDefinition',
+            id: 2,
+            src: at(source, 'function f() external {}'),
+            name: 'f',
+            functionSelector: '26121ff0',
+          },
+        ],
+      },
+    ];
+
+    writeBuildInfo(root, 'out/build-info', 'aaa-old.json', {
+      solcVersion: '0.8.20',
+      sources: { 'src/C.sol': { content: '// an older revision\n', nodes: nodes() } },
+    });
+    writeBuildInfo(root, 'out/build-info', 'bbb-current.json', {
+      solcVersion: '0.8.24',
+      sources: { 'src/C.sol': { content: source, nodes: nodes() } },
+    });
+
+    const { file, semantic } = await build(root);
+    expect(semantic?.covered).toBe(1);
+    expect(semantic?.stale).toBe(0);
+    expect(file.diagnostics.some((d) => d.message.includes('changed since'))).toBe(false);
+    // The artifact that still matches is the one that was used.
+    expect(file.generator.compilers).toEqual(['0.8.24']);
+  });
+
+  it('leaves a relation the compiler does not state alone', async () => {
+    // `inherits`, `overrides`, `implements` and `modifiedBy` are confirmed as
+    // relations rather than at a site, because their drafts carry the
+    // declaration's own SourceRef. An artifact that does not state the relation
+    // is not evidence against it — the edge keeps the heuristic label it earned
+    // rather than being dropped or upgraded.
+    const source = [
+      'pragma solidity ^0.8.20;',
+      'contract Base {}',
+      'contract Derived is Base {}',
+      '',
+    ].join('\n');
+
+    const root = project({
+      'foundry.toml': '[profile.default]\nsrc = "src"\n',
+      'src/C.sol': source,
+    });
+
+    writeBuildInfo(root, 'out/build-info', 'x.json', {
+      solcVersion: '0.8.24',
+      sources: {
+        'src/C.sol': {
+          content: source,
+          nodes: [
+            { nodeType: 'ContractDefinition', id: 1, src: at(source, 'contract Base {}'), name: 'Base' },
+            {
+              nodeType: 'ContractDefinition',
+              id: 2,
+              src: at(source, 'contract Derived is Base {}'),
+              name: 'Derived',
+              // No `baseContracts`, as an AST from a solc version that spelled
+              // it differently would look.
+            },
+          ],
+        },
+      },
+    });
+
+    const { file } = await build(root);
+    const [edge] = edgesBetween(file.edges, 'src/C.sol:Derived', 'src/C.sol:Base');
+    expect(edge?.kind).toBe('inherits');
+    expect(edge?.resolution).toBe('heuristic');
   });
 
   it('ignores a build-info it cannot make sense of', async () => {

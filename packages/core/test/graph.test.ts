@@ -33,7 +33,12 @@ import {
   type ResolutionScore,
 } from '../src/index.js';
 import { fixture } from './fixtures.js';
-import { CORRECTNESS_FIXTURES, graphOf, graphWithoutModeGating } from './graphs.js';
+import {
+  CORRECTNESS_FIXTURES,
+  enrichedGraphOf,
+  graphOf,
+  graphWithoutModeGating,
+} from './graphs.js';
 
 const temporaryDirs: string[] = [];
 
@@ -87,6 +92,25 @@ describe('serialization', () => {
       // And is a fixed point: re-serializing produces the same bytes.
       expect(serializeGraph(parsed)).toBe(serializeGraph(file));
     }
+  });
+
+  /**
+   * The same guard over the semantic tier's fields. `selector`, `slot`,
+   * `offset` and `generator.compilers` exist on no graph built without build
+   * artifacts, so the loop above — which builds them all with enrichment off —
+   * would not notice the serializer and the schema disagreeing about any of the
+   * four. Phase 5 reads this artifact back; a field lost here is a field
+   * missing there, with nothing in between to say when it went.
+   */
+  it('round-trips the semantic fields too', async () => {
+    const { file } = await enrichedGraphOf('defi');
+    const parsed = parseGraph(serializeGraph(file));
+    expect(parsed).toEqual(file);
+    expect(serializeGraph(parsed)).toBe(serializeGraph(file));
+    // Present, or the assertion above is vacuous.
+    expect(file.generator.compilers.length).toBeGreaterThan(0);
+    expect(file.nodes.some((n) => n.kind === 'Function' && n.selector !== undefined)).toBe(true);
+    expect(file.nodes.some((n) => n.kind === 'StateVariable' && n.slot !== undefined)).toBe(true);
   });
 
   it('does not store what it can derive', async () => {
@@ -144,11 +168,19 @@ describe('serialization', () => {
    * build is the one the goldens pin.
    */
   it('is byte-identical whether the parse cache was warm or cold', async () => {
-    const cacheDir = path.join(temporaryDir(), 'parse-cache');
-    const cold = await buildProjectGraph(fixture('minimal'), { cacheDir, workers: 1 });
-    const warm = await buildProjectGraph(fixture('minimal'), { cacheDir, workers: 1 });
-    expect(warm.parseStats.cacheHits).toBeGreaterThan(0);
-    expect(serializeGraph(warm.file)).toBe(serializeGraph(cold.file));
+    // `defi/` as well as `minimal/`, because it is the fixture with build
+    // artifacts: the semantic tier joins the graph to the AST on byte offsets
+    // that come from the parse, so a field the cache round-trip changed would
+    // show up here as an enrichment that lands differently the second time.
+    for (const name of ['minimal', 'defi'] as const) {
+      const cacheDir = path.join(temporaryDir(), 'parse-cache');
+      const cold = await buildProjectGraph(fixture(name), { cacheDir, workers: 1 });
+      const warm = await buildProjectGraph(fixture(name), { cacheDir, workers: 1 });
+      expect(warm.parseStats.cacheHits).toBeGreaterThan(0);
+      expect(serializeGraph(warm.file), `${name} differs warm vs cold`).toBe(
+        serializeGraph(cold.file),
+      );
+    }
   });
 
   it('ends with a trailing newline and uses two-space indent', async () => {
