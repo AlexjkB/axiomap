@@ -304,41 +304,50 @@ call — which is the argument for reading the list rather than trusting the per
 
 ### Deviations from the spec
 
-- **A tenth node kind, `Unresolved`, not in §10's list.** §4 makes `unresolved` a
-  first-class answer and "show me every unresolved external call" one of the most valuable
-  queries in the tool — but an edge needs two endpoints. Unresolved calls point at a
-  synthetic node named for the callee (`?call`, `?transform`), marked `synthetic: true` and
-  carrying the reason. §10's list is of *declaration* kinds and a placeholder is not one.
-  The alternative, hiding unresolved calls on a node attribute, would make the single most
-  valuable query the only one that is not a graph query.
-- **`inheritance/`'s golden is committed filtered.** Its full graph serializes to ~1.2 MB —
-  over this repo's own pre-commit size guard, and far past the point where anyone reads the
-  diff, which is the only thing that makes a golden useful. The hand-written `src/`
-  contracts are committed whole; the 25 vendored OpenZeppelin files are pinned by a counts
-  summary (nodes by kind, edges by kind, edges by resolution). A change in how OpenZeppelin
-  resolves still fails the build; it fails as four numbers instead of forty thousand lines.
-- **`ParsedFunctionFlags` carries two fields beyond §10**, `assemblyReadsState` and
-  `assemblyWritesState`. A `sstore` inside an `assembly` block touches storage without
-  naming a variable the resolver could bind, and without them `Proxy.fallback()` would
-  report `writesState: false` — wrong in exactly the file where it matters most. The graph
-  ORs them into §10's two booleans and nothing else reads them.
-- **Hashes are computed during the parse, though they live in `graph/hash.ts`** as §5's
-  layout says. Computing them later would mean either keeping normalised body text in the
-  disk cache (which would multiply its size) or re-reading every file. `parse/treesitter.ts`
-  calls into `graph/hash.ts`; the definition of "the same body" stays in one file, in the
-  directory §5 names.
-- **C3 linearization is implemented in `resolve/`, though §7 lists it as a Phase 4 analysis
-  pass.** `super` dispatch cannot be resolved without it and §4 says so explicitly. Phase 4's
-  pass should surface it over the graph — `linearizedBases` and `linearizationCertainty` are
-  already on every contract node — rather than compute it a second time.
-- **The score weights a collapsed edge by its call-site count.** §10 collapses twenty calls
-  to `_mint` into one edge; the score still counts twenty, because twenty unresolved call
-  sites is twenty unresolved call sites and collapsing them would flatter the number.
-- **`inherits` is emitted for every base; `implements` and `overrides` are function-level.**
-  §10 lists all three without saying which level `implements` belongs to. A base that is an
-  interface still gets `inherits` (it is the relation that carries `linearizationIndex`), and
-  a function implementing an interface function gets `implements` while one overriding a
-  base *with a body* gets `overrides`. That split is the one an auditor asks for.
+All nine were reviewed at the phase boundary and none were reverted; §4, §5, §7, §10 and
+§14 were amended so the spec states what the code does. Where the spec now covers it, the
+entry says so.
+
+- **A tenth node kind, `Unresolved`, not in §10's list.** *(§10 amended.)* §4 makes
+  `unresolved` a first-class answer and "show me every unresolved external call" one of
+  the most valuable queries in the tool — but an edge needs two endpoints. Unresolved
+  calls point at a synthetic node named for the callee (`?call`, `?transform`), marked
+  `synthetic: true` and carrying the reason. §10's list is of *declaration* kinds and a
+  placeholder is not one. The alternative, hiding unresolved calls on a node attribute,
+  would make the single most valuable query the only one that is not a graph query.
+- **`inheritance/`'s golden is committed filtered.** *(§14 amended.)* Its full graph
+  serializes to ~1.2 MB — over this repo's own pre-commit size guard, and far past the
+  point where anyone reads the diff, which is the only thing that makes a golden useful.
+  The hand-written `src/` contracts are committed whole; the 25 vendored OpenZeppelin
+  files are pinned by a counts summary (nodes by kind, edges by kind, edges by
+  resolution). A change in how OpenZeppelin resolves still fails the build; it fails as
+  four numbers instead of forty thousand lines.
+- **`ParsedFunctionFlags` carries two fields beyond §10** *(§10 amended)*,
+  `assemblyReadsState` and `assemblyWritesState`. A `sstore` inside an `assembly` block
+  touches storage without naming a variable the resolver could bind, and without them
+  `Proxy.fallback()` would report `writesState: false` — wrong in exactly the file where
+  it matters most. The graph ORs them into §10's two booleans and nothing else reads them.
+- **Hashes are computed during the parse, though they live in `graph/hash.ts`** *(§5
+  amended)* as §5's layout says. Computing them later would mean either keeping normalised
+  body text in the disk cache (which would multiply its size) or re-reading every file.
+  `parse/treesitter.ts` calls into `graph/hash.ts`; the definition of "the same body"
+  stays in one file, in the directory §5 names.
+- **C3 linearization is implemented in `resolve/`, though §7 lists it as a Phase 4
+  analysis pass.** *(§7 amended; state access and cyclomatic complexity moved for the same
+  reason.)* `super` dispatch cannot be resolved without it and §4 says so explicitly.
+  Phase 4's pass should surface it over the graph — `linearizedBases` and
+  `linearizationCertainty` are already on every contract node — rather than compute it a
+  second time.
+- **The score weights a collapsed edge by its call-site count.** *(§4 amended.)* §10
+  collapses twenty calls to `_mint` into one edge; the score still counts twenty, because
+  twenty unresolved call sites is twenty unresolved call sites and collapsing them would
+  flatter the number.
+- **`inherits` is emitted for every base; `implements` and `overrides` are
+  function-level.** *(§10 amended.)* §10 lists all three without saying which level
+  `implements` belongs to. A base that is an interface still gets `inherits` (it is the
+  relation that carries `linearizationIndex`), and a function implementing an interface
+  function gets `implements` while one overriding a base *with a body* gets `overrides`.
+  That split is the one an auditor asks for.
 - **`FileSymbols` gained `bareImports`.** `import "path"` pulls in every top-level name of
   the target, and Phase 1's `imports` array could not distinguish it after the fact.
 - **`pnpm bench:parser` now times the graph build too.** §9's budget is "parsed **and
