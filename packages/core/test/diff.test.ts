@@ -11,16 +11,34 @@
 import { afterAll, describe, expect, it } from 'vitest';
 
 import {
+  buildProjectGraph,
   classifyChanges,
   deriveFindings,
   diffGraphs,
+  graphFromFile,
+  GRAPH_SCHEMA_VERSION,
   nameSimilarity,
+  parseGraph,
+  serializeGraph,
   type AxiomapGraph,
   type ChangeStatus,
   type FindingKind,
 } from '../src/index.js';
 import { buildTempProject, cleanUpTempProjects } from './temp-project.js';
-import { enrichedGraphOf, graphOf } from './graphs.js';
+import { CORRECTNESS_FIXTURES, enrichedGraphOf, graphOf } from './graphs.js';
+import { fixture } from './fixtures.js';
+
+/** Everything a diff claims, in one comparable value. */
+function summarise(diff: ReturnType<typeof diffGraphs>): unknown {
+  return {
+    nodes: diff.nodeSummary,
+    edges: diff.edgeSummary,
+    changes: diff.nodes
+      .filter((node) => node.status !== 'unchanged')
+      .map((node) => [node.status, node.id, node.match?.before ?? null, node.match?.tier ?? null]),
+    findings: diff.findings.map((f) => [f.kind, f.node, f.evidence]),
+  };
+}
 
 afterAll(cleanUpTempProjects);
 
@@ -406,6 +424,29 @@ interface IToken { function ping() external; }
     );
   });
 
+  it('finds a dangerous op in a function that is new, not just one that grew it', async () => {
+    const { before, after } = await pair(VAULT_V1, {
+      'src/Vault.sol': VAULT_SOURCE.replace(
+        '    function helper(',
+        `    function rescue(address to, uint256 amount) external {
+        (bool ok,) = to.call{value: amount}("");
+        require(ok);
+    }
+
+    function helper(`,
+      ),
+    });
+    const diff = diffGraphs(before, after);
+    const messages = diff.findings
+      .filter((f) => f.kind === 'new-dangerous-op')
+      .map((f) => f.message)
+      .sort();
+    expect(messages).toEqual([
+      'New function Vault.rescue uses hasLowLevelCall',
+      'New function Vault.rescue uses sendsValue',
+    ]);
+  });
+
   it('labels a reachability finding a consequence when the node itself did not change', async () => {
     // §10's Phase 4 fields are transitive. `helper` is untouched; it became
     // reachable because `deposit` started calling it.
@@ -425,5 +466,165 @@ interface IToken { function ping() external; }
   it('produces nothing at all for two identical revisions', async () => {
     const { before, after } = await pair(VAULT_V1, VAULT_V1);
     expect(deriveFindings(classifyChanges(before, after))).toEqual([]);
+  });
+});
+
+/**
+ * Properties, not cases.
+ *
+ * Phase 2 and Phase 3 each found a real bug by probing the graph this way —
+ * determinism under worker count, and identity across a serialize/parse round
+ * trip. All four below already held when they were written; the value is that
+ * they keep holding. Each one guards a failure that would surface as
+ * `axiomap diff` reporting phantom changes, which is the worst thing this
+ * engine can do, because the whole product is a list of what to re-read.
+ */
+describe('diff properties', () => {
+  it('is the same diff over graphs read back from graph.json', async () => {
+    const { before, after } = await pair(VAULT_V1, {
+      'src/Vault.sol': VAULT_SOURCE.replace('function helper(', 'function combine('),
+    });
+    const roundTrip = (graph: AxiomapGraph): AxiomapGraph => {
+      // The exact path §16's "diff two stored artifacts" entry would take.
+      const nodes = graph.mapNodes((_id, node) => node);
+      const edges = graph.mapEdges((_key, edge) => edge);
+      const file = {
+        schemaVersion: GRAPH_SCHEMA_VERSION as typeof GRAPH_SCHEMA_VERSION,
+        generator: { name: 'axiomap' as const, parser: 'treesitter', hashVersion: 1, compilers: [] },
+        project: { kind: 'foundry', sources: ['src'], files: 1 },
+        mode: 'heuristic' as const,
+        modeReason: 'test',
+        score: {
+          overall: { semantic: 0, heuristic: 0, ambiguous: 0, unresolved: 0, total: 0, confident: 1 },
+          calls: { semantic: 0, heuristic: 0, ambiguous: 0, unresolved: 0, total: 0, confident: 1 },
+          excludedFiles: 0,
+        },
+        diagnostics: [],
+        nodes,
+        edges,
+      };
+      return graphFromFile(parseGraph(serializeGraph(file)));
+    };
+
+    const direct = diffGraphs(before, after);
+    const stored = diffGraphs(roundTrip(before), roundTrip(after));
+    expect(summarise(stored)).toEqual(summarise(direct));
+  });
+
+  it('does not depend on how many workers parsed the sources', async () => {
+    // Two builds of one unchanged project. Anything the worker count perturbs
+    // — field order, a value lost in the worker round trip — shows up here as
+    // a change in code that nobody edited.
+    const [one, four] = await Promise.all([
+      buildProjectGraph(fixture('defi'), { cacheDir: null, workers: 1, enrich: false }),
+      buildProjectGraph(fixture('defi'), { cacheDir: null, workers: 4, enrich: false }),
+    ]);
+    const diff = diffGraphs(one.graph, four.graph);
+    expect(diff.nodes.filter((node) => node.status !== 'unchanged')).toEqual([]);
+    expect(diff.edges.filter((edge) => edge.status !== 'unchanged')).toEqual([]);
+  });
+
+  it('mirrors when the two revisions are swapped', async () => {
+    const { before, after } = await pair(VAULT_V1, {
+      'src/Vault.sol': VAULT_SOURCE
+        .replace('function helper(', 'function combine(')
+        .replace('    address public owner;', '    address public owner;\n    uint256 public extra;'),
+    });
+    const forward = diffGraphs(before, after);
+    const backward = diffGraphs(after, before);
+
+    expect(backward.nodeSummary.added).toBe(forward.nodeSummary.removed);
+    expect(backward.nodeSummary.removed).toBe(forward.nodeSummary.added);
+    expect(backward.nodeSummary.unchanged).toBe(forward.nodeSummary.unchanged);
+    // A rename is a rename in either direction; only its endpoints swap.
+    expect(backward.nodeSummary.renamed).toBe(forward.nodeSummary.renamed);
+    expect(backward.nodeSummary.moved).toBe(forward.nodeSummary.moved);
+  });
+
+  it('reports nothing at all when a fixture is diffed against itself', async () => {
+    for (const name of CORRECTNESS_FIXTURES) {
+      const { graph } = await graphOf(name);
+      const diff = diffGraphs(graph, graph);
+      expect({ [name]: diff.nodes.filter((node) => node.status !== 'unchanged') }).toEqual({
+        [name]: [],
+      });
+      expect({ [name]: diff.edges.filter((edge) => edge.status !== 'unchanged') }).toEqual({
+        [name]: [],
+      });
+      expect({ [name]: diff.findings }).toEqual({ [name]: [] });
+    }
+  });
+});
+
+describe('the guards against guessing', () => {
+  it('resolves a body-hash bucket by elimination when name and scope both changed', async () => {
+    // Moved *and* renamed in one commit: neither the same-name pass nor the
+    // same-scope pass can fire, so the only thing left is that exactly one
+    // candidate remains on each side. Anything more than one and it stays
+    // unmatched.
+    const { before, after } = await pair(
+      {
+        'src/A.sol': `// SPDX-License-Identifier: MIT
+pragma solidity ^0.8.20;
+library A {
+    function alpha(uint256 x) internal pure returns (uint256) { return x * 3 + 7; }
+}
+`,
+      },
+      {
+        'src/B.sol': `// SPDX-License-Identifier: MIT
+pragma solidity ^0.8.20;
+library B {
+    function beta(uint256 x) internal pure returns (uint256) { return x * 3 + 7; }
+}
+`,
+      },
+    );
+    const diff = classifyChanges(before, after);
+    const change = diff.nodes.find((node) => node.id === 'src/B.sol:B.beta(uint256)');
+    expect(change?.match?.tier).toBe('body');
+    expect(change?.match?.before).toBe('src/A.sol:A.alpha(uint256)');
+    // File and scope both changed, so `moved` wins over `renamed` — you have to
+    // know where it went before the new name is any use.
+    expect(change?.status).toBe('moved');
+  });
+
+  it('gives a contested node to the best candidate and leaves the other added', async () => {
+    // Two plausible successors to one function. The greedy pass takes the
+    // higher score and must not also claim the loser.
+    const { before, after } = await pair(
+      {
+        'src/C.sol': `// SPDX-License-Identifier: MIT
+pragma solidity ^0.8.20;
+contract C {
+    uint256 public total;
+    function collect(uint256 a) public view returns (uint256) { return a + total; }
+    function caller() external view returns (uint256) { return collect(1); }
+}
+`,
+      },
+      {
+        'src/C.sol': `// SPDX-License-Identifier: MIT
+pragma solidity ^0.8.20;
+contract C {
+    uint256 public total;
+    function collectAll(uint256 a) public view returns (uint256) { return a + total + 1; }
+    function collectSome(uint256 a) public view returns (uint256) { return a + total + 2; }
+    function caller() external view returns (uint256) { return collectAll(1); }
+}
+`,
+      },
+    );
+    const diff = classifyChanges(before, after);
+    const matched = diff.nodes.filter(
+      (node) => node.match !== null && node.match.tier === 'fuzzy',
+    );
+    // Exactly one of the two candidates wins; the other is an addition.
+    expect(matched).toHaveLength(1);
+    expect(matched[0]?.match?.before).toBe('src/C.sol:C.collect(uint256)');
+    const loser = matched[0]?.id === 'src/C.sol:C.collectAll(uint256)'
+      ? 'src/C.sol:C.collectSome(uint256)'
+      : 'src/C.sol:C.collectAll(uint256)';
+    expect(statusOf(diff, loser)).toBe('added');
   });
 });
