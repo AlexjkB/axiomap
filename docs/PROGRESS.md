@@ -880,3 +880,161 @@ O(entrypoints × edges) and would have been far worse than either.
   so Phase 5 can diff them: "previously unreachable function became externally reachable"
   and "access-control modifier removed from a state-mutating function" are two of §8's
   named findings and both are now a field comparison rather than an analysis.
+
+---
+
+## Phase 5 — Diff engine & review state
+
+**Date:** 2026-08-04
+**Status:** complete. `pnpm check` and `pnpm check:network` both green.
+
+### Exit criteria
+
+| Criterion | Result |
+|---|---|
+| `axiomap diff` between two commits of the `defi/` fixture | pass — `axiomap diff defi-v1 defi-v2 fixtures/defi`, a real command over two real git tags, asserted end to end in `packages/cli/test/diff.test.ts` |
+| Correctly identifies a hand-authored set of changes | pass — the additions, removals and modifications are asserted as exact sorted lists, not as counts, so an extra or missing one fails. 20 changed nodes, 78 unchanged |
+| …including one rename | pass — `Router.quote` → `Router.quoteAmount`, matched by body hash, reported `renamed` with `{interfaceHash, name}` as the only differences |
+| …and one moved function | pass — `AmmMath.sortTokens` → `TokenOrder.sortTokens`, across a file and a library, matched by body hash, reported `moved` with `{file, scope}` |
+| Node matching (§8's four tiers) | pass — all four fire on the fixture pair: exact, body, signature (`Pair._update(uint256,uint256)` → `Pair._update()`) and fuzzy (`Router.getAmountOut` → `Router.amountOutFor`, confidence 0.918) |
+| Change classification | pass — §8's six statuses for nodes, four for edges, with the compared attribute set stated per node kind |
+| Review invalidation | pass — `review/`, §8's flat `review.json` shape, `stalenessOf` and `migrateReview`. 10 tests, including the two failure directions: a review that survives a change it should not, and one thrown away for a change that was not one |
+
+`pnpm check` is green: 277 tests in `core` (243 from Phase 4, 34 new), 21 in `cli`, and 14
+repo-level.
+
+### The changeset was written first
+
+Deliberately, and in that order: the fixture v2 was hand-authored and tagged before any
+matcher existed, so the engine was built to explain a changeset rather than the changeset
+picked to flatter the engine. `docs/fixtures/defi-diff.md` is the changeset in prose and
+says which §8 clause each edit exercises.
+
+The two hard cases were planted on purpose and both work:
+
+- **`Router.sweep` is added in the same commit that renames `getAmountOut` to
+  `amountOutFor`, and takes the same three parameter types.** A matcher scoring on
+  signature alone would pair it with `getAmountOut`. The name similarity and the
+  call-neighbourhood overlap separate them by a wide margin — 0.918 against 0.20.
+- **`AmmMath.min` is removed from the same library that `sortTokens` moves out of.** A
+  removal and a move, one commit, one file. `min` is reported removed and `sortTokens`
+  moved, because tier 2 matches on the body and `min`'s body has no counterpart.
+
+### Where v2 lives, and why not on `main`
+
+`defi-v2` is a child of the `defi-v1` commit and is **not merged into `main`**; the tag is
+what keeps it reachable. §14 asks for two tags with a changeset between them and does not
+say `main` has to advance to the second one — and advancing it would have been expensive
+in exactly the wrong way. Every `defi/` golden, Phase 1's hand-verified symbol counts and
+Phase 3's committed build-info are pinned to v1. Moving the fixture would have meant
+regenerating all of them to make a *new* fixture pass, which is the shape of the mistake §6's
+rule about goldens exists to prevent.
+
+`out/build-info/` is dropped at v2, and that is not a shortcut: every source file changed,
+so the v1 artifact covers none of them. It also makes the fixture the normal case rather
+than the tidy one — §8's whole argument is that diff is cheap *because* neither revision has
+to compile, so one side having artifacts and the other not is what a real
+`axiomap diff v1 HEAD` looks like.
+
+§14 and CI were amended: `actions/checkout` now uses `fetch-depth: 0`, because a shallow
+checkout has no tags and the exit-criterion test **fails** rather than skipping when they
+are missing.
+
+### What was built
+
+- **`diff/match.ts`** — §8's four tiers, run in order so a confident answer is never
+  displaced by a speculative one. Two rules carry most of the weight: a bodyless
+  declaration has no body hash and cannot match at tier 2 (Phase 2 made that the empty
+  string for this exact reason — ten of `defi/`'s thirty-nine functions are interface
+  declarations), and a hash bucket that cannot be resolved unambiguously is left for the
+  later tiers rather than paired on iteration order.
+- **`diff/classify.ts`** — the six statuses, and a stated list of compared attributes per
+  node kind. What is *excluded* is the design: source positions, the semantic tier, derived
+  metrics, and Phase 4's three transitive fields.
+- **`diff/findings.ts`** — §8's seven findings, each a comparison over fields Phase 4
+  already computed. Nothing is re-analysed.
+- **`review/`** — `state.ts` (schema, staleness, migration; pure) and `store.ts` (the only
+  file that touches `fs`).
+- **`packages/cli`** — `axiomap diff <refA> <refB> [path] [--json]`, with git revisions
+  materialised through `git worktree add --detach`.
+
+### Three decisions worth the space
+
+- **The diff is blind to the semantic tier.** `resolution`, `possibleTargets`, `selector`,
+  `slot` and `offset` are excluded from every comparison. A compiler appearing between two
+  revisions is not a code change, and §8's premise guarantees it will happen: historical
+  commits do not compile. There is a test that says so directly — `defi/` heuristic against
+  `defi/` enriched, same revision, produces zero changed nodes, zero changed edges and zero
+  findings. Without it the exit-criterion diff would have been comparing a semantic v1
+  against a syntactic v2 and reporting the tier as a changeset.
+- **Phase 4's transitive fields are findings, not attributes.** The previous session's note
+  said this needed deciding either way. `externallyReachable`, `entrypoints` and
+  `reentrancy` flip on every caller above an edited leaf, so they are excluded from the
+  attribute comparison — otherwise the re-review list, which §8 calls the product, fills
+  with functions whose source did not change. They are read by `findings.ts` instead, and
+  every finding carries `evidence: 'direct' | 'consequence'` according to whether the node
+  it names changed itself. The fixture proves the case is real: `IERC20Minimal.transfer`
+  becomes externally reachable because `Router.sweep` was added, and `transfer` itself is
+  untouched.
+- **Edge endpoints are projected into before-space.** Both sides are keyed by
+  `(kind, subkind, from, to)` with the after graph's ids mapped back through the matching,
+  so renaming a function does not report every edge it touches as one addition and one
+  removal. Asserted directly: a pure rename produces zero added, removed or modified edges.
+
+### Deviations from the spec
+
+- **`axiomap diff` ships in Phase 5, not Phase 6.** *(§7's Phase 6 amended.)* The exit
+  criterion names the command, and git-revision materialisation cannot live in `core` —
+  §6 keeps it to `fs`, and a checkout means spawning `git`. It is one hand-rolled
+  subcommand: no `commander`, no colour, no other commands. Phase 6 owns the surface and
+  this joins it.
+- **`defi-v2` is on an unmerged tag.** *(§14 amended.)* Reasoning above.
+- **A tenth matching detail: tier 3 is "same container, same *name*".** §8 words it as
+  "same container + same signature, different body" — but same container plus same
+  signature plus same name *is* the same id, which is tier 1. The case §8 is reaching for
+  is a changed signature, which is what tier 3 matches, and it requires uniqueness on both
+  sides so an overload set is left alone.
+- **`Unresolved` nodes are compared on `name` and `category` only.** They are project-wide
+  by construction (Phase 2), so the `file` on `?low-level:call` is whichever call site was
+  resolved first — and comparing it reported the node as *moved* every time an unrelated
+  file changed. Its identity is what its id is built from.
+- **The storage-layout finding reads declaration order, not `slot`.** The old revision in a
+  diff usually has no artifacts, so slots are usually absent on one side. Noted on §16's
+  existing storage-layout entry rather than as a new one.
+- **`migrateReview` keeps an unmatched entry under its old id** rather than deleting it. A
+  match the matcher could not make is not proof the code is gone, and silently discarding
+  somebody's audit notes on a heuristic is not a thing to do. It reports as `orphaned`.
+- **`review.json` has no version field.** §8's example is a flat map and this follows it
+  exactly. It is safe because every stored `bodyHash` is a hash of a string beginning
+  `b${HASH_VERSION}`, so a hashing change invalidates every review by itself — which is
+  what a hashing change means. A version field would be a second source of truth for one
+  fact.
+
+### §16 changes
+
+- **Added Tier 2 — fuzzy matching across containers.** The fourth tier is scoped to one
+  contract, so a function that moved *and* was rewritten falls through to added + removed.
+  No fixture, and cross-scope candidate generation is quadratic in the unmatched set.
+- **Added Tier 1 — diffing two `graph.json` artifacts instead of re-graphing.**
+  `graphFromFile` and `diffGraphs` are already the seam; the cost is unmeasured outside
+  fixtures.
+- **Answered the rename-confirmation entry's "measure on the `defi/` fixture pair first".**
+  One fuzzy match, no false positives, threshold 0.55. The trigger has not fired.
+- **Noted on the storage-layout entry** that Phase 5's finding depends on slots being
+  absent, and so says nothing about packing.
+
+### Notes for the next session
+
+- **Phase 6 is the CLI.** `axiomap diff` exists and works; everything else in §12 does not.
+  `axiomap review <node> --status`, `axiomap query stale-reviews` and `axiomap query
+  unresolved` all have their engine already — `setReviewStatus`, `stalenessOf` and the
+  synthetic `Unresolved` categories respectively — and need a command around them.
+- **Nothing still reads `axiomap.config.json`.** Unchanged from Phase 4's note, and Phase 6
+  is still where it belongs. It matters more now: §13's `accessControlModifiers` is what
+  the `access-control-weakened` finding compares against, so a protocol whose guard is
+  spelled `auth` gets no finding until the file is loaded.
+- **`migrateReview` is not wired to anything.** It is the piece that turns a diff into an
+  updated `review.json`, and Phase 6's `axiomap diff --update-review` (or whatever it ends
+  up called) is where a user reaches it.
+- **The fixture pair is frozen at both tags.** If `packages/cli/test/diff.test.ts` starts
+  failing, the fixture cannot have changed — only the engine can have. Read the diff.
