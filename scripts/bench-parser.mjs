@@ -18,6 +18,13 @@
  *   3. `parallel-warm` workers, cache populated — the §9 budget, and the case
  *                      that happens all day in an editor.
  *
+ * Then one more, added in Phase 5: the **diff** of the resulting graph against
+ * itself. §9 sets no budget for that, so the number here is a regression
+ * tripwire rather than a spec gate — and it exists because the failure it
+ * catches is an order of magnitude rather than a percentage. Phase 5's storage
+ * layout pass shipped accidentally O(contracts × nodes) and cost 4.5 seconds
+ * here while every correctness fixture stayed green.
+ *
  *   node scripts/bench-parser.mjs [--runs 5] [--sloc 200000] [--no-write]
  *
  * Measurements are appended to `docs/perf/ingest.json` so a regression shows up
@@ -38,6 +45,13 @@ const DATA_PATH = path.join(ROOT, 'docs/perf/ingest.json');
 
 /** §9: "200k SLOC parsed and graphed in under 5 seconds warm." */
 const WARM_BUDGET_MS = 5_000;
+
+/**
+ * Not a §9 budget — §9 does not set one for `axiomap diff`. A tripwire, set
+ * well above the measured value, because what it guards against is a pass that
+ * became quadratic, and that shows up as 10x rather than 10%.
+ */
+const DIFF_TRIPWIRE_MS = 2_500;
 
 const argv = process.argv.slice(2);
 const flag = (name, fallback) => {
@@ -163,6 +177,36 @@ async function measure(label, options, runs) {
 
 const fmt = (ms) => `${ms.toFixed(0)} ms`;
 
+/**
+ * The diff of a graph against itself.
+ *
+ * Every node matches at tier 1, so this measures the half of `axiomap diff`
+ * that scales with the *whole* project rather than with the changeset —
+ * comparing every node's attributes, keying every edge, and deriving findings
+ * over every contract. A real PR-shaped diff changes a fraction of a percent of
+ * nodes, so the matcher's inferring tiers stay small and this is the number
+ * that matters.
+ */
+function measureDiff(graph, runs) {
+  const samples = [];
+  let last = null;
+  for (let i = 0; i < runs; i++) {
+    const started = performance.now();
+    last = core.diffGraphs(graph, graph);
+    samples.push(performance.now() - started);
+  }
+  return {
+    label: 'diff-identical',
+    median: median(samples),
+    min: Math.min(...samples),
+    max: Math.max(...samples),
+    samples,
+    unchangedNodes: last.nodeSummary.unchanged,
+    unchangedEdges: last.edgeSummary.unchanged,
+    findings: last.findings.length,
+  };
+}
+
 async function main() {
   ensureLargeFixture();
   const size = countSloc(LARGE);
@@ -196,6 +240,15 @@ async function main() {
       `mode ${shape.mode}, ${Math.round(shape.callConfidence * 100)}% of call edges confident\n`,
   );
 
+  const warmRun = await timeRun({ workers: undefined, cacheDir: CACHE_DIR });
+  const diff = measureDiff(warmRun.built.graph, RUNS);
+  process.stdout.write(
+    `\n${diff.label.padEnd(14)} median ${fmt(diff.median).padStart(9)}  ` +
+      `(min ${fmt(diff.min)}, max ${fmt(diff.max)}, ` +
+      `${diff.unchangedNodes.toLocaleString()} nodes and ` +
+      `${diff.unchangedEdges.toLocaleString()} edges unchanged, ${diff.findings} findings)\n`,
+  );
+
   fs.rmSync(path.join(LARGE, '.axiomap'), { recursive: true, force: true });
 
   const warm = rows.find((r) => r.label === 'parallel-warm');
@@ -205,6 +258,12 @@ async function main() {
       `${fmt(warm.median)} against ${WARM_BUDGET_MS.toLocaleString()} ms\n`,
   );
 
+  const diffWithinTripwire = diff.median < DIFF_TRIPWIRE_MS;
+  process.stdout.write(
+    `diff tripwire:  ${diffWithinTripwire ? 'PASS' : 'FAIL'} — ` +
+      `${fmt(diff.median)} against ${DIFF_TRIPWIRE_MS.toLocaleString()} ms\n`,
+  );
+
   if (WRITE) {
     const entry = {
       measuredAt: new Date().toISOString(),
@@ -212,8 +271,11 @@ async function main() {
       size,
       runs: RUNS,
       rows,
+      diff,
       warmBudgetMs: WARM_BUDGET_MS,
       withinBudget,
+      diffTripwireMs: DIFF_TRIPWIRE_MS,
+      diffWithinTripwire,
       host: {
         cpu: os.cpus()[0]?.model ?? 'unknown CPU',
         cores: os.cpus().length,
@@ -226,7 +288,7 @@ async function main() {
     process.stdout.write(`wrote ${path.relative(ROOT, DATA_PATH)}\n`);
   }
 
-  if (!withinBudget) process.exitCode = 1;
+  if (!withinBudget || !diffWithinTripwire) process.exitCode = 1;
 }
 
 await main();
