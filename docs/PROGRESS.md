@@ -665,3 +665,57 @@ is the same class of bug `pathological/src/Crlf.sol` exists to catch in the pars
   `enrich/` may import it at runtime, except `ingest.ts`. A type-only import is fine and is
   how `graph/` names the seam. If that assertion ever fails, the behavioural half has
   probably stopped meaning anything too.
+
+### Pre-Phase-4 audit
+
+Phase 3 was audited at the boundary the same way Phase 2 was, and for the same reason: it
+is what every later phase reads. Coverage over `enrich/` and `graph/semantic.ts` found the
+branches no test reached; probing the two properties Phase 2's audit had established for
+the syntactic graph — determinism and round-trip — found **two real bugs, both invisible to
+every test and both golden-clean**.
+
+- **Build-info discovery was ordered by mtime.** Ordering decides which artifact owns a
+  source when two of them cover it, and mtimes come from whenever a checkout happened to
+  write the file. So a graph built from a fresh clone could differ from one built in place,
+  and `axiomap diff` would report the difference as a change in the code — the same failure
+  the "byte-identical however many workers" test exists to prevent, arriving by another
+  route. Now sorted by path. Nothing is lost: an artifact is only used for a source whose
+  bytes it still matches, so two that both qualify are both right, and the first is as good
+  as the newest and reproducible besides.
+- **A storage layout was trusted per file, and a slot is a whole-program property.**
+  `Derived`'s first variable sits at whatever slot `Base` left free, so an artifact whose
+  `Base` no longer matches disk hands back a well-formed layout for a `Derived` that *does*
+  match, computed against a base that has since changed. The test that found it asserts a
+  variable whose true slot is 1 does not get told it is slot 2. Layouts now come only from
+  an artifact whose every project source still matches; edges are unaffected, because a
+  reference into a changed file fails to join and degrades to no upgrade. A wrong slot is
+  worse than no slot — §16's storage-collision work would read it as fact.
+
+Three properties are now tests rather than assumptions:
+
+- **The enriched graph round-trips through `parseGraph` without losing a field.** The
+  existing fixed-point test builds every fixture with enrichment *off*, so `selector`,
+  `slot`, `offset` and `generator.compilers` — the four fields this phase added — were
+  covered by nothing. Phase 5 reads this artifact back.
+- **`defi/` is byte-identical warm or cold with artifacts present.** The semantic tier joins
+  on byte offsets that come from the parse, so a field the disk cache round-trip changed
+  would land enrichment differently on the second build.
+- **A superseded artifact is not reported as a stale source.** `out/build-info/` accumulates
+  a file per compile and nothing prunes it, so the first draft's staleness count would have
+  warned about changed files on every healthy Foundry project.
+
+Two more small things: a relation the compiler does not state leaves the edge alone (it is
+not evidence against it), and an unused accessor on the overlay is gone.
+
+**Coverage of the Phase 3 modules is 98.6% of statements and 80.7% of branches.** What the
+branches leave is `catch` arms for a file that vanishes mid-run and shape guards for AST
+nodes solc does not currently produce — defensive by design, and each of them the honest
+answer rather than a fallback.
+
+### Notes for the next session, continued
+
+- **Enrichment's cost at scale is unmeasured.** `defi/` is five files; a 200k-SLOC project's
+  build-info is tens of megabytes of JSON, parsed and walked twice, plus one byte-comparison
+  read per source. §9's budget covers parse and graph, and `pnpm bench:parser` measures the
+  syntactic path only, because `large/` is generated and has no artifacts. If a Phase 7
+  user reports a slow build on a compiled project, this is the first place to look.
