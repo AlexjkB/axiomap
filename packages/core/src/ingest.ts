@@ -14,6 +14,7 @@
 
 import path from 'node:path';
 
+import type { AnalysisOptions } from './analysis/index.js';
 import { loadSemanticOverlay, type SemanticOverlayLoad } from './enrich/index.js';
 import { buildGraph, type BuiltGraph } from './graph/build.js';
 import { parseFiles, type ParseRunStats } from './parse/workers.js';
@@ -78,6 +79,8 @@ export interface BuildProjectGraphOptions extends IngestOptions {
   enrich?: boolean;
   /** Explicit build-info paths, instead of discovering them under the root. */
   buildInfo?: readonly string[];
+  /** §13's `entrypoints`, `accessControlModifiers` and `reentrancyGuards`. */
+  analysis?: AnalysisOptions;
 }
 
 export interface ProjectGraphResult extends IngestResult, BuiltGraph {
@@ -138,6 +141,7 @@ export async function buildProjectGraph(
       : { callResolutionThreshold: options.callResolutionThreshold }),
     ...(semantic === null ? {} : { semanticDiagnostics: semantic.diagnostics }),
     ...(semantic?.overlay == null ? {} : { semantic: semantic.overlay }),
+    ...(options.analysis === undefined ? {} : { analysis: options.analysis }),
   });
   return { ...ingested, ...built, semantic };
 }

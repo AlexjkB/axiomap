@@ -38,8 +38,14 @@ import { z } from 'zod';
  *   uncompiled project differ only in this number — but a v1 *reader* would
  *   strip the new fields silently, which is the direction the version exists to
  *   refuse.
+ * - **3** — Phase 4. §10's four analysis fields on Function nodes
+ *   (`externallyReachable`, `entrypoints`, `accessControl`, `reentrancy`) and
+ *   `flags.checksSender`. All defaulted, so an uncompiled project's graph gains
+ *   only the lines where the analysis found something — but a v2 reader would
+ *   drop them silently, and the whole point of the attack-surface and
+ *   access-control overlays is that they are there.
  */
-export const GRAPH_SCHEMA_VERSION = 2;
+export const GRAPH_SCHEMA_VERSION = 3;
 
 export const sourceRefSchema = z.object({
   file: z.string(),
@@ -116,6 +122,43 @@ export const functionFlagsSchema = z.object({
   hasTryCatch: z.boolean().default(false),
   readsState: z.boolean().default(false),
   writesState: z.boolean().default(false),
+  /**
+   * `msg.sender` or `tx.origin` compared with `==`/`!=` in the body. Not in
+   * §10's list; it is the syntactic evidence behind `accessControl.confidence`
+   * of `low`, recorded at parse because the resolver drops `require` as a
+   * builtin and so no edge carries it. See `parse/interface.ts`.
+   */
+  checksSender: z.boolean().default(false),
+});
+
+/**
+ * §11's access-control overlay, computed by `analysis/access-control.ts`.
+ *
+ * `high` means a modifier whose name is in the configured list (§13's
+ * `accessControlModifiers`) — the tool recognises the guard. `low` means there
+ * is evidence of an authorization check that is not a recognised modifier: an
+ * inline comparison against `msg.sender`, or an unrecognised modifier that
+ * makes one. `none` means neither was found, which is the finding §15's third
+ * definition-of-done item asks for and not a claim that the function is
+ * unguarded.
+ */
+export const accessControlSchema = z.object({
+  /** Applied modifiers that are evidence of a guard, by name. */
+  modifiers: z.array(z.string()).default([]),
+  confidence: z.enum(['high', 'low', 'none']).default('none'),
+});
+
+/**
+ * §11's reentrancy surface, computed by `analysis/external-calls.ts`.
+ *
+ * A highlighter, not a detector (§11's own words). `externalCallThenWrite`
+ * means a call leaving this contract is followed, by byte offset in this body,
+ * by a write to storage — the shape, not the vulnerability.
+ */
+export const reentrancySchema = z.object({
+  externalCallThenWrite: z.boolean().default(false),
+  /** A modifier from §13's `reentrancyGuards` is applied. */
+  guarded: z.boolean().default(false),
 });
 
 export const functionMetricsSchema = z.object({
@@ -174,6 +217,19 @@ export const functionNodeSchema = z.object({
   interfaceHash: z.string(),
   metrics: functionMetricsSchema,
   flags: functionFlagsSchema,
+
+  // --- computed in Phase 4 (§10) ----------------------------------------
+  /**
+   * Reachable from an external entrypoint over the call edges this graph has.
+   * In structural mode there are none, so this is true for entrypoints and
+   * false for everything else — which is the honest answer for a graph with no
+   * call edges, and `mode` is how a consumer knows that is why.
+   */
+  externallyReachable: z.boolean().default(false),
+  /** Every entrypoint this function is reachable from, sorted. */
+  entrypoints: z.array(z.string()).default([]),
+  accessControl: accessControlSchema.default({ modifiers: [], confidence: 'none' }),
+  reentrancy: reentrancySchema.default({ externalCallThenWrite: false, guarded: false }),
 });
 
 export const stateVariableNodeSchema = z.object({
@@ -362,6 +418,8 @@ export type GraphNode = z.infer<typeof graphNodeSchema>;
 export type ContractNode = z.infer<typeof contractNodeSchema>;
 export type FunctionNode = z.infer<typeof functionNodeSchema>;
 export type GraphEdge = z.infer<typeof graphEdgeSchema>;
+export type AccessControl = z.infer<typeof accessControlSchema>;
+export type Reentrancy = z.infer<typeof reentrancySchema>;
 export type UnresolvedCategory = z.infer<typeof unresolvedCategorySchema>;
 export type Param = z.infer<typeof paramSchema>;
 export type ResolutionCounts = z.infer<typeof resolutionCountsSchema>;

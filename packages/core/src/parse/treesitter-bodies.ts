@@ -94,6 +94,16 @@ const YUL_FLAGS: Record<string, keyof ParsedFunctionFlags> = {
 const MUTATING_MEMBERS = new Set(['push', 'pop']);
 
 /**
+ * Expressions that name the caller. Compared against `==` or `!=` these are the
+ * inline form of an authorization check, which §11 wants distinguished from a
+ * modifier-based guard.
+ *
+ * `tx.origin` is in the list because it is *used* as a guard, not because it is
+ * a good one. Reporting the check honestly is what lets an overlay flag it.
+ */
+const SENDER_EXPRESSIONS = new Set(['msg.sender', 'tx.origin']);
+
+/**
  * `new` on a built-in type allocates memory; only `new Contract()` emits a
  * CREATE. `new bytes(n)` and `new uint256[](k)` are extremely common in library
  * code, and counting them would put `hasCreate` on half of OpenZeppelin.
@@ -238,7 +248,10 @@ class BodyWalker {
     if (nextDepth > this.#maxDepth) this.#maxDepth = nextDepth;
 
     if (BRANCH_NODES.has(node.type)) this.#cyclomatic++;
-    if (node.type === 'binary_expression' && this.#isShortCircuit(node)) this.#cyclomatic++;
+    if (node.type === 'binary_expression') {
+      if (this.#isShortCircuit(node)) this.#cyclomatic++;
+      if (this.#isSenderComparison(node)) this.flags.checksSender = true;
+    }
     if (node.type === 'unchecked') this.flags.hasUnchecked = true;
     if (node.type === 'try_statement') this.flags.hasTryCatch = true;
 
@@ -296,6 +309,33 @@ class BodyWalker {
     return node.children.some(
       (c) => c !== null && !c.isNamed && (c.type === '&&' || c.type === '||'),
     );
+  }
+
+  /**
+   * `msg.sender == owner`, `owner != tx.origin`, either way round.
+   *
+   * Equality only. `block.timestamp < deadline` is a comparison and not an
+   * authorization check, and `balances[msg.sender] += x` mentions the sender
+   * without checking anything — neither should raise the flag.
+   *
+   * Nothing here asks what the other operand is. `msg.sender == owner` and
+   * `msg.sender == address(0)` are indistinguishable without types, and one is
+   * a guard while the other is a validity check; that uncertainty is what the
+   * `low` confidence level in §11 exists to carry.
+   */
+  #isSenderComparison(node: TsNode): boolean {
+    const isEquality = node.children.some(
+      (c) => c !== null && !c.isNamed && (c.type === '==' || c.type === '!='),
+    );
+    if (!isEquality) return false;
+    return namedChildren(node).some((operand) => {
+      const inner = unwrap(operand);
+      return (
+        inner !== null &&
+        inner.type === 'member_expression' &&
+        SENDER_EXPRESSIONS.has(inner.text.replace(/\s+/g, ''))
+      );
+    });
   }
 
   /**

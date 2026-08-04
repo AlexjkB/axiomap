@@ -89,6 +89,18 @@ function compactNode(node: GraphFile['nodes'][number]): unknown {
     const flags: Record<string, boolean> = {};
     for (const [key, value] of Object.entries(node.flags)) if (value) flags[key] = true;
     out['flags'] = flags;
+
+    // Phase 4's fields, dropped when they hold their default — which is most
+    // functions for most of them. What survives is the finding: the reachable
+    // set, the guards that were recognised, the reentrancy shapes.
+    if (!node.externallyReachable) delete out['externallyReachable'];
+    if (node.entrypoints.length === 0) delete out['entrypoints'];
+    if (node.accessControl.confidence === 'none' && node.accessControl.modifiers.length === 0) {
+      delete out['accessControl'];
+    }
+    if (!node.reentrancy.externalCallThenWrite && !node.reentrancy.guarded) {
+      delete out['reentrancy'];
+    }
   } else if (node.kind === 'Event' || node.kind === 'Error') {
     out['params'] = node.params.map((p) => compactParam(p as unknown as Record<string, unknown>));
   }

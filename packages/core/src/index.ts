@@ -38,6 +38,7 @@ export { readHardhatConfig, type HardhatConfig } from './project/hardhat.js';
 export * from './symbols/index.js';
 
 export * from './graph/index.js';
+export * from './analysis/index.js';
 export {
   resolveProject,
   ProjectScope,

@@ -148,6 +148,14 @@ export interface ParsedLocal {
  * variable the resolver could bind, and without them a proxy's `fallback` would
  * report `writesState: false` — wrong in exactly the file where it matters
  * most. The graph ORs them into §10's two booleans; nothing else reads them.
+ *
+ * `checksSender` is not in §10's list either, and is the one syntactic fact
+ * Phase 4's access-control pass cannot derive from the graph. §11 requires
+ * `low` confidence "when the guard is an inline `require` rather than a
+ * modifier", but the resolver drops `require` as a language builtin (there is
+ * nothing to bind it to), so no edge records that a comparison against
+ * `msg.sender` happened. Recording it here — the same shape as the two
+ * `assembly*` fields — keeps the analysis pass a pure function over the graph.
  */
 export interface ParsedFunctionFlags {
   hasAssembly: boolean;
@@ -160,6 +168,13 @@ export interface ParsedFunctionFlags {
   hasTryCatch: boolean;
   assemblyReadsState: boolean;
   assemblyWritesState: boolean;
+  /**
+   * `msg.sender` or `tx.origin` appears as an operand of `==` or `!=` somewhere
+   * in the body. Evidence of an authorization check, not proof of one: the
+   * comparison may guard nothing, which is exactly why it produces `low`
+   * confidence rather than `high`.
+   */
+  checksSender: boolean;
 }
 
 export interface ParsedFunctionMetrics {
@@ -183,6 +198,7 @@ export function emptyFunctionFlags(): ParsedFunctionFlags {
     hasTryCatch: false,
     assemblyReadsState: false,
     assemblyWritesState: false,
+    checksSender: false,
   };
 }
 

@@ -29,8 +29,13 @@ import type { ParserId, ParseResult } from './interface.js';
  *
  * 2 — Phase 2 added expression-level detail to `ParsedFunction`: call sites,
  * identifier uses, emits, reverts, locals, flags, metrics and §8's hashes.
+ *
+ * 3 — Phase 4 added `flags.checksSender`. A cached v2 entry would deserialise
+ * with the field absent and report every inline `msg.sender` guard as no guard
+ * at all, which is the wrong direction for an access-control overlay to fail
+ * in.
  */
-export const PARSE_SCHEMA_VERSION = 2;
+export const PARSE_SCHEMA_VERSION = 3;
 
 export interface Hasher {
   h64ToString(input: string): string;

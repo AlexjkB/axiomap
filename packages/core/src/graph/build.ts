@@ -22,6 +22,7 @@
 // namespace rather than the class.
 import { MultiDirectedGraph } from 'graphology';
 
+import { analyseGraph, applyAnalysis, type AnalysisOptions } from '../analysis/index.js';
 import type { ParsedParam } from '../parse/interface.js';
 import type { SourceRef } from '../parse/positions.js';
 import type { DetectedProject } from '../project/detect.js';
@@ -69,6 +70,8 @@ export interface BuildGraphOptions {
   semantic?: SemanticOverlay;
   /** Diagnostics from loading it, merged into the file's own.  */
   semanticDiagnostics?: readonly GraphDiagnostic[];
+  /** §13's `entrypoints`, `accessControlModifiers` and `reentrancyGuards`. */
+  analysis?: AnalysisOptions;
 }
 
 /** Confidence order, weakest last. Merging two edges keeps the weakest. */
@@ -183,7 +186,15 @@ function nodeFor(symbol: AnySymbol, scope: ProjectScope): GraphNode | null {
           // because a `sstore` names no variable to bind.
           readsState: symbol.flags.assemblyReadsState,
           writesState: symbol.flags.assemblyWritesState,
+          checksSender: symbol.flags.checksSender,
         },
+        // Phase 4's fields, filled by `applyAnalysis` once every node and edge
+        // exists. They hold their defaults until then; a partially-built graph
+        // must not be able to report a function unreachable.
+        externallyReachable: false,
+        entrypoints: [],
+        accessControl: { modifiers: [], confidence: 'none' },
+        reentrancy: { externalCallThenWrite: false, guarded: false },
       };
     case 'stateVariable':
       return {
@@ -370,6 +381,14 @@ export function buildGraph(options: BuildGraphOptions): BuiltGraph {
   });
   for (const node of keptNodes) graph.addNode(node.id, node);
   for (const edge of kept) graph.addDirectedEdgeWithKey(edge.id, edge.from, edge.to, edge);
+
+  // --- Phase 4's analysis passes ----------------------------------------
+  // Run against the graph as it will ship, not as it was assembled: in
+  // structural mode the call edges are already gone, and reachability over a
+  // graph with no call edges is the entrypoints and nothing else. The nodes
+  // are mutated in place, so `file.nodes` and the graph's attributes are the
+  // same objects and cannot drift.
+  applyAnalysis(keptNodes, analyseGraph(graph, options.analysis ?? {}));
 
   const file: GraphFile = {
     schemaVersion: GRAPH_SCHEMA_VERSION,
