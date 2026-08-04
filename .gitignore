@@ -3,11 +3,21 @@ node_modules/
 dist/
 *.tsbuildinfo
 .turbo/
+coverage/
 
 # Axiomap's own output
 .axiomap/graph.json
 .axiomap/cache/
 # NOT .axiomap/review.json — that is meant to be shared
+
+# Compiler output in the fixtures, except the build-info that Phase 3's
+# semantic tier reads. Per-contract artifacts are ~1 MB of bytecode this repo
+# has no use for; `out/build-info/*.json` is the standard-JSON input+output pair
+# and is committed on purpose, so the semantic tier has something to read in CI
+# on a machine with no solc.
+fixtures/*/out/*
+!fixtures/*/out/build-info/
+fixtures/*/cache/
 
 # Generated perf fixture — `node fixtures/large/generate.mjs` reproduces it
 # byte-identically from a fixed seed. ~8 MB of derived Solidity; the generator

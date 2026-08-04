@@ -17,6 +17,14 @@ export {
   writeGraph,
 } from './serialize.js';
 export {
+  applySemanticNodeAttributes,
+  applySemanticOverlay,
+  type ReferenceClass,
+  type SemanticApplication,
+  type SemanticOverlay,
+  type StorageSlot,
+} from './semantic.js';
+export {
   hashBody,
   hashInterface,
   HASH_VERSION,

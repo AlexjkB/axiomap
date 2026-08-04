@@ -31,6 +31,7 @@ import type { AnySymbol, ContractSymbol, SymbolTable } from '../symbols/table.js
 import {
   CALL_EDGE_KINDS,
   GRAPH_SCHEMA_VERSION,
+  type GraphDiagnostic,
   type GraphEdge,
   type GraphFile,
   type GraphNode,
@@ -39,6 +40,11 @@ import {
 } from './schema.js';
 import { HASH_VERSION } from './hash.js';
 import { DEFAULT_CALL_RESOLUTION_THRESHOLD, scoreEdges, selectMode } from './score.js';
+import {
+  applySemanticNodeAttributes,
+  applySemanticOverlay,
+  type SemanticOverlay,
+} from './semantic.js';
 
 export type AxiomapGraph = MultiDirectedGraph<GraphNode, GraphEdge>;
 
@@ -55,6 +61,14 @@ export interface BuildGraphOptions {
   parserId?: string;
   /** Override §4's measured threshold. */
   callResolutionThreshold?: number;
+  /**
+   * The semantic tier, when one could be loaded. Absent is the ordinary case
+   * (§4: everything below `GRAPH (usable)` is optional), and the graph built
+   * without it is the same graph with honest heuristic labels.
+   */
+  semantic?: SemanticOverlay;
+  /** Diagnostics from loading it, merged into the file's own.  */
+  semanticDiagnostics?: readonly GraphDiagnostic[];
 }
 
 /** Confidence order, weakest last. Merging two edges keeps the weakest. */
@@ -253,6 +267,22 @@ export function buildGraph(options: BuildGraphOptions): BuiltGraph {
   const { project, table } = options;
   const resolved = resolveProject(table);
   const scope = resolved.scope;
+  const diagnostics: GraphDiagnostic[] = [
+    ...table.diagnostics.map((d) => ({ ...d })),
+    ...(options.semanticDiagnostics ?? []).map((d) => ({ ...d })),
+  ];
+
+  // The semantic tier upgrades the resolver's drafts *before* they collapse,
+  // so a confirmed site and an unseen one merge under §10's existing
+  // weakest-wins rule. See `semantic.ts` for what it may and may not change.
+  let drafts = resolved.edges;
+  if (options.semantic !== undefined) {
+    const applied = applySemanticOverlay(drafts, options.semantic);
+    drafts = applied.drafts;
+    for (const warning of applied.warnings) {
+      diagnostics.push({ severity: 'warning', message: warning });
+    }
+  }
 
   // --- nodes ------------------------------------------------------------
   const nodes: GraphNode[] = [];
@@ -292,7 +322,10 @@ export function buildGraph(options: BuildGraphOptions): BuiltGraph {
   }
 
   const known = new Set(nodes.map((n) => n.id));
-  const edges = collapse(resolved.edges, known);
+  const edges = collapse(drafts, known);
+
+  // Selectors and storage slots (§10), which have no syntactic equivalent.
+  if (options.semantic !== undefined) applySemanticNodeAttributes(nodes, options.semantic);
 
   // --- derived node attributes -----------------------------------------
   const byId = new Map(nodes.map((n) => [n.id, n]));
@@ -344,6 +377,7 @@ export function buildGraph(options: BuildGraphOptions): BuiltGraph {
       name: 'axiomap',
       parser: options.parserId ?? 'treesitter',
       hashVersion: HASH_VERSION,
+      compilers: [...(options.semantic?.compilers ?? [])],
     },
     project: {
       kind: project.kind,
@@ -353,7 +387,7 @@ export function buildGraph(options: BuildGraphOptions): BuiltGraph {
     mode: decision.mode,
     modeReason: decision.reason,
     score,
-    diagnostics: table.diagnostics.map((d) => ({ ...d })),
+    diagnostics,
     nodes: sortNodes(keptNodes),
     edges: sortEdges(kept),
   };

@@ -46,7 +46,14 @@ function directionRule(pkg, forbidden, typeOnly = []) {
 
 export default tseslint.config(
   {
-    ignores: ['**/dist/**', '**/node_modules/**', '**/*.tsbuildinfo', '.turbo/**', 'fixtures/**'],
+    ignores: [
+      '**/dist/**',
+      '**/node_modules/**',
+      '**/*.tsbuildinfo',
+      '.turbo/**',
+      '**/coverage/**',
+      'fixtures/**',
+    ],
   },
   js.configs.recommended,
   ...tseslint.configs.recommended,

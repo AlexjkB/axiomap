@@ -112,6 +112,12 @@ function orderedGraph(file: GraphFile): unknown {
       name: file.generator.name,
       parser: file.generator.parser,
       hashVersion: file.generator.hashVersion,
+      // Held at its default — no compiler was involved — so it is not written,
+      // like every other defaulted field. An uncompiled project's graph should
+      // not carry a line saying so.
+      ...(file.generator.compilers.length === 0
+        ? {}
+        : { compilers: file.generator.compilers }),
     },
     project: {
       kind: file.project.kind,

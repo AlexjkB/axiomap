@@ -48,6 +48,16 @@ export {
 } from './resolve/index.js';
 
 export {
+  buildInfoDirectories,
+  discoverBuildInfo,
+  loadSemanticOverlay,
+  readBuildInfo,
+  type BuildInfo,
+  type LoadSemanticOverlayOptions,
+  type SemanticOverlayLoad,
+} from './enrich/index.js';
+
+export {
   buildProjectGraph,
   ingestProject,
   type BuildProjectGraphOptions,

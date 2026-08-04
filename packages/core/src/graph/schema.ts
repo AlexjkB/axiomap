@@ -29,8 +29,17 @@
 
 import { z } from 'zod';
 
-/** Bump on any change to the serialized shape. Loading a mismatch is refused. */
-export const GRAPH_SCHEMA_VERSION = 1;
+/**
+ * Bump on any change to the serialized shape. Loading a mismatch is refused.
+ *
+ * - **2** — Phase 3. `selector` on Function and public StateVariable nodes,
+ *   `slot`/`offset` on StateVariable, and `generator.compilers`. All optional
+ *   and all absent without build artifacts, so a v1 and a v2 graph of the same
+ *   uncompiled project differ only in this number — but a v1 *reader* would
+ *   strip the new fields silently, which is the direction the version exists to
+ *   refuse.
+ */
+export const GRAPH_SCHEMA_VERSION = 2;
 
 export const sourceRefSchema = z.object({
   file: z.string(),
@@ -159,6 +168,8 @@ export const functionNodeSchema = z.object({
   params: z.array(paramSchema),
   returns: z.array(paramSchema),
   hasBody: z.boolean(),
+  /** `0x`-prefixed, semantic tier only (§10). Externally callable functions. */
+  selector: z.string().optional(),
   bodyHash: z.string(),
   interfaceHash: z.string(),
   metrics: functionMetricsSchema,
@@ -174,6 +185,16 @@ export const stateVariableNodeSchema = z.object({
   isImmutable: z.boolean(),
   isTransient: z.boolean(),
   isMapping: z.boolean(),
+  /** Semantic tier only (§10). A public variable's getter has a selector too. */
+  selector: z.string().optional(),
+  /**
+   * Storage slot, decimal, as a string — a slot is a uint256. Absent rather
+   * than null when the compiler did not report a layout: `"0"` is a fact and
+   * the absence of a slot is not one, and §16's storage-collision work needs to
+   * tell them apart.
+   */
+  slot: z.string().optional(),
+  offset: z.number().int().nonnegative().optional(),
 });
 
 export const eventNodeSchema = z.object({
@@ -311,6 +332,12 @@ export const graphFileSchema = z.object({
     parser: z.string(),
     /** Bumping this invalidates stored review state; see `hash.ts`. */
     hashVersion: z.number().int().positive(),
+    /**
+     * solc versions whose build artifacts were read, empty when none were.
+     * §4 requires a project to be able to mix them, so this is a list; it is
+     * also the honest answer to "how much of this graph did a compiler see".
+     */
+    compilers: z.array(z.string()).default([]),
   }),
   project: z.object({
     kind: z.string(),
@@ -340,6 +367,7 @@ export type Param = z.infer<typeof paramSchema>;
 export type ResolutionCounts = z.infer<typeof resolutionCountsSchema>;
 export type ResolutionScore = z.infer<typeof resolutionScoreSchema>;
 export type GraphMode = z.infer<typeof graphModeSchema>;
+export type GraphDiagnostic = z.infer<typeof graphDiagnosticSchema>;
 export type GraphFile = z.infer<typeof graphFileSchema>;
 
 /** Edges that did not require resolving a name, and so do not affect the score. */
