@@ -3,7 +3,10 @@
   "generator": {
     "name": "axiomap",
     "parser": "treesitter",
-    "hashVersion": 1
+    "hashVersion": 1,
+    "compilers": [
+      "0.8.28"
+    ]
   },
   "project": {
     "kind": "foundry",
@@ -12,20 +15,20 @@
     ],
     "files": 5
   },
-  "mode": "heuristic",
-  "modeReason": "No build artifacts. 98% of call edges resolved confidently, at or above the 70% threshold; edges are labelled with their confidence.",
+  "mode": "full",
+  "modeReason": "Build artifacts were available; 99% of edges are compiler-certain.",
   "score": {
     "overall": {
-      "semantic": 0,
-      "heuristic": 138,
+      "semantic": 138,
+      "heuristic": 0,
       "ambiguous": 0,
       "unresolved": 1,
       "total": 139,
       "confident": 0.9928057553956835
     },
     "calls": {
-      "semantic": 0,
-      "heuristic": 42,
+      "semantic": 42,
+      "heuristic": 0,
       "ambiguous": 0,
       "unresolved": 1,
       "total": 43,
@@ -173,6 +176,9 @@
       "isImmutable": false,
       "isMapping": false,
       "isTransient": false,
+      "offset": 0,
+      "selector": "0x1e3dd18b",
+      "slot": "2",
       "type": "address[]",
       "visibility": "public"
     },
@@ -210,6 +216,7 @@
           "type": "uint256"
         }
       ],
+      "selector": "0x574f2ba3",
       "stateMutability": "view",
       "subkind": "function",
       "visibility": "external"
@@ -297,6 +304,7 @@
           "type": "address"
         }
       ],
+      "selector": "0xc9c65396",
       "stateMutability": "nonpayable",
       "subkind": "function",
       "visibility": "external"
@@ -318,6 +326,9 @@
       "isImmutable": false,
       "isMapping": false,
       "isTransient": false,
+      "offset": 0,
+      "selector": "0x87cf3ef4",
+      "slot": "0",
       "type": "address",
       "visibility": "public"
     },
@@ -364,6 +375,7 @@
           "type": "address"
         }
       ],
+      "selector": "0xe6a43905",
       "stateMutability": "view",
       "subkind": "function",
       "visibility": "external"
@@ -385,6 +397,9 @@
       "isImmutable": false,
       "isMapping": true,
       "isTransient": false,
+      "offset": 0,
+      "selector": "0x69454b86",
+      "slot": "1",
       "type": "mapping(address => mapping(address => address))",
       "visibility": "public"
     },
@@ -423,6 +438,7 @@
         }
       ],
       "returns": [],
+      "selector": "0xb19805af",
       "stateMutability": "nonpayable",
       "subkind": "function",
       "visibility": "external"
@@ -599,6 +615,7 @@
       "isImmutable": false,
       "isMapping": false,
       "isTransient": false,
+      "selector": "0xba9a7a56",
       "type": "uint256",
       "visibility": "public"
     },
@@ -690,6 +707,7 @@
           "type": "uint256"
         }
       ],
+      "selector": "0x89afcb44",
       "stateMutability": "nonpayable",
       "subkind": "function",
       "visibility": "external"
@@ -744,6 +762,9 @@
       "isImmutable": false,
       "isMapping": false,
       "isTransient": false,
+      "offset": 0,
+      "selector": "0xc45a0155",
+      "slot": "2",
       "type": "address",
       "visibility": "public"
     },
@@ -785,6 +806,7 @@
           "type": "uint112"
         }
       ],
+      "selector": "0x0902f1ac",
       "stateMutability": "view",
       "subkind": "function",
       "visibility": "public"
@@ -828,6 +850,7 @@
         }
       ],
       "returns": [],
+      "selector": "0x485cc955",
       "stateMutability": "nonpayable",
       "subkind": "function",
       "visibility": "external"
@@ -873,6 +896,7 @@
           "type": "uint256"
         }
       ],
+      "selector": "0x6a627842",
       "stateMutability": "nonpayable",
       "subkind": "function",
       "visibility": "external"
@@ -894,6 +918,8 @@
       "isImmutable": false,
       "isMapping": false,
       "isTransient": false,
+      "offset": 0,
+      "slot": "5",
       "type": "uint112",
       "visibility": "private"
     },
@@ -914,6 +940,8 @@
       "isImmutable": false,
       "isMapping": false,
       "isTransient": false,
+      "offset": 14,
+      "slot": "5",
       "type": "uint112",
       "visibility": "private"
     },
@@ -961,6 +989,7 @@
         }
       ],
       "returns": [],
+      "selector": "0x6d9a640a",
       "stateMutability": "nonpayable",
       "subkind": "function",
       "visibility": "external"
@@ -982,6 +1011,9 @@
       "isImmutable": false,
       "isMapping": false,
       "isTransient": false,
+      "offset": 0,
+      "selector": "0x0dfe1681",
+      "slot": "3",
       "type": "address",
       "visibility": "public"
     },
@@ -1002,6 +1034,9 @@
       "isImmutable": false,
       "isMapping": false,
       "isTransient": false,
+      "offset": 0,
+      "selector": "0xd21220a7",
+      "slot": "4",
       "type": "address",
       "visibility": "public"
     },
@@ -1022,6 +1057,8 @@
       "isImmutable": false,
       "isMapping": false,
       "isTransient": false,
+      "offset": 0,
+      "slot": "6",
       "type": "uint256",
       "visibility": "private"
     },
@@ -1151,6 +1188,9 @@
       "isImmutable": false,
       "isMapping": true,
       "isTransient": false,
+      "offset": 0,
+      "selector": "0x70a08231",
+      "slot": "1",
       "type": "mapping(address => uint256)",
       "visibility": "public"
     },
@@ -1171,6 +1211,9 @@
       "isImmutable": false,
       "isMapping": false,
       "isTransient": false,
+      "offset": 0,
+      "selector": "0x18160ddd",
+      "slot": "0",
       "type": "uint256",
       "visibility": "public"
     },
@@ -1433,6 +1476,7 @@
           "type": "uint256"
         }
       ],
+      "selector": "0x6ed36f88",
       "stateMutability": "nonpayable",
       "subkind": "function",
       "visibility": "external"
@@ -1492,6 +1536,7 @@
       "isImmutable": true,
       "isMapping": false,
       "isTransient": false,
+      "selector": "0xc45a0155",
       "type": "address",
       "visibility": "public"
     },
@@ -1540,6 +1585,7 @@
           "type": "uint256"
         }
       ],
+      "selector": "0x4aa06652",
       "stateMutability": "view",
       "subkind": "function",
       "visibility": "public"
@@ -1589,6 +1635,7 @@
           "type": "uint256"
         }
       ],
+      "selector": "0xad615dec",
       "stateMutability": "pure",
       "subkind": "function",
       "visibility": "external"
@@ -1648,6 +1695,7 @@
           "type": "uint256"
         }
       ],
+      "selector": "0xda613b51",
       "stateMutability": "nonpayable",
       "subkind": "function",
       "visibility": "external"
@@ -1711,6 +1759,7 @@
           "type": "uint256"
         }
       ],
+      "selector": "0xe7ef0b23",
       "stateMutability": "nonpayable",
       "subkind": "function",
       "visibility": "external"
@@ -1793,6 +1842,7 @@
           "type": "uint256"
         }
       ],
+      "selector": "0x70a08231",
       "stateMutability": "view",
       "subkind": "function",
       "visibility": "external"
@@ -1838,6 +1888,7 @@
           "type": "bool"
         }
       ],
+      "selector": "0xa9059cbb",
       "stateMutability": "nonpayable",
       "subkind": "function",
       "visibility": "external"
@@ -1887,6 +1938,7 @@
           "type": "bool"
         }
       ],
+      "selector": "0x23b872dd",
       "stateMutability": "nonpayable",
       "subkind": "function",
       "visibility": "external"
@@ -1955,6 +2007,7 @@
           "type": "address"
         }
       ],
+      "selector": "0xc9c65396",
       "stateMutability": "nonpayable",
       "subkind": "function",
       "visibility": "external"
@@ -2000,6 +2053,7 @@
           "type": "address"
         }
       ],
+      "selector": "0xe6a43905",
       "stateMutability": "view",
       "subkind": "function",
       "visibility": "external"
@@ -2099,6 +2153,7 @@
           "type": "uint256"
         }
       ],
+      "selector": "0x89afcb44",
       "stateMutability": "nonpayable",
       "subkind": "function",
       "visibility": "external"
@@ -2139,6 +2194,7 @@
           "type": "uint112"
         }
       ],
+      "selector": "0x0902f1ac",
       "stateMutability": "view",
       "subkind": "function",
       "visibility": "external"
@@ -2179,6 +2235,7 @@
         }
       ],
       "returns": [],
+      "selector": "0x485cc955",
       "stateMutability": "nonpayable",
       "subkind": "function",
       "visibility": "external"
@@ -2220,6 +2277,7 @@
           "type": "uint256"
         }
       ],
+      "selector": "0x6a627842",
       "stateMutability": "nonpayable",
       "subkind": "function",
       "visibility": "external"
@@ -2264,6 +2322,7 @@
         }
       ],
       "returns": [],
+      "selector": "0x6d9a640a",
       "stateMutability": "nonpayable",
       "subkind": "function",
       "visibility": "external"
@@ -2830,7 +2889,7 @@
       "kind": "reads",
       "from": "src/Factory.sol:Factory.allPairsLength()",
       "to": "src/Factory.sol:Factory.allPairs",
-      "resolution": "heuristic",
+      "resolution": "semantic",
       "count": 1,
       "sites": [
         {
@@ -2848,7 +2907,7 @@
       "kind": "writes",
       "from": "src/Factory.sol:Factory.constructor(address)",
       "to": "src/Factory.sol:Factory.feeSetter",
-      "resolution": "heuristic",
+      "resolution": "semantic",
       "count": 1,
       "sites": [
         {
@@ -2866,7 +2925,7 @@
       "kind": "reverts",
       "from": "src/Factory.sol:Factory.createPair(address,address)",
       "to": "src/Factory.sol:Factory!IdenticalAddresses()",
-      "resolution": "heuristic",
+      "resolution": "semantic",
       "count": 1,
       "sites": [
         {
@@ -2884,7 +2943,7 @@
       "kind": "reverts",
       "from": "src/Factory.sol:Factory.createPair(address,address)",
       "to": "src/Factory.sol:Factory!PairExists()",
-      "resolution": "heuristic",
+      "resolution": "semantic",
       "count": 1,
       "sites": [
         {
@@ -2902,7 +2961,7 @@
       "kind": "reverts",
       "from": "src/Factory.sol:Factory.createPair(address,address)",
       "to": "src/Factory.sol:Factory!ZeroAddress()",
-      "resolution": "heuristic",
+      "resolution": "semantic",
       "count": 1,
       "sites": [
         {
@@ -2920,7 +2979,7 @@
       "kind": "reads",
       "from": "src/Factory.sol:Factory.createPair(address,address)",
       "to": "src/Factory.sol:Factory.allPairs",
-      "resolution": "heuristic",
+      "resolution": "semantic",
       "count": 1,
       "sites": [
         {
@@ -2938,7 +2997,7 @@
       "kind": "writes",
       "from": "src/Factory.sol:Factory.createPair(address,address)",
       "to": "src/Factory.sol:Factory.allPairs",
-      "resolution": "heuristic",
+      "resolution": "semantic",
       "count": 1,
       "sites": [
         {
@@ -2956,7 +3015,7 @@
       "kind": "reads",
       "from": "src/Factory.sol:Factory.createPair(address,address)",
       "to": "src/Factory.sol:Factory.pairs",
-      "resolution": "heuristic",
+      "resolution": "semantic",
       "count": 1,
       "sites": [
         {
@@ -2974,7 +3033,7 @@
       "kind": "writes",
       "from": "src/Factory.sol:Factory.createPair(address,address)",
       "to": "src/Factory.sol:Factory.pairs",
-      "resolution": "heuristic",
+      "resolution": "semantic",
       "count": 2,
       "sites": [
         {
@@ -2999,7 +3058,7 @@
       "kind": "creates",
       "from": "src/Factory.sol:Factory.createPair(address,address)",
       "to": "src/Pair.sol:Pair",
-      "resolution": "heuristic",
+      "resolution": "semantic",
       "count": 1,
       "sites": [
         {
@@ -3017,7 +3076,7 @@
       "kind": "implements",
       "from": "src/Factory.sol:Factory.createPair(address,address)",
       "to": "src/interfaces/IAmm.sol:IFactory.createPair(address,address)",
-      "resolution": "heuristic",
+      "resolution": "semantic",
       "count": 1,
       "sites": [
         {
@@ -3035,7 +3094,7 @@
       "kind": "emits",
       "from": "src/Factory.sol:Factory.createPair(address,address)",
       "to": "src/interfaces/IAmm.sol:IFactory^PairCreated(address,address,address)",
-      "resolution": "heuristic",
+      "resolution": "semantic",
       "count": 1,
       "sites": [
         {
@@ -3054,7 +3113,7 @@
       "subkind": "external",
       "from": "src/Factory.sol:Factory.createPair(address,address)",
       "to": "src/interfaces/IAmm.sol:IPair.initialize(address,address)",
-      "resolution": "heuristic",
+      "resolution": "semantic",
       "count": 1,
       "sites": [
         {
@@ -3076,7 +3135,7 @@
       "subkind": "library",
       "from": "src/Factory.sol:Factory.createPair(address,address)",
       "to": "src/libraries/AmmMath.sol:AmmMath.sortTokens(address,address)",
-      "resolution": "heuristic",
+      "resolution": "semantic",
       "count": 1,
       "sites": [
         {
@@ -3094,7 +3153,7 @@
       "kind": "reads",
       "from": "src/Factory.sol:Factory.getPair(address,address)",
       "to": "src/Factory.sol:Factory.pairs",
-      "resolution": "heuristic",
+      "resolution": "semantic",
       "count": 1,
       "sites": [
         {
@@ -3112,7 +3171,7 @@
       "kind": "implements",
       "from": "src/Factory.sol:Factory.getPair(address,address)",
       "to": "src/interfaces/IAmm.sol:IFactory.getPair(address,address)",
-      "resolution": "heuristic",
+      "resolution": "semantic",
       "count": 1,
       "sites": [
         {
@@ -3130,7 +3189,7 @@
       "kind": "reverts",
       "from": "src/Factory.sol:Factory.setFeeSetter(address)",
       "to": "src/Factory.sol:Factory!Forbidden()",
-      "resolution": "heuristic",
+      "resolution": "semantic",
       "count": 1,
       "sites": [
         {
@@ -3148,7 +3207,7 @@
       "kind": "reads",
       "from": "src/Factory.sol:Factory.setFeeSetter(address)",
       "to": "src/Factory.sol:Factory.feeSetter",
-      "resolution": "heuristic",
+      "resolution": "semantic",
       "count": 1,
       "sites": [
         {
@@ -3166,7 +3225,7 @@
       "kind": "writes",
       "from": "src/Factory.sol:Factory.setFeeSetter(address)",
       "to": "src/Factory.sol:Factory.feeSetter",
-      "resolution": "heuristic",
+      "resolution": "semantic",
       "count": 1,
       "sites": [
         {
@@ -3400,7 +3459,7 @@
       "kind": "inherits",
       "from": "src/Factory.sol:Factory",
       "to": "src/interfaces/IAmm.sol:IFactory",
-      "resolution": "heuristic",
+      "resolution": "semantic",
       "count": 1,
       "sites": [
         {
@@ -3437,7 +3496,7 @@
       "kind": "reverts",
       "from": "src/Pair.sol:Pair#lock",
       "to": "src/Pair.sol:Pair!Locked()",
-      "resolution": "heuristic",
+      "resolution": "semantic",
       "count": 1,
       "sites": [
         {
@@ -3455,7 +3514,7 @@
       "kind": "reads",
       "from": "src/Pair.sol:Pair#lock",
       "to": "src/Pair.sol:Pair.unlocked",
-      "resolution": "heuristic",
+      "resolution": "semantic",
       "count": 1,
       "sites": [
         {
@@ -3473,7 +3532,7 @@
       "kind": "writes",
       "from": "src/Pair.sol:Pair#lock",
       "to": "src/Pair.sol:Pair.unlocked",
-      "resolution": "heuristic",
+      "resolution": "semantic",
       "count": 2,
       "sites": [
         {
@@ -3498,7 +3557,7 @@
       "kind": "reads",
       "from": "src/Pair.sol:Pair._update(uint256,uint256)",
       "to": "src/Pair.sol:Pair.reserve0",
-      "resolution": "heuristic",
+      "resolution": "semantic",
       "count": 1,
       "sites": [
         {
@@ -3516,7 +3575,7 @@
       "kind": "writes",
       "from": "src/Pair.sol:Pair._update(uint256,uint256)",
       "to": "src/Pair.sol:Pair.reserve0",
-      "resolution": "heuristic",
+      "resolution": "semantic",
       "count": 1,
       "sites": [
         {
@@ -3534,7 +3593,7 @@
       "kind": "reads",
       "from": "src/Pair.sol:Pair._update(uint256,uint256)",
       "to": "src/Pair.sol:Pair.reserve1",
-      "resolution": "heuristic",
+      "resolution": "semantic",
       "count": 1,
       "sites": [
         {
@@ -3552,7 +3611,7 @@
       "kind": "writes",
       "from": "src/Pair.sol:Pair._update(uint256,uint256)",
       "to": "src/Pair.sol:Pair.reserve1",
-      "resolution": "heuristic",
+      "resolution": "semantic",
       "count": 1,
       "sites": [
         {
@@ -3570,7 +3629,7 @@
       "kind": "emits",
       "from": "src/Pair.sol:Pair._update(uint256,uint256)",
       "to": "src/interfaces/IAmm.sol:IPair^Sync(uint112,uint112)",
-      "resolution": "heuristic",
+      "resolution": "semantic",
       "count": 1,
       "sites": [
         {
@@ -3588,7 +3647,7 @@
       "kind": "reverts",
       "from": "src/Pair.sol:Pair.burn(address)",
       "to": "src/Pair.sol:Pair!InsufficientOutputAmount()",
-      "resolution": "heuristic",
+      "resolution": "semantic",
       "count": 1,
       "sites": [
         {
@@ -3606,7 +3665,7 @@
       "kind": "modifiedBy",
       "from": "src/Pair.sol:Pair.burn(address)",
       "to": "src/Pair.sol:Pair#lock",
-      "resolution": "heuristic",
+      "resolution": "semantic",
       "count": 1,
       "sites": [
         {
@@ -3625,7 +3684,7 @@
       "subkind": "internal",
       "from": "src/Pair.sol:Pair.burn(address)",
       "to": "src/Pair.sol:Pair._update(uint256,uint256)",
-      "resolution": "heuristic",
+      "resolution": "semantic",
       "count": 1,
       "sites": [
         {
@@ -3643,7 +3702,7 @@
       "kind": "reads",
       "from": "src/Pair.sol:Pair.burn(address)",
       "to": "src/Pair.sol:Pair.token0",
-      "resolution": "heuristic",
+      "resolution": "semantic",
       "count": 3,
       "sites": [
         {
@@ -3675,7 +3734,7 @@
       "kind": "reads",
       "from": "src/Pair.sol:Pair.burn(address)",
       "to": "src/Pair.sol:Pair.token1",
-      "resolution": "heuristic",
+      "resolution": "semantic",
       "count": 3,
       "sites": [
         {
@@ -3708,7 +3767,7 @@
       "subkind": "internal",
       "from": "src/Pair.sol:Pair.burn(address)",
       "to": "src/Pair.sol:Shares._burnShares(address,uint256)",
-      "resolution": "heuristic",
+      "resolution": "semantic",
       "count": 1,
       "sites": [
         {
@@ -3726,7 +3785,7 @@
       "kind": "reads",
       "from": "src/Pair.sol:Pair.burn(address)",
       "to": "src/Pair.sol:Shares.balanceOf",
-      "resolution": "heuristic",
+      "resolution": "semantic",
       "count": 1,
       "sites": [
         {
@@ -3744,7 +3803,7 @@
       "kind": "reads",
       "from": "src/Pair.sol:Pair.burn(address)",
       "to": "src/Pair.sol:Shares.totalSupply",
-      "resolution": "heuristic",
+      "resolution": "semantic",
       "count": 2,
       "sites": [
         {
@@ -3770,7 +3829,7 @@
       "subkind": "external",
       "from": "src/Pair.sol:Pair.burn(address)",
       "to": "src/interfaces/IAmm.sol:IERC20Minimal.balanceOf(address)",
-      "resolution": "heuristic",
+      "resolution": "semantic",
       "count": 4,
       "sites": [
         {
@@ -3810,7 +3869,7 @@
       "kind": "implements",
       "from": "src/Pair.sol:Pair.burn(address)",
       "to": "src/interfaces/IAmm.sol:IPair.burn(address)",
-      "resolution": "heuristic",
+      "resolution": "semantic",
       "count": 1,
       "sites": [
         {
@@ -3828,7 +3887,7 @@
       "kind": "emits",
       "from": "src/Pair.sol:Pair.burn(address)",
       "to": "src/interfaces/IAmm.sol:IPair^Burn(address,uint256,uint256,address)",
-      "resolution": "heuristic",
+      "resolution": "semantic",
       "count": 1,
       "sites": [
         {
@@ -3847,7 +3906,7 @@
       "subkind": "library",
       "from": "src/Pair.sol:Pair.burn(address)",
       "to": "src/libraries/AmmMath.sol:SafeTransfer.safeTransfer(address,address,uint256)",
-      "resolution": "heuristic",
+      "resolution": "semantic",
       "count": 2,
       "sites": [
         {
@@ -3872,7 +3931,7 @@
       "kind": "writes",
       "from": "src/Pair.sol:Pair.constructor()",
       "to": "src/Pair.sol:Pair.factory",
-      "resolution": "heuristic",
+      "resolution": "semantic",
       "count": 1,
       "sites": [
         {
@@ -3890,7 +3949,7 @@
       "kind": "reads",
       "from": "src/Pair.sol:Pair.getReserves()",
       "to": "src/Pair.sol:Pair.reserve0",
-      "resolution": "heuristic",
+      "resolution": "semantic",
       "count": 1,
       "sites": [
         {
@@ -3908,7 +3967,7 @@
       "kind": "reads",
       "from": "src/Pair.sol:Pair.getReserves()",
       "to": "src/Pair.sol:Pair.reserve1",
-      "resolution": "heuristic",
+      "resolution": "semantic",
       "count": 1,
       "sites": [
         {
@@ -3926,7 +3985,7 @@
       "kind": "implements",
       "from": "src/Pair.sol:Pair.getReserves()",
       "to": "src/interfaces/IAmm.sol:IPair.getReserves()",
-      "resolution": "heuristic",
+      "resolution": "semantic",
       "count": 1,
       "sites": [
         {
@@ -3944,7 +4003,7 @@
       "kind": "reverts",
       "from": "src/Pair.sol:Pair.initialize(address,address)",
       "to": "src/Pair.sol:Pair!Forbidden()",
-      "resolution": "heuristic",
+      "resolution": "semantic",
       "count": 1,
       "sites": [
         {
@@ -3962,7 +4021,7 @@
       "kind": "reads",
       "from": "src/Pair.sol:Pair.initialize(address,address)",
       "to": "src/Pair.sol:Pair.factory",
-      "resolution": "heuristic",
+      "resolution": "semantic",
       "count": 1,
       "sites": [
         {
@@ -3980,7 +4039,7 @@
       "kind": "writes",
       "from": "src/Pair.sol:Pair.initialize(address,address)",
       "to": "src/Pair.sol:Pair.token0",
-      "resolution": "heuristic",
+      "resolution": "semantic",
       "count": 1,
       "sites": [
         {
@@ -3998,7 +4057,7 @@
       "kind": "writes",
       "from": "src/Pair.sol:Pair.initialize(address,address)",
       "to": "src/Pair.sol:Pair.token1",
-      "resolution": "heuristic",
+      "resolution": "semantic",
       "count": 1,
       "sites": [
         {
@@ -4016,7 +4075,7 @@
       "kind": "implements",
       "from": "src/Pair.sol:Pair.initialize(address,address)",
       "to": "src/interfaces/IAmm.sol:IPair.initialize(address,address)",
-      "resolution": "heuristic",
+      "resolution": "semantic",
       "count": 1,
       "sites": [
         {
@@ -4034,7 +4093,7 @@
       "kind": "reverts",
       "from": "src/Pair.sol:Pair.mint(address)",
       "to": "src/Pair.sol:Pair!InsufficientLiquidityMinted()",
-      "resolution": "heuristic",
+      "resolution": "semantic",
       "count": 1,
       "sites": [
         {
@@ -4052,7 +4111,7 @@
       "kind": "modifiedBy",
       "from": "src/Pair.sol:Pair.mint(address)",
       "to": "src/Pair.sol:Pair#lock",
-      "resolution": "heuristic",
+      "resolution": "semantic",
       "count": 1,
       "sites": [
         {
@@ -4070,7 +4129,7 @@
       "kind": "reads",
       "from": "src/Pair.sol:Pair.mint(address)",
       "to": "src/Pair.sol:Pair.MINIMUM_LIQUIDITY",
-      "resolution": "heuristic",
+      "resolution": "semantic",
       "count": 2,
       "sites": [
         {
@@ -4096,7 +4155,7 @@
       "subkind": "internal",
       "from": "src/Pair.sol:Pair.mint(address)",
       "to": "src/Pair.sol:Pair._update(uint256,uint256)",
-      "resolution": "heuristic",
+      "resolution": "semantic",
       "count": 1,
       "sites": [
         {
@@ -4115,7 +4174,7 @@
       "subkind": "internal",
       "from": "src/Pair.sol:Pair.mint(address)",
       "to": "src/Pair.sol:Pair.getReserves()",
-      "resolution": "heuristic",
+      "resolution": "semantic",
       "count": 1,
       "sites": [
         {
@@ -4133,7 +4192,7 @@
       "kind": "reads",
       "from": "src/Pair.sol:Pair.mint(address)",
       "to": "src/Pair.sol:Pair.token0",
-      "resolution": "heuristic",
+      "resolution": "semantic",
       "count": 1,
       "sites": [
         {
@@ -4151,7 +4210,7 @@
       "kind": "reads",
       "from": "src/Pair.sol:Pair.mint(address)",
       "to": "src/Pair.sol:Pair.token1",
-      "resolution": "heuristic",
+      "resolution": "semantic",
       "count": 1,
       "sites": [
         {
@@ -4170,7 +4229,7 @@
       "subkind": "internal",
       "from": "src/Pair.sol:Pair.mint(address)",
       "to": "src/Pair.sol:Shares._mintShares(address,uint256)",
-      "resolution": "heuristic",
+      "resolution": "semantic",
       "count": 2,
       "sites": [
         {
@@ -4195,7 +4254,7 @@
       "kind": "reads",
       "from": "src/Pair.sol:Pair.mint(address)",
       "to": "src/Pair.sol:Shares.totalSupply",
-      "resolution": "heuristic",
+      "resolution": "semantic",
       "count": 3,
       "sites": [
         {
@@ -4228,7 +4287,7 @@
       "subkind": "external",
       "from": "src/Pair.sol:Pair.mint(address)",
       "to": "src/interfaces/IAmm.sol:IERC20Minimal.balanceOf(address)",
-      "resolution": "heuristic",
+      "resolution": "semantic",
       "count": 2,
       "sites": [
         {
@@ -4254,7 +4313,7 @@
       "kind": "implements",
       "from": "src/Pair.sol:Pair.mint(address)",
       "to": "src/interfaces/IAmm.sol:IPair.mint(address)",
-      "resolution": "heuristic",
+      "resolution": "semantic",
       "count": 1,
       "sites": [
         {
@@ -4272,7 +4331,7 @@
       "kind": "emits",
       "from": "src/Pair.sol:Pair.mint(address)",
       "to": "src/interfaces/IAmm.sol:IPair^Mint(address,uint256,uint256)",
-      "resolution": "heuristic",
+      "resolution": "semantic",
       "count": 1,
       "sites": [
         {
@@ -4291,7 +4350,7 @@
       "subkind": "library",
       "from": "src/Pair.sol:Pair.mint(address)",
       "to": "src/libraries/AmmMath.sol:AmmMath.min(uint256,uint256)",
-      "resolution": "heuristic",
+      "resolution": "semantic",
       "count": 1,
       "sites": [
         {
@@ -4310,7 +4369,7 @@
       "subkind": "library",
       "from": "src/Pair.sol:Pair.mint(address)",
       "to": "src/libraries/AmmMath.sol:AmmMath.sqrt(uint256)",
-      "resolution": "heuristic",
+      "resolution": "semantic",
       "count": 1,
       "sites": [
         {
@@ -4328,7 +4387,7 @@
       "kind": "reverts",
       "from": "src/Pair.sol:Pair.swap(uint256,uint256,address)",
       "to": "src/Pair.sol:Pair!InsufficientOutputAmount()",
-      "resolution": "heuristic",
+      "resolution": "semantic",
       "count": 1,
       "sites": [
         {
@@ -4346,7 +4405,7 @@
       "kind": "reverts",
       "from": "src/Pair.sol:Pair.swap(uint256,uint256,address)",
       "to": "src/Pair.sol:Pair!KInvariant()",
-      "resolution": "heuristic",
+      "resolution": "semantic",
       "count": 1,
       "sites": [
         {
@@ -4364,7 +4423,7 @@
       "kind": "modifiedBy",
       "from": "src/Pair.sol:Pair.swap(uint256,uint256,address)",
       "to": "src/Pair.sol:Pair#lock",
-      "resolution": "heuristic",
+      "resolution": "semantic",
       "count": 1,
       "sites": [
         {
@@ -4383,7 +4442,7 @@
       "subkind": "internal",
       "from": "src/Pair.sol:Pair.swap(uint256,uint256,address)",
       "to": "src/Pair.sol:Pair._update(uint256,uint256)",
-      "resolution": "heuristic",
+      "resolution": "semantic",
       "count": 1,
       "sites": [
         {
@@ -4402,7 +4461,7 @@
       "subkind": "internal",
       "from": "src/Pair.sol:Pair.swap(uint256,uint256,address)",
       "to": "src/Pair.sol:Pair.getReserves()",
-      "resolution": "heuristic",
+      "resolution": "semantic",
       "count": 1,
       "sites": [
         {
@@ -4420,7 +4479,7 @@
       "kind": "reads",
       "from": "src/Pair.sol:Pair.swap(uint256,uint256,address)",
       "to": "src/Pair.sol:Pair.token0",
-      "resolution": "heuristic",
+      "resolution": "semantic",
       "count": 2,
       "sites": [
         {
@@ -4445,7 +4504,7 @@
       "kind": "reads",
       "from": "src/Pair.sol:Pair.swap(uint256,uint256,address)",
       "to": "src/Pair.sol:Pair.token1",
-      "resolution": "heuristic",
+      "resolution": "semantic",
       "count": 2,
       "sites": [
         {
@@ -4471,7 +4530,7 @@
       "subkind": "external",
       "from": "src/Pair.sol:Pair.swap(uint256,uint256,address)",
       "to": "src/interfaces/IAmm.sol:IERC20Minimal.balanceOf(address)",
-      "resolution": "heuristic",
+      "resolution": "semantic",
       "count": 2,
       "sites": [
         {
@@ -4497,7 +4556,7 @@
       "kind": "implements",
       "from": "src/Pair.sol:Pair.swap(uint256,uint256,address)",
       "to": "src/interfaces/IAmm.sol:IPair.swap(uint256,uint256,address)",
-      "resolution": "heuristic",
+      "resolution": "semantic",
       "count": 1,
       "sites": [
         {
@@ -4515,7 +4574,7 @@
       "kind": "emits",
       "from": "src/Pair.sol:Pair.swap(uint256,uint256,address)",
       "to": "src/interfaces/IAmm.sol:IPair^Swap(address,uint256,uint256,address)",
-      "resolution": "heuristic",
+      "resolution": "semantic",
       "count": 1,
       "sites": [
         {
@@ -4534,7 +4593,7 @@
       "subkind": "library",
       "from": "src/Pair.sol:Pair.swap(uint256,uint256,address)",
       "to": "src/libraries/AmmMath.sol:SafeTransfer.safeTransfer(address,address,uint256)",
-      "resolution": "heuristic",
+      "resolution": "semantic",
       "count": 2,
       "sites": [
         {
@@ -4919,7 +4978,7 @@
       "kind": "inherits",
       "from": "src/Pair.sol:Pair",
       "to": "src/Pair.sol:Shares",
-      "resolution": "heuristic",
+      "resolution": "semantic",
       "count": 1,
       "sites": [
         {
@@ -4938,7 +4997,7 @@
       "kind": "inherits",
       "from": "src/Pair.sol:Pair",
       "to": "src/interfaces/IAmm.sol:IPair",
-      "resolution": "heuristic",
+      "resolution": "semantic",
       "count": 1,
       "sites": [
         {
@@ -4957,7 +5016,7 @@
       "kind": "reads",
       "from": "src/Pair.sol:Shares._burnShares(address,uint256)",
       "to": "src/Pair.sol:Shares.balanceOf",
-      "resolution": "heuristic",
+      "resolution": "semantic",
       "count": 1,
       "sites": [
         {
@@ -4975,7 +5034,7 @@
       "kind": "writes",
       "from": "src/Pair.sol:Shares._burnShares(address,uint256)",
       "to": "src/Pair.sol:Shares.balanceOf",
-      "resolution": "heuristic",
+      "resolution": "semantic",
       "count": 1,
       "sites": [
         {
@@ -4993,7 +5052,7 @@
       "kind": "reads",
       "from": "src/Pair.sol:Shares._burnShares(address,uint256)",
       "to": "src/Pair.sol:Shares.totalSupply",
-      "resolution": "heuristic",
+      "resolution": "semantic",
       "count": 1,
       "sites": [
         {
@@ -5011,7 +5070,7 @@
       "kind": "writes",
       "from": "src/Pair.sol:Shares._burnShares(address,uint256)",
       "to": "src/Pair.sol:Shares.totalSupply",
-      "resolution": "heuristic",
+      "resolution": "semantic",
       "count": 1,
       "sites": [
         {
@@ -5029,7 +5088,7 @@
       "kind": "emits",
       "from": "src/Pair.sol:Shares._burnShares(address,uint256)",
       "to": "src/Pair.sol:Shares^Transfer(address,address,uint256)",
-      "resolution": "heuristic",
+      "resolution": "semantic",
       "count": 1,
       "sites": [
         {
@@ -5047,7 +5106,7 @@
       "kind": "reads",
       "from": "src/Pair.sol:Shares._mintShares(address,uint256)",
       "to": "src/Pair.sol:Shares.balanceOf",
-      "resolution": "heuristic",
+      "resolution": "semantic",
       "count": 1,
       "sites": [
         {
@@ -5065,7 +5124,7 @@
       "kind": "writes",
       "from": "src/Pair.sol:Shares._mintShares(address,uint256)",
       "to": "src/Pair.sol:Shares.balanceOf",
-      "resolution": "heuristic",
+      "resolution": "semantic",
       "count": 1,
       "sites": [
         {
@@ -5083,7 +5142,7 @@
       "kind": "reads",
       "from": "src/Pair.sol:Shares._mintShares(address,uint256)",
       "to": "src/Pair.sol:Shares.totalSupply",
-      "resolution": "heuristic",
+      "resolution": "semantic",
       "count": 1,
       "sites": [
         {
@@ -5101,7 +5160,7 @@
       "kind": "writes",
       "from": "src/Pair.sol:Shares._mintShares(address,uint256)",
       "to": "src/Pair.sol:Shares.totalSupply",
-      "resolution": "heuristic",
+      "resolution": "semantic",
       "count": 1,
       "sites": [
         {
@@ -5119,7 +5178,7 @@
       "kind": "emits",
       "from": "src/Pair.sol:Shares._mintShares(address,uint256)",
       "to": "src/Pair.sol:Shares^Transfer(address,address,uint256)",
-      "resolution": "heuristic",
+      "resolution": "semantic",
       "count": 1,
       "sites": [
         {
@@ -5263,7 +5322,7 @@
       "kind": "reverts",
       "from": "src/Router.sol:Router#ensure",
       "to": "src/Router.sol:Router!Expired()",
-      "resolution": "heuristic",
+      "resolution": "semantic",
       "count": 1,
       "sites": [
         {
@@ -5281,7 +5340,7 @@
       "kind": "reverts",
       "from": "src/Router.sol:Router._pairFor(address,address)",
       "to": "src/Router.sol:Router!PairNotFound()",
-      "resolution": "heuristic",
+      "resolution": "semantic",
       "count": 1,
       "sites": [
         {
@@ -5299,7 +5358,7 @@
       "kind": "reads",
       "from": "src/Router.sol:Router._pairFor(address,address)",
       "to": "src/Router.sol:Router.factory",
-      "resolution": "heuristic",
+      "resolution": "semantic",
       "count": 1,
       "sites": [
         {
@@ -5318,7 +5377,7 @@
       "subkind": "external",
       "from": "src/Router.sol:Router._pairFor(address,address)",
       "to": "src/interfaces/IAmm.sol:IFactory.getPair(address,address)",
-      "resolution": "heuristic",
+      "resolution": "semantic",
       "count": 1,
       "sites": [
         {
@@ -5339,7 +5398,7 @@
       "kind": "modifiedBy",
       "from": "src/Router.sol:Router.addLiquidity(address,address,uint256,uint256,address,uint256)",
       "to": "src/Router.sol:Router#ensure",
-      "resolution": "heuristic",
+      "resolution": "semantic",
       "count": 1,
       "sites": [
         {
@@ -5358,7 +5417,7 @@
       "subkind": "internal",
       "from": "src/Router.sol:Router.addLiquidity(address,address,uint256,uint256,address,uint256)",
       "to": "src/Router.sol:Router._pairFor(address,address)",
-      "resolution": "heuristic",
+      "resolution": "semantic",
       "count": 1,
       "sites": [
         {
@@ -5377,7 +5436,7 @@
       "subkind": "external",
       "from": "src/Router.sol:Router.addLiquidity(address,address,uint256,uint256,address,uint256)",
       "to": "src/interfaces/IAmm.sol:IERC20Minimal.transferFrom(address,address,uint256)",
-      "resolution": "heuristic",
+      "resolution": "semantic",
       "count": 2,
       "sites": [
         {
@@ -5404,7 +5463,7 @@
       "subkind": "external",
       "from": "src/Router.sol:Router.addLiquidity(address,address,uint256,uint256,address,uint256)",
       "to": "src/interfaces/IAmm.sol:IPair.mint(address)",
-      "resolution": "heuristic",
+      "resolution": "semantic",
       "count": 1,
       "sites": [
         {
@@ -5425,7 +5484,7 @@
       "kind": "writes",
       "from": "src/Router.sol:Router.constructor(address)",
       "to": "src/Router.sol:Router.factory",
-      "resolution": "heuristic",
+      "resolution": "semantic",
       "count": 1,
       "sites": [
         {
@@ -5444,7 +5503,7 @@
       "subkind": "internal",
       "from": "src/Router.sol:Router.getAmountOut(address,address,uint256)",
       "to": "src/Router.sol:Router._pairFor(address,address)",
-      "resolution": "heuristic",
+      "resolution": "semantic",
       "count": 1,
       "sites": [
         {
@@ -5463,7 +5522,7 @@
       "subkind": "external",
       "from": "src/Router.sol:Router.getAmountOut(address,address,uint256)",
       "to": "src/interfaces/IAmm.sol:IPair.getReserves()",
-      "resolution": "heuristic",
+      "resolution": "semantic",
       "count": 1,
       "sites": [
         {
@@ -5485,7 +5544,7 @@
       "subkind": "library",
       "from": "src/Router.sol:Router.getAmountOut(address,address,uint256)",
       "to": "src/libraries/AmmMath.sol:AmmMath.amountOut(uint256,uint256,uint256)",
-      "resolution": "heuristic",
+      "resolution": "semantic",
       "count": 1,
       "sites": [
         {
@@ -5504,7 +5563,7 @@
       "subkind": "library",
       "from": "src/Router.sol:Router.getAmountOut(address,address,uint256)",
       "to": "src/libraries/AmmMath.sol:AmmMath.sortTokens(address,address)",
-      "resolution": "heuristic",
+      "resolution": "semantic",
       "count": 1,
       "sites": [
         {
@@ -5523,7 +5582,7 @@
       "subkind": "library",
       "from": "src/Router.sol:Router.quote(uint256,uint256,uint256)",
       "to": "src/libraries/AmmMath.sol:AmmMath.quote(uint256,uint256,uint256)",
-      "resolution": "heuristic",
+      "resolution": "semantic",
       "count": 1,
       "sites": [
         {
@@ -5541,7 +5600,7 @@
       "kind": "modifiedBy",
       "from": "src/Router.sol:Router.removeLiquidity(address,address,address,uint256)",
       "to": "src/Router.sol:Router#ensure",
-      "resolution": "heuristic",
+      "resolution": "semantic",
       "count": 1,
       "sites": [
         {
@@ -5560,7 +5619,7 @@
       "subkind": "internal",
       "from": "src/Router.sol:Router.removeLiquidity(address,address,address,uint256)",
       "to": "src/Router.sol:Router._pairFor(address,address)",
-      "resolution": "heuristic",
+      "resolution": "semantic",
       "count": 1,
       "sites": [
         {
@@ -5579,7 +5638,7 @@
       "subkind": "external",
       "from": "src/Router.sol:Router.removeLiquidity(address,address,address,uint256)",
       "to": "src/interfaces/IAmm.sol:IPair.burn(address)",
-      "resolution": "heuristic",
+      "resolution": "semantic",
       "count": 1,
       "sites": [
         {
@@ -5600,7 +5659,7 @@
       "kind": "reverts",
       "from": "src/Router.sol:Router.swapExactTokensForTokens(address,address,uint256,uint256,address,uint256)",
       "to": "src/Router.sol:Router!InsufficientOutput()",
-      "resolution": "heuristic",
+      "resolution": "semantic",
       "count": 1,
       "sites": [
         {
@@ -5618,7 +5677,7 @@
       "kind": "modifiedBy",
       "from": "src/Router.sol:Router.swapExactTokensForTokens(address,address,uint256,uint256,address,uint256)",
       "to": "src/Router.sol:Router#ensure",
-      "resolution": "heuristic",
+      "resolution": "semantic",
       "count": 1,
       "sites": [
         {
@@ -5637,7 +5696,7 @@
       "subkind": "internal",
       "from": "src/Router.sol:Router.swapExactTokensForTokens(address,address,uint256,uint256,address,uint256)",
       "to": "src/Router.sol:Router._pairFor(address,address)",
-      "resolution": "heuristic",
+      "resolution": "semantic",
       "count": 1,
       "sites": [
         {
@@ -5656,7 +5715,7 @@
       "subkind": "internal",
       "from": "src/Router.sol:Router.swapExactTokensForTokens(address,address,uint256,uint256,address,uint256)",
       "to": "src/Router.sol:Router.getAmountOut(address,address,uint256)",
-      "resolution": "heuristic",
+      "resolution": "semantic",
       "count": 1,
       "sites": [
         {
@@ -5675,7 +5734,7 @@
       "subkind": "external",
       "from": "src/Router.sol:Router.swapExactTokensForTokens(address,address,uint256,uint256,address,uint256)",
       "to": "src/interfaces/IAmm.sol:IERC20Minimal.transferFrom(address,address,uint256)",
-      "resolution": "heuristic",
+      "resolution": "semantic",
       "count": 1,
       "sites": [
         {
@@ -5695,7 +5754,7 @@
       "subkind": "external",
       "from": "src/Router.sol:Router.swapExactTokensForTokens(address,address,uint256,uint256,address,uint256)",
       "to": "src/interfaces/IAmm.sol:IPair.swap(uint256,uint256,address)",
-      "resolution": "heuristic",
+      "resolution": "semantic",
       "count": 1,
       "sites": [
         {
@@ -5717,7 +5776,7 @@
       "subkind": "library",
       "from": "src/Router.sol:Router.swapExactTokensForTokens(address,address,uint256,uint256,address,uint256)",
       "to": "src/libraries/AmmMath.sol:AmmMath.sortTokens(address,address)",
-      "resolution": "heuristic",
+      "resolution": "semantic",
       "count": 1,
       "sites": [
         {
@@ -6293,7 +6352,7 @@
       "kind": "reverts",
       "from": "src/libraries/AmmMath.sol:AmmMath.amountOut(uint256,uint256,uint256)",
       "to": "src/libraries/AmmMath.sol:AmmMath!InsufficientInput()",
-      "resolution": "heuristic",
+      "resolution": "semantic",
       "count": 1,
       "sites": [
         {
@@ -6311,7 +6370,7 @@
       "kind": "reverts",
       "from": "src/libraries/AmmMath.sol:AmmMath.amountOut(uint256,uint256,uint256)",
       "to": "src/libraries/AmmMath.sol:AmmMath!InsufficientLiquidity()",
-      "resolution": "heuristic",
+      "resolution": "semantic",
       "count": 1,
       "sites": [
         {
@@ -6329,7 +6388,7 @@
       "kind": "reads",
       "from": "src/libraries/AmmMath.sol:AmmMath.amountOut(uint256,uint256,uint256)",
       "to": "src/libraries/AmmMath.sol:AmmMath.FEE_DENOMINATOR",
-      "resolution": "heuristic",
+      "resolution": "semantic",
       "count": 1,
       "sites": [
         {
@@ -6347,7 +6406,7 @@
       "kind": "reads",
       "from": "src/libraries/AmmMath.sol:AmmMath.amountOut(uint256,uint256,uint256)",
       "to": "src/libraries/AmmMath.sol:AmmMath.FEE_NUMERATOR",
-      "resolution": "heuristic",
+      "resolution": "semantic",
       "count": 1,
       "sites": [
         {
@@ -6365,7 +6424,7 @@
       "kind": "reverts",
       "from": "src/libraries/AmmMath.sol:AmmMath.quote(uint256,uint256,uint256)",
       "to": "src/libraries/AmmMath.sol:AmmMath!InsufficientInput()",
-      "resolution": "heuristic",
+      "resolution": "semantic",
       "count": 1,
       "sites": [
         {
@@ -6383,7 +6442,7 @@
       "kind": "reverts",
       "from": "src/libraries/AmmMath.sol:AmmMath.quote(uint256,uint256,uint256)",
       "to": "src/libraries/AmmMath.sol:AmmMath!InsufficientLiquidity()",
-      "resolution": "heuristic",
+      "resolution": "semantic",
       "count": 1,
       "sites": [
         {
@@ -6583,7 +6642,7 @@
       "kind": "reverts",
       "from": "src/libraries/AmmMath.sol:SafeTransfer.safeTransfer(address,address,uint256)",
       "to": "src/libraries/AmmMath.sol:SafeTransfer!TransferFailed()",
-      "resolution": "heuristic",
+      "resolution": "semantic",
       "count": 1,
       "sites": [
         {

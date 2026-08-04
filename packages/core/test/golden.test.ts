@@ -19,6 +19,16 @@
  * forty thousand lines.
  *
  * The other three fixtures are committed whole.
+ *
+ * ### Why the goldens are built with enrichment off
+ *
+ * `defi/` ships build-info artifacts from Phase 3, so an ordinary build of it
+ * is a *semantic* graph. The heuristic graph is what §7 makes Phase 3's
+ * baseline — "identical in shape to the heuristic-only graph" — so that is the
+ * one pinned here, and `defi.enriched.graph.json` pins the other side. Two
+ * files rather than one because they answer different questions: the first is
+ * "did the resolver change", the second is "did the semantic tier change", and
+ * a single golden covering both would go red for either reason.
  */
 
 import fs from 'node:fs';
@@ -30,6 +40,7 @@ import { describe, expect, it } from 'vitest';
 import { parseGraph, serializeGraph, type GraphEdge, type GraphFile } from '../src/index.js';
 import {
   CORRECTNESS_FIXTURES,
+  enrichedGraphOf,
   graphOf,
   graphWithoutModeGating,
   type FixtureName,
@@ -144,6 +155,24 @@ describe('golden graphs', () => {
             path.join(GOLDEN_DIR, `${name}.ungated.graph.json`),
             serializeGraph(file),
             `${name}/graph.json (mode gate disabled)`,
+          );
+        });
+      }
+
+      /**
+       * The semantic tier's output, pinned the same way. Spot-checks in
+       * `enrich.test.ts` cover the properties; this covers every selector and
+       * every storage slot, which are the fields a future §16 storage-collision
+       * pass will be reading and the ones nobody would notice going wrong.
+       */
+      if (name === 'defi') {
+        it('matches its committed enriched graph.json', async () => {
+          const { file } = await enrichedGraphOf(name);
+          expect(file.mode).toBe('full');
+          compare(
+            path.join(GOLDEN_DIR, `${name}.enriched.graph.json`),
+            serializeGraph(file),
+            `${name}/graph.json (with build artifacts)`,
           );
         });
       }

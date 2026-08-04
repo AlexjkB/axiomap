@@ -155,7 +155,7 @@ describe('serialization', () => {
     const { file } = await graphOf('minimal');
     const text = serializeGraph(file);
     expect(text.endsWith('}\n')).toBe(true);
-    expect(text).toContain('\n  "schemaVersion": 1,');
+    expect(text).toContain(`\n  "schemaVersion": ${GRAPH_SCHEMA_VERSION},`);
   });
 
   it('refuses a graph written by a different schema version', () => {

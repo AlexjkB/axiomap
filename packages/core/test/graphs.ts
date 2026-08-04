@@ -20,12 +20,29 @@ const cache = new Map<string, Promise<ProjectGraphResult>>();
  * The cache is disabled and the pool is single-worker on purpose: a test that
  * silently reads a stale parse cache from a previous run is a test that stops
  * failing when it should.
+ *
+ * **Enrichment is off.** `defi/` ships build-info artifacts from Phase 3, and
+ * without this every suite that shares these graphs would silently be testing
+ * the semantic tier instead of the syntactic one. The heuristic graph is the
+ * baseline §7 compares the enriched graph against, so it is the one the goldens
+ * pin; `enrichedGraphOf` is the other side of that comparison.
  */
 export function graphOf(name: FixtureName): Promise<ProjectGraphResult> {
   let pending = cache.get(name);
   if (pending === undefined) {
-    pending = buildProjectGraph(fixture(name), { cacheDir: null, workers: 1 });
+    pending = buildProjectGraph(fixture(name), { cacheDir: null, workers: 1, enrich: false });
     cache.set(name, pending);
+  }
+  return pending;
+}
+
+/** The same project with the semantic tier enabled, when artifacts exist. */
+export function enrichedGraphOf(name: FixtureName): Promise<ProjectGraphResult> {
+  const key = `${name}:enriched`;
+  let pending = cache.get(key);
+  if (pending === undefined) {
+    pending = buildProjectGraph(fixture(name), { cacheDir: null, workers: 1 });
+    cache.set(key, pending);
   }
   return pending;
 }
@@ -38,6 +55,7 @@ export function graphWithoutModeGating(name: FixtureName): Promise<ProjectGraphR
     pending = buildProjectGraph(fixture(name), {
       cacheDir: null,
       workers: 1,
+      enrich: false,
       callResolutionThreshold: 0,
     });
     cache.set(key, pending);
