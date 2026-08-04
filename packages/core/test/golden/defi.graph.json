@@ -1,5 +1,5 @@
 {
-  "schemaVersion": 2,
+  "schemaVersion": 3,
   "generator": {
     "name": "axiomap",
     "parser": "treesitter",
@@ -190,6 +190,10 @@
         "column": 4
       },
       "bodyHash": "10b99556b25b5f0e",
+      "entrypoints": [
+        "src/Factory.sol:Factory.allPairsLength()"
+      ],
+      "externallyReachable": true,
       "flags": {
         "readsState": true
       },
@@ -266,6 +270,10 @@
         "column": 4
       },
       "bodyHash": "9d2054963bd00329",
+      "entrypoints": [
+        "src/Factory.sol:Factory.createPair(address,address)"
+      ],
+      "externallyReachable": true,
       "flags": {
         "hasCreate": true,
         "readsState": true,
@@ -291,6 +299,10 @@
           "type": "address"
         }
       ],
+      "reentrancy": {
+        "externalCallThenWrite": true,
+        "guarded": false
+      },
       "returns": [
         {
           "name": "pair",
@@ -335,6 +347,14 @@
         "column": 4
       },
       "bodyHash": "b129873b769a9d0e",
+      "entrypoints": [
+        "src/Factory.sol:Factory.getPair(address,address)",
+        "src/Router.sol:Router.addLiquidity(address,address,uint256,uint256,address,uint256)",
+        "src/Router.sol:Router.getAmountOut(address,address,uint256)",
+        "src/Router.sol:Router.removeLiquidity(address,address,address,uint256)",
+        "src/Router.sol:Router.swapExactTokensForTokens(address,address,uint256,uint256,address,uint256)"
+      ],
+      "externallyReachable": true,
       "flags": {
         "readsState": true
       },
@@ -401,10 +421,19 @@
         "line": 44,
         "column": 4
       },
+      "accessControl": {
+        "modifiers": [],
+        "confidence": "low"
+      },
       "bodyHash": "390b2b94785e1009",
+      "entrypoints": [
+        "src/Factory.sol:Factory.setFeeSetter(address)"
+      ],
+      "externallyReachable": true,
       "flags": {
         "readsState": true,
-        "writesState": true
+        "writesState": true,
+        "checksSender": true
       },
       "hasBody": true,
       "interfaceHash": "6b9f1f84dcd97bab",
@@ -562,6 +591,15 @@
         "column": 4
       },
       "bodyHash": "f7866c3e0ac35f0b",
+      "entrypoints": [
+        "src/Pair.sol:Pair.burn(address)",
+        "src/Pair.sol:Pair.mint(address)",
+        "src/Pair.sol:Pair.swap(uint256,uint256,address)",
+        "src/Router.sol:Router.addLiquidity(address,address,uint256,uint256,address,uint256)",
+        "src/Router.sol:Router.removeLiquidity(address,address,address,uint256)",
+        "src/Router.sol:Router.swapExactTokensForTokens(address,address,uint256,uint256,address,uint256)"
+      ],
+      "externallyReachable": true,
       "flags": {
         "readsState": true,
         "writesState": true
@@ -616,6 +654,15 @@
         "column": 4
       },
       "bodyHash": "1da22e7b7a245867",
+      "entrypoints": [
+        "src/Pair.sol:Pair.burn(address)",
+        "src/Pair.sol:Pair.mint(address)",
+        "src/Pair.sol:Pair.swap(uint256,uint256,address)",
+        "src/Router.sol:Router.addLiquidity(address,address,uint256,uint256,address,uint256)",
+        "src/Router.sol:Router.removeLiquidity(address,address,address,uint256)",
+        "src/Router.sol:Router.swapExactTokensForTokens(address,address,uint256,uint256,address,uint256)"
+      ],
+      "externallyReachable": true,
       "flags": {
         "readsState": true,
         "writesState": true
@@ -659,6 +706,11 @@
         "column": 4
       },
       "bodyHash": "b12c66f4efd60c71",
+      "entrypoints": [
+        "src/Pair.sol:Pair.burn(address)",
+        "src/Router.sol:Router.removeLiquidity(address,address,address,uint256)"
+      ],
+      "externallyReachable": true,
       "flags": {
         "readsState": true
       },
@@ -680,6 +732,10 @@
           "type": "address"
         }
       ],
+      "reentrancy": {
+        "externalCallThenWrite": true,
+        "guarded": false
+      },
       "returns": [
         {
           "name": "amount0",
@@ -708,6 +764,10 @@
         "column": 4
       },
       "bodyHash": "787a21568c295840",
+      "entrypoints": [
+        "src/Factory.sol:Factory.createPair(address,address)"
+      ],
+      "externallyReachable": true,
       "flags": {
         "writesState": true
       },
@@ -761,6 +821,15 @@
         "column": 4
       },
       "bodyHash": "e5a4704c7348d72e",
+      "entrypoints": [
+        "src/Pair.sol:Pair.getReserves()",
+        "src/Pair.sol:Pair.mint(address)",
+        "src/Pair.sol:Pair.swap(uint256,uint256,address)",
+        "src/Router.sol:Router.addLiquidity(address,address,uint256,uint256,address,uint256)",
+        "src/Router.sol:Router.getAmountOut(address,address,uint256)",
+        "src/Router.sol:Router.swapExactTokensForTokens(address,address,uint256,uint256,address,uint256)"
+      ],
+      "externallyReachable": true,
       "flags": {
         "readsState": true
       },
@@ -802,10 +871,20 @@
         "line": 59,
         "column": 4
       },
+      "accessControl": {
+        "modifiers": [],
+        "confidence": "low"
+      },
       "bodyHash": "41165beaee056391",
+      "entrypoints": [
+        "src/Factory.sol:Factory.createPair(address,address)",
+        "src/Pair.sol:Pair.initialize(address,address)"
+      ],
+      "externallyReachable": true,
       "flags": {
         "readsState": true,
-        "writesState": true
+        "writesState": true,
+        "checksSender": true
       },
       "hasBody": true,
       "interfaceHash": "8f3c9fadf89a524e",
@@ -846,6 +925,11 @@
         "column": 4
       },
       "bodyHash": "acb944243be92f15",
+      "entrypoints": [
+        "src/Pair.sol:Pair.mint(address)",
+        "src/Router.sol:Router.addLiquidity(address,address,uint256,uint256,address,uint256)"
+      ],
+      "externallyReachable": true,
       "flags": {
         "readsState": true
       },
@@ -867,6 +951,10 @@
           "type": "address"
         }
       ],
+      "reentrancy": {
+        "externalCallThenWrite": true,
+        "guarded": false
+      },
       "returns": [
         {
           "name": "liquidity",
@@ -931,6 +1019,11 @@
         "column": 4
       },
       "bodyHash": "052e8e7a116ceb16",
+      "entrypoints": [
+        "src/Pair.sol:Pair.swap(uint256,uint256,address)",
+        "src/Router.sol:Router.swapExactTokensForTokens(address,address,uint256,uint256,address,uint256)"
+      ],
+      "externallyReachable": true,
       "flags": {
         "readsState": true
       },
@@ -960,6 +1053,10 @@
           "type": "address"
         }
       ],
+      "reentrancy": {
+        "externalCallThenWrite": true,
+        "guarded": false
+      },
       "returns": [],
       "stateMutability": "nonpayable",
       "subkind": "function",
@@ -1062,6 +1159,11 @@
         "column": 4
       },
       "bodyHash": "9bdb82cdc986d047",
+      "entrypoints": [
+        "src/Pair.sol:Pair.burn(address)",
+        "src/Router.sol:Router.removeLiquidity(address,address,address,uint256)"
+      ],
+      "externallyReachable": true,
       "flags": {
         "readsState": true,
         "writesState": true
@@ -1105,6 +1207,11 @@
         "column": 4
       },
       "bodyHash": "3eca01a06f596046",
+      "entrypoints": [
+        "src/Pair.sol:Pair.mint(address)",
+        "src/Router.sol:Router.addLiquidity(address,address,uint256,uint256,address,uint256)"
+      ],
+      "externallyReachable": true,
       "flags": {
         "readsState": true,
         "writesState": true
@@ -1305,6 +1412,12 @@
         "column": 4
       },
       "bodyHash": "3201934be8ac4bfc",
+      "entrypoints": [
+        "src/Router.sol:Router.addLiquidity(address,address,uint256,uint256,address,uint256)",
+        "src/Router.sol:Router.removeLiquidity(address,address,address,uint256)",
+        "src/Router.sol:Router.swapExactTokensForTokens(address,address,uint256,uint256,address,uint256)"
+      ],
+      "externallyReachable": true,
       "flags": {},
       "hasBody": true,
       "interfaceHash": "0be00c3db6f66001",
@@ -1341,6 +1454,13 @@
         "column": 4
       },
       "bodyHash": "3d88597c111e9a1d",
+      "entrypoints": [
+        "src/Router.sol:Router.addLiquidity(address,address,uint256,uint256,address,uint256)",
+        "src/Router.sol:Router.getAmountOut(address,address,uint256)",
+        "src/Router.sol:Router.removeLiquidity(address,address,address,uint256)",
+        "src/Router.sol:Router.swapExactTokensForTokens(address,address,uint256,uint256,address,uint256)"
+      ],
+      "externallyReachable": true,
       "flags": {
         "readsState": true
       },
@@ -1388,6 +1508,10 @@
         "column": 4
       },
       "bodyHash": "b3eea6b953181474",
+      "entrypoints": [
+        "src/Router.sol:Router.addLiquidity(address,address,uint256,uint256,address,uint256)"
+      ],
+      "externallyReachable": true,
       "flags": {},
       "hasBody": true,
       "interfaceHash": "bb6d8b726b1109e7",
@@ -1509,6 +1633,11 @@
         "column": 4
       },
       "bodyHash": "f6c0ecad812d9307",
+      "entrypoints": [
+        "src/Router.sol:Router.getAmountOut(address,address,uint256)",
+        "src/Router.sol:Router.swapExactTokensForTokens(address,address,uint256,uint256,address,uint256)"
+      ],
+      "externallyReachable": true,
       "flags": {},
       "hasBody": true,
       "interfaceHash": "3b134de88e50b1eb",
@@ -1558,6 +1687,10 @@
         "column": 4
       },
       "bodyHash": "514e51fedea28cb2",
+      "entrypoints": [
+        "src/Router.sol:Router.quote(uint256,uint256,uint256)"
+      ],
+      "externallyReachable": true,
       "flags": {},
       "hasBody": true,
       "interfaceHash": "d4cb6b0945a2326d",
@@ -1607,6 +1740,10 @@
         "column": 4
       },
       "bodyHash": "7ad2a229c1f43145",
+      "entrypoints": [
+        "src/Router.sol:Router.removeLiquidity(address,address,address,uint256)"
+      ],
+      "externallyReachable": true,
       "flags": {},
       "hasBody": true,
       "interfaceHash": "811259d8dc5ed624",
@@ -1666,6 +1803,10 @@
         "column": 4
       },
       "bodyHash": "895ab80ef246a9cb",
+      "entrypoints": [
+        "src/Router.sol:Router.swapExactTokensForTokens(address,address,uint256,uint256,address,uint256)"
+      ],
+      "externallyReachable": true,
       "flags": {},
       "hasBody": true,
       "interfaceHash": "365336a63ebb374c",
@@ -1770,6 +1911,15 @@
         "column": 4
       },
       "bodyHash": "",
+      "entrypoints": [
+        "src/Pair.sol:Pair.burn(address)",
+        "src/Pair.sol:Pair.mint(address)",
+        "src/Pair.sol:Pair.swap(uint256,uint256,address)",
+        "src/Router.sol:Router.addLiquidity(address,address,uint256,uint256,address,uint256)",
+        "src/Router.sol:Router.removeLiquidity(address,address,address,uint256)",
+        "src/Router.sol:Router.swapExactTokensForTokens(address,address,uint256,uint256,address,uint256)"
+      ],
+      "externallyReachable": true,
       "flags": {},
       "hasBody": false,
       "interfaceHash": "ce72ba2581344f80",
@@ -1856,6 +2006,11 @@
         "column": 4
       },
       "bodyHash": "",
+      "entrypoints": [
+        "src/Router.sol:Router.addLiquidity(address,address,uint256,uint256,address,uint256)",
+        "src/Router.sol:Router.swapExactTokensForTokens(address,address,uint256,uint256,address,uint256)"
+      ],
+      "externallyReachable": true,
       "flags": {},
       "hasBody": false,
       "interfaceHash": "5a50b8f71bc44a5b",
@@ -1973,6 +2128,13 @@
         "column": 4
       },
       "bodyHash": "",
+      "entrypoints": [
+        "src/Router.sol:Router.addLiquidity(address,address,uint256,uint256,address,uint256)",
+        "src/Router.sol:Router.getAmountOut(address,address,uint256)",
+        "src/Router.sol:Router.removeLiquidity(address,address,address,uint256)",
+        "src/Router.sol:Router.swapExactTokensForTokens(address,address,uint256,uint256,address,uint256)"
+      ],
+      "externallyReachable": true,
       "flags": {},
       "hasBody": false,
       "interfaceHash": "0c476b9c4ce4630f",
@@ -2072,6 +2234,10 @@
         "column": 4
       },
       "bodyHash": "",
+      "entrypoints": [
+        "src/Router.sol:Router.removeLiquidity(address,address,address,uint256)"
+      ],
+      "externallyReachable": true,
       "flags": {},
       "hasBody": false,
       "interfaceHash": "9bdd17296dc76605",
@@ -2117,6 +2283,11 @@
         "column": 4
       },
       "bodyHash": "",
+      "entrypoints": [
+        "src/Router.sol:Router.getAmountOut(address,address,uint256)",
+        "src/Router.sol:Router.swapExactTokensForTokens(address,address,uint256,uint256,address,uint256)"
+      ],
+      "externallyReachable": true,
       "flags": {},
       "hasBody": false,
       "interfaceHash": "145b10ead3f6bc36",
@@ -2157,6 +2328,10 @@
         "column": 4
       },
       "bodyHash": "",
+      "entrypoints": [
+        "src/Factory.sol:Factory.createPair(address,address)"
+      ],
+      "externallyReachable": true,
       "flags": {},
       "hasBody": false,
       "interfaceHash": "8f3c9fadf89a524e",
@@ -2197,6 +2372,10 @@
         "column": 4
       },
       "bodyHash": "",
+      "entrypoints": [
+        "src/Router.sol:Router.addLiquidity(address,address,uint256,uint256,address,uint256)"
+      ],
+      "externallyReachable": true,
       "flags": {},
       "hasBody": false,
       "interfaceHash": "63623b422df8356d",
@@ -2238,6 +2417,10 @@
         "column": 4
       },
       "bodyHash": "",
+      "entrypoints": [
+        "src/Router.sol:Router.swapExactTokensForTokens(address,address,uint256,uint256,address,uint256)"
+      ],
+      "externallyReachable": true,
       "flags": {},
       "hasBody": false,
       "interfaceHash": "a9be7c2cc825b54b",
@@ -2518,6 +2701,11 @@
         "column": 4
       },
       "bodyHash": "7695fef773784560",
+      "entrypoints": [
+        "src/Router.sol:Router.getAmountOut(address,address,uint256)",
+        "src/Router.sol:Router.swapExactTokensForTokens(address,address,uint256,uint256,address,uint256)"
+      ],
+      "externallyReachable": true,
       "flags": {
         "readsState": true
       },
@@ -2569,6 +2757,11 @@
         "column": 4
       },
       "bodyHash": "f653be9fbaffea39",
+      "entrypoints": [
+        "src/Pair.sol:Pair.mint(address)",
+        "src/Router.sol:Router.addLiquidity(address,address,uint256,uint256,address,uint256)"
+      ],
+      "externallyReachable": true,
       "flags": {},
       "hasBody": true,
       "interfaceHash": "659c3f90d48f8793",
@@ -2614,6 +2807,10 @@
         "column": 4
       },
       "bodyHash": "dab4d0d873158437",
+      "entrypoints": [
+        "src/Router.sol:Router.quote(uint256,uint256,uint256)"
+      ],
+      "externallyReachable": true,
       "flags": {},
       "hasBody": true,
       "interfaceHash": "9d173e24071d83cb",
@@ -2663,6 +2860,12 @@
         "column": 4
       },
       "bodyHash": "c2311b87d107fdc4",
+      "entrypoints": [
+        "src/Factory.sol:Factory.createPair(address,address)",
+        "src/Router.sol:Router.getAmountOut(address,address,uint256)",
+        "src/Router.sol:Router.swapExactTokensForTokens(address,address,uint256,uint256,address,uint256)"
+      ],
+      "externallyReachable": true,
       "flags": {},
       "hasBody": true,
       "interfaceHash": "e24c771e3d7e4434",
@@ -2712,6 +2915,11 @@
         "column": 4
       },
       "bodyHash": "37f276e8c288a8e7",
+      "entrypoints": [
+        "src/Pair.sol:Pair.mint(address)",
+        "src/Router.sol:Router.addLiquidity(address,address,uint256,uint256,address,uint256)"
+      ],
+      "externallyReachable": true,
       "flags": {},
       "hasBody": true,
       "interfaceHash": "64f80b8a897ee04b",
@@ -2791,6 +2999,13 @@
         "column": 4
       },
       "bodyHash": "25b97f52e6d6734d",
+      "entrypoints": [
+        "src/Pair.sol:Pair.burn(address)",
+        "src/Pair.sol:Pair.swap(uint256,uint256,address)",
+        "src/Router.sol:Router.removeLiquidity(address,address,address,uint256)",
+        "src/Router.sol:Router.swapExactTokensForTokens(address,address,uint256,uint256,address,uint256)"
+      ],
+      "externallyReachable": true,
       "flags": {
         "hasLowLevelCall": true
       },

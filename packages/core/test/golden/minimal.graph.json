@@ -1,5 +1,5 @@
 {
-  "schemaVersion": 2,
+  "schemaVersion": 3,
   "generator": {
     "name": "axiomap",
     "parser": "treesitter",
@@ -123,9 +123,19 @@
         "line": 10,
         "column": 4
       },
+      "accessControl": {
+        "modifiers": [],
+        "confidence": "low"
+      },
       "bodyHash": "e81eed813adbe346",
+      "entrypoints": [
+        "src/Vault.sol:Vault.sweep(address payable)",
+        "src/Vault.sol:Vault.upgrade(bytes)"
+      ],
+      "externallyReachable": true,
       "flags": {
-        "readsState": true
+        "readsState": true,
+        "checksSender": true
       },
       "hasBody": true,
       "interfaceHash": "c160fd051bbea45c",
@@ -210,6 +220,11 @@
         "column": 4
       },
       "bodyHash": "37a68f975eb1cacd",
+      "entrypoints": [
+        "src/Base.sol:Base.tag()",
+        "src/Vault.sol:Vault.tag()"
+      ],
+      "externallyReachable": true,
       "flags": {},
       "hasBody": true,
       "interfaceHash": "372430326073029a",
@@ -447,6 +462,11 @@
         "column": 4
       },
       "bodyHash": "e89deca7f12b4181",
+      "entrypoints": [
+        "src/Token.sol:Token.mint(address,uint256)",
+        "src/Vault.sol:Vault.deposit(uint256)"
+      ],
+      "externallyReachable": true,
       "flags": {
         "readsState": true,
         "writesState": true
@@ -571,6 +591,10 @@
         "column": 4
       },
       "bodyHash": "9755e64fc9d2c9f0",
+      "entrypoints": [
+        "src/Vault.sol:Vault.totalAssets()"
+      ],
+      "externallyReachable": true,
       "flags": {},
       "hasBody": true,
       "interfaceHash": "e96cb36aaf168cc2",
@@ -612,6 +636,10 @@
         "column": 0
       },
       "bodyHash": "bd76e80bd5f53df8",
+      "entrypoints": [
+        "src/Vault.sol:Vault.totalAssets()"
+      ],
+      "externallyReachable": true,
       "flags": {},
       "hasBody": true,
       "interfaceHash": "9609727c03bf83c6",
@@ -765,6 +793,10 @@
         "column": 4
       },
       "bodyHash": "11311a4cf4c6dfff",
+      "entrypoints": [
+        "src/Vault.sol:Vault.deposit(uint256)"
+      ],
+      "externallyReachable": true,
       "flags": {
         "writesState": true
       },
@@ -862,6 +894,10 @@
         "column": 4
       },
       "bodyHash": "83f747497186c27b",
+      "entrypoints": [
+        "src/Vault.sol:Vault.deposit(uint256)"
+      ],
+      "externallyReachable": true,
       "flags": {
         "readsState": true,
         "writesState": true
@@ -882,6 +918,10 @@
           "type": "uint256"
         }
       ],
+      "reentrancy": {
+        "externalCallThenWrite": true,
+        "guarded": false
+      },
       "returns": [],
       "stateMutability": "payable",
       "subkind": "function",
@@ -960,7 +1000,17 @@
         "line": 57,
         "column": 4
       },
+      "accessControl": {
+        "modifiers": [
+          "onlyOwner"
+        ],
+        "confidence": "high"
+      },
       "bodyHash": "9152fd34f2cf6d03",
+      "entrypoints": [
+        "src/Vault.sol:Vault.sweep(address payable)"
+      ],
+      "externallyReachable": true,
       "flags": {
         "hasLowLevelCall": true,
         "sendsValue": true
@@ -1002,6 +1052,10 @@
         "column": 4
       },
       "bodyHash": "30b5e2115ff90885",
+      "entrypoints": [
+        "src/Vault.sol:Vault.tag()"
+      ],
+      "externallyReachable": true,
       "flags": {},
       "hasBody": true,
       "interfaceHash": "372430326073029a",
@@ -1059,6 +1113,10 @@
         "column": 4
       },
       "bodyHash": "82c6dfe34d28c003",
+      "entrypoints": [
+        "src/Vault.sol:Vault.totalAssets()"
+      ],
+      "externallyReachable": true,
       "flags": {
         "readsState": true
       },
@@ -1096,7 +1154,17 @@
         "line": 52,
         "column": 4
       },
+      "accessControl": {
+        "modifiers": [
+          "onlyOwner"
+        ],
+        "confidence": "high"
+      },
       "bodyHash": "eff191a945560ab3",
+      "entrypoints": [
+        "src/Vault.sol:Vault.upgrade(bytes)"
+      ],
+      "externallyReachable": true,
       "flags": {
         "hasDelegatecall": true,
         "readsState": true

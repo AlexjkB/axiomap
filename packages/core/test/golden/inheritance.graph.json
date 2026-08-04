@@ -1,5 +1,5 @@
 {
-  "schemaVersion": 2,
+  "schemaVersion": 3,
   "generator": {
     "name": "axiomap",
     "parser": "treesitter",
@@ -90,6 +90,14 @@
         "column": 4
       },
       "bodyHash": "d76b1b2f31f21489",
+      "entrypoints": [
+        "src/Diamond.sol:A.ping()",
+        "src/Diamond.sol:B.ping()",
+        "src/Diamond.sol:C.ping()",
+        "src/Diamond.sol:D.ping()",
+        "src/Diamond.sol:E.ping()"
+      ],
+      "externallyReachable": true,
       "flags": {
         "readsState": true,
         "writesState": true
@@ -170,6 +178,11 @@
         "column": 4
       },
       "bodyHash": "9dbb7e6a7b759059",
+      "entrypoints": [
+        "src/Diamond.sol:B.ping()",
+        "src/Diamond.sol:E.ping()"
+      ],
+      "externallyReachable": true,
       "flags": {
         "readsState": true,
         "writesState": true
@@ -230,6 +243,11 @@
         "column": 4
       },
       "bodyHash": "c602c5af8ccbbcbc",
+      "entrypoints": [
+        "src/Diamond.sol:C.ping()",
+        "src/Diamond.sol:D.ping()"
+      ],
+      "externallyReachable": true,
       "flags": {
         "readsState": true,
         "writesState": true
@@ -293,6 +311,10 @@
         "column": 4
       },
       "bodyHash": "65311d7cfcb3b92b",
+      "entrypoints": [
+        "src/Diamond.sol:D.ping()"
+      ],
+      "externallyReachable": true,
       "flags": {
         "readsState": true,
         "writesState": true
@@ -356,6 +378,10 @@
         "column": 4
       },
       "bodyHash": "5362e214be52a78f",
+      "entrypoints": [
+        "src/Diamond.sol:E.ping()"
+      ],
+      "externallyReachable": true,
       "flags": {
         "readsState": true,
         "writesState": true
@@ -446,6 +472,12 @@
         "column": 4
       },
       "bodyHash": "4719f1243a81696a",
+      "entrypoints": [
+        "lib/openzeppelin-contracts/contracts/access/Ownable.sol:Ownable.renounceOwnership()",
+        "lib/openzeppelin-contracts/contracts/access/Ownable.sol:Ownable.transferOwnership(address)",
+        "lib/openzeppelin-contracts/contracts/access/Ownable2Step.sol:Ownable2Step.acceptOwnership()"
+      ],
+      "externallyReachable": true,
       "flags": {},
       "hasBody": true,
       "interfaceHash": "078c17841eedd140",
@@ -482,6 +514,13 @@
         "column": 4
       },
       "bodyHash": "cda587a99d524109",
+      "entrypoints": [
+        "lib/openzeppelin-contracts/contracts/token/ERC20/ERC20.sol:ERC20.transfer(address,uint256)",
+        "lib/openzeppelin-contracts/contracts/token/ERC20/ERC20.sol:ERC20.transferFrom(address,address,uint256)",
+        "lib/openzeppelin-contracts/contracts/token/ERC20/extensions/ERC20Burnable.sol:ERC20Burnable.burn(uint256)",
+        "lib/openzeppelin-contracts/contracts/token/ERC20/extensions/ERC20Burnable.sol:ERC20Burnable.burnFrom(address,uint256)"
+      ],
+      "externallyReachable": true,
       "flags": {},
       "hasBody": true,
       "interfaceHash": "fd499400b7cdb763",
@@ -561,7 +600,17 @@
         "line": 17,
         "column": 4
       },
+      "accessControl": {
+        "modifiers": [
+          "onlyOwner"
+        ],
+        "confidence": "high"
+      },
       "bodyHash": "98126481c6626436",
+      "entrypoints": [
+        "src/GovernedToken.sol:GovernedToken.pause()"
+      ],
+      "externallyReachable": true,
       "flags": {},
       "hasBody": true,
       "interfaceHash": "e382d288b5fff75a",
@@ -594,7 +643,17 @@
         "line": 21,
         "column": 4
       },
+      "accessControl": {
+        "modifiers": [
+          "onlyOwner"
+        ],
+        "confidence": "high"
+      },
       "bodyHash": "05164725c3b51383",
+      "entrypoints": [
+        "src/GovernedToken.sol:GovernedToken.unpause()"
+      ],
+      "externallyReachable": true,
       "flags": {},
       "hasBody": true,
       "interfaceHash": "c31c276d1778858e",
@@ -694,6 +753,12 @@
         "column": 4
       },
       "bodyHash": "8cd99d3af3347c4a",
+      "entrypoints": [
+        "src/Shadowing.sol:Greeter.greet()",
+        "src/Shadowing.sol:Loud.greet()",
+        "src/Shadowing.sol:Politeness.greet()"
+      ],
+      "externallyReachable": true,
       "flags": {
         "readsState": true
       },
@@ -919,6 +984,10 @@
         "column": 4
       },
       "bodyHash": "e090522e60b5cd36",
+      "entrypoints": [
+        "src/Shadowing.sol:Loud.greet()"
+      ],
+      "externallyReachable": true,
       "flags": {},
       "hasBody": true,
       "interfaceHash": "b8f6dc0c3e96d06f",
@@ -984,6 +1053,11 @@
         "column": 4
       },
       "bodyHash": "7461eefda4d93831",
+      "entrypoints": [
+        "src/Shadowing.sol:Loud.greet()",
+        "src/Shadowing.sol:Politeness.greet()"
+      ],
+      "externallyReachable": true,
       "flags": {},
       "hasBody": true,
       "interfaceHash": "b8f6dc0c3e96d06f",
@@ -1021,6 +1095,10 @@
         "column": 4
       },
       "bodyHash": "37a68f975eb1cacd",
+      "entrypoints": [
+        "src/Shadowing.sol:Politeness.name()"
+      ],
+      "externallyReachable": true,
       "flags": {},
       "hasBody": true,
       "interfaceHash": "556bfecb4949ab4f",

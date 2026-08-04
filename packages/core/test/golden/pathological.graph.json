@@ -1,5 +1,5 @@
 {
-  "schemaVersion": 2,
+  "schemaVersion": 3,
   "generator": {
     "name": "axiomap",
     "parser": "treesitter",
@@ -99,6 +99,10 @@
         "column": 4
       },
       "bodyHash": "6143d349e8271197",
+      "entrypoints": [
+        "src/Assembly.sol:Assembly.codeSize(address)"
+      ],
+      "externallyReachable": true,
       "flags": {
         "hasAssembly": true
       },
@@ -142,6 +146,10 @@
         "column": 4
       },
       "bodyHash": "75341701990d4be1",
+      "entrypoints": [
+        "src/Assembly.sol:Assembly.counted(uint256)"
+      ],
+      "externallyReachable": true,
       "flags": {
         "hasUnchecked": true
       },
@@ -185,6 +193,10 @@
         "column": 4
       },
       "bodyHash": "46a6e505df80e63e",
+      "entrypoints": [
+        "src/Assembly.sol:Assembly.destroy(address payable)"
+      ],
+      "externallyReachable": true,
       "flags": {
         "hasSelfdestruct": true
       },
@@ -223,6 +235,10 @@
         "column": 4
       },
       "bodyHash": "eb7b1a3a8fbb6246",
+      "entrypoints": [
+        "src/Assembly.sol:Assembly.readSlot(uint256)"
+      ],
+      "externallyReachable": true,
       "flags": {
         "hasAssembly": true,
         "readsState": true
@@ -287,6 +303,10 @@
         "column": 4
       },
       "bodyHash": "813af8ba55169609",
+      "entrypoints": [
+        "src/Assembly.sol:Assembly.writeRaw(uint256,bytes32)"
+      ],
+      "externallyReachable": true,
       "flags": {
         "hasAssembly": true,
         "writesState": true
@@ -394,6 +414,10 @@
         "column": 4
       },
       "bodyHash": "7f152d492da244aa",
+      "entrypoints": [
+        "src/BadImport.sol:BadImport.poke()"
+      ],
+      "externallyReachable": true,
       "flags": {
         "readsState": true
       },
@@ -493,6 +517,10 @@
         "column": 4
       },
       "bodyHash": "d6e5b67a960f7dd3",
+      "entrypoints": [
+        "src/Crlf.sol:Crlf.get()"
+      ],
+      "externallyReachable": true,
       "flags": {
         "readsState": true
       },
@@ -531,6 +559,10 @@
         "column": 4
       },
       "bodyHash": "9144eba787bd0d65",
+      "entrypoints": [
+        "src/Crlf.sol:Crlf.set(uint256)"
+      ],
+      "externallyReachable": true,
       "flags": {
         "writesState": true
       },
@@ -630,6 +662,10 @@
         "column": 4
       },
       "bodyHash": "915158a72f52c74b",
+      "entrypoints": [
+        "src/DoesNotCompile.sol:DoesNotCompile.alsoBroken()"
+      ],
+      "externallyReachable": true,
       "flags": {},
       "hasBody": true,
       "interfaceHash": "4eb388530faf08a7",
@@ -666,6 +702,10 @@
         "column": 4
       },
       "bodyHash": "475faed7d4ff43ff",
+      "entrypoints": [
+        "src/DoesNotCompile.sol:DoesNotCompile.broken()"
+      ],
+      "externallyReachable": true,
       "flags": {
         "writesState": true
       },
@@ -760,6 +800,10 @@
         "column": 4
       },
       "bodyHash": "b005d88b74f4b7b2",
+      "entrypoints": [
+        "src/DoesNotCompile.sol:DoesNotCompile.increment()"
+      ],
+      "externallyReachable": true,
       "flags": {
         "readsState": true,
         "writesState": true
@@ -794,6 +838,10 @@
         "column": 4
       },
       "bodyHash": "444605ea147580e0",
+      "entrypoints": [
+        "src/DoesNotCompile.sol:DoesNotCompile.noReturn()"
+      ],
+      "externallyReachable": true,
       "flags": {},
       "hasBody": true,
       "interfaceHash": "01e5350f5e1fc72c",
@@ -955,6 +1003,10 @@
         "column": 4
       },
       "bodyHash": "f1e7ef31d0331612",
+      "entrypoints": [
+        "src/Indirect.sol:Indirect.apply_(uint256)"
+      ],
+      "externallyReachable": true,
       "flags": {},
       "hasBody": true,
       "interfaceHash": "d54e091ed12b2e93",
@@ -996,6 +1048,10 @@
         "column": 4
       },
       "bodyHash": "bade06c6b3797fc6",
+      "entrypoints": [
+        "src/Indirect.sol:Indirect.choose(bool)"
+      ],
+      "externallyReachable": true,
       "flags": {
         "writesState": true
       },
@@ -1075,6 +1131,10 @@
         "column": 4
       },
       "bodyHash": "4970c00416559c9e",
+      "entrypoints": [
+        "src/Indirect.sol:Indirect.guarded(uint256)"
+      ],
+      "externallyReachable": true,
       "flags": {
         "hasTryCatch": true,
         "readsState": true
@@ -1119,6 +1179,10 @@
         "column": 4
       },
       "bodyHash": "865dffa140e4fe10",
+      "entrypoints": [
+        "src/Indirect.sol:Indirect.pick(address)"
+      ],
+      "externallyReachable": true,
       "flags": {},
       "hasBody": true,
       "interfaceHash": "ee6b3e385de9adcc",
@@ -1160,6 +1224,10 @@
         "column": 4
       },
       "bodyHash": "720600204953e0aa",
+      "entrypoints": [
+        "src/Indirect.sol:Indirect.pick(uint256)"
+      ],
+      "externallyReachable": true,
       "flags": {},
       "hasBody": true,
       "interfaceHash": "02c530d4bb7a9ea9",
@@ -1201,6 +1269,10 @@
         "column": 4
       },
       "bodyHash": "ee3f9d2834c7ccb0",
+      "entrypoints": [
+        "src/Indirect.sol:Indirect.raw(bytes4,uint256)"
+      ],
+      "externallyReachable": true,
       "flags": {
         "hasLowLevelCall": true,
         "readsState": true
@@ -1392,9 +1464,18 @@
         "line": 15,
         "column": 4
       },
+      "accessControl": {
+        "modifiers": [],
+        "confidence": "low"
+      },
       "bodyHash": "13625fe5cd095a32",
+      "entrypoints": [
+        "src/Legacy.sol:Legacy.add(uint256)"
+      ],
+      "externallyReachable": true,
       "flags": {
-        "readsState": true
+        "readsState": true,
+        "checksSender": true
       },
       "hasBody": true,
       "interfaceHash": "c160fd051bbea45c",
@@ -1425,7 +1506,17 @@
         "line": 20,
         "column": 4
       },
+      "accessControl": {
+        "modifiers": [
+          "onlyOwner"
+        ],
+        "confidence": "high"
+      },
       "bodyHash": "ece869d7e92a870d",
+      "entrypoints": [
+        "src/Legacy.sol:Legacy.add(uint256)"
+      ],
+      "externallyReachable": true,
       "flags": {
         "readsState": true,
         "writesState": true
@@ -1601,6 +1692,10 @@
         "column": 4
       },
       "bodyHash": "954b81b704c4c39e",
+      "entrypoints": [
+        "src/Proxy.sol:Implementation.mint(uint256)"
+      ],
+      "externallyReachable": true,
       "flags": {
         "readsState": true,
         "writesState": true
@@ -1741,6 +1836,10 @@
         "column": 4
       },
       "bodyHash": "73fbf2779a1759fd",
+      "entrypoints": [
+        "src/Proxy.sol:Proxy.fallback()"
+      ],
+      "externallyReachable": true,
       "flags": {
         "hasAssembly": true,
         "hasDelegatecall": true,
@@ -1796,6 +1895,10 @@
         "column": 4
       },
       "bodyHash": "444605ea147580e0",
+      "entrypoints": [
+        "src/Proxy.sol:Proxy.receive()"
+      ],
+      "externallyReachable": true,
       "flags": {},
       "hasBody": true,
       "interfaceHash": "2aa4cabe812f4ed8",
@@ -1826,10 +1929,19 @@
         "line": 28,
         "column": 4
       },
+      "accessControl": {
+        "modifiers": [],
+        "confidence": "low"
+      },
       "bodyHash": "2d9b8225ad690222",
+      "entrypoints": [
+        "src/Proxy.sol:Proxy.upgradeTo(address)"
+      ],
+      "externallyReachable": true,
       "flags": {
         "readsState": true,
-        "writesState": true
+        "writesState": true,
+        "checksSender": true
       },
       "hasBody": true,
       "interfaceHash": "37efb7ee1ad15045",
@@ -1907,6 +2019,10 @@
         "column": 4
       },
       "bodyHash": "66c65292fe5df409",
+      "entrypoints": [
+        "src/SyntaxError.sol:AfterTheError.stillHere()"
+      ],
+      "externallyReachable": true,
       "flags": {},
       "hasBody": true,
       "interfaceHash": "9d57a97f761b40f0",
@@ -1966,6 +2082,10 @@
         "column": 4
       },
       "bodyHash": "6b27f7444a709dc6",
+      "entrypoints": [
+        "src/SyntaxError.sol:BeforeTheError.fine()"
+      ],
+      "externallyReachable": true,
       "flags": {
         "readsState": true
       },
@@ -2047,6 +2167,10 @@
         "column": 4
       },
       "bodyHash": "23e4ff7a2dccb9a0",
+      "entrypoints": [
+        "src/SyntaxError.sol:Broken.afterTheError()"
+      ],
+      "externallyReachable": true,
       "flags": {},
       "hasBody": true,
       "interfaceHash": "e4329a5509ee78e0",
@@ -2205,6 +2329,10 @@
         "column": 4
       },
       "bodyHash": "37a68f975eb1cacd",
+      "entrypoints": [
+        "src/dup-a/Duplicate.sol:Duplicate.whoAmI()"
+      ],
+      "externallyReachable": true,
       "flags": {},
       "hasBody": true,
       "interfaceHash": "80c5a26d49dd0115",
@@ -2283,6 +2411,10 @@
         "column": 4
       },
       "bodyHash": "7ed1888ca7c3d0cd",
+      "entrypoints": [
+        "src/dup-b/Duplicate.sol:Duplicate.claim()"
+      ],
+      "externallyReachable": true,
       "flags": {
         "writesState": true
       },
@@ -2356,6 +2488,10 @@
         "column": 4
       },
       "bodyHash": "37a68f975eb1cacd",
+      "entrypoints": [
+        "src/dup-b/Duplicate.sol:Duplicate.whoAmI()"
+      ],
+      "externallyReachable": true,
       "flags": {},
       "hasBody": true,
       "interfaceHash": "80c5a26d49dd0115",
