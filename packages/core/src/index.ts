@@ -48,6 +48,9 @@ export {
   type UnresolvedTarget,
 } from './resolve/index.js';
 
+export * from './diff/index.js';
+export * from './review/index.js';
+
 export {
   buildInfoDirectories,
   discoverBuildInfo,
