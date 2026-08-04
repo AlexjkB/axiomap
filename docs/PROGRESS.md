@@ -1023,6 +1023,70 @@ are missing.
 - **Noted on the storage-layout entry** that Phase 5's finding depends on slots being
   absent, and so says nothing about packing.
 
+### Pre-Phase-6 audit
+
+Phase 5 was audited at the boundary the same way Phases 2, 3 and 4 were. It found **one
+real defect**, and it was a performance defect rather than a correctness one — which is
+itself the finding, because Phase 5 was the first phase to ship a pass that had never been
+run at scale.
+
+- **The storage-layout finding was O(contracts × nodes).** `storageOrder` filtered the whole
+  node list once per contract, twice. On `large/` that is 2,719 contracts against 30,708
+  nodes: **167 million iterations**, and 4.5 of the 5.7 seconds a self-diff took. Bucketing
+  by scope in one pass brings `deriveFindings` from **4,540 ms to 56 ms** and the whole
+  diff from **5,676 ms to 769 ms**. Every correctness fixture was green throughout — the
+  largest has five contracts, so nothing could have shown it. The first guess at the cause
+  was wrong (`JSON.stringify` in the attribute comparison, which turns out to cost 60 ms for
+  a quarter of a million calls), which is the argument for profiling over reasoning.
+
+`pnpm bench:parser` now measures the diff too, with a **tripwire rather than a budget** —
+§9 sets no budget for `axiomap diff`, and the number is set well above the measured value
+because what it guards is a pass turning quadratic, which shows up as 10x and not 10%.
+
+| | parse | graph + analysis | total | diff |
+|---|---|---|---|---|
+| single-cold | 7,537 ms | 1,215 ms | 8,762 ms | |
+| parallel-cold | 3,096 ms | 1,001 ms | 4,103 ms | |
+| parallel-warm | 946 ms | 968 ms | **1,914 ms** | **769 ms** |
+
+The diff row is a graph against itself: every node matches at tier 1, so it measures the
+half of `axiomap diff` that scales with the whole project rather than with the changeset.
+A real PR-shaped diff changes a fraction of a percent of nodes, which is why the matcher's
+inferring tiers do not appear here — and why this is the number that matters.
+
+**Four properties are now tests rather than assumptions.** All four already held when they
+were written; Phase 2 and Phase 3 each found a real bug from this same class of probe, and
+the value here is that they keep holding. Each guards a failure that would surface as
+`axiomap diff` reporting phantom changes, which is the worst thing this engine can do.
+
+- **The diff is the same over graphs read back from `graph.json`** as over freshly built
+  ones. This is exactly the path §16's "diff two stored artifacts" entry would take.
+- **The diff does not depend on worker count.** Two builds of one unchanged project at 1
+  and 4 workers diff to nothing.
+- **The diff mirrors when the revisions are swapped** — added and removed exchange, and
+  renames, moves and the unchanged count are preserved.
+- **Every fixture diffed against itself reports nothing**, including `pathological/`.
+
+**Coverage of `diff/` went 97.7% → 99.1% of statements and 85.7% → 87.7% of branches, and
+`match.ts` is at 100% of statements.** The two branches that were unreached were both
+"do not guess" guards, which is where §6 says a bug is worst:
+
+- **A body-hash bucket resolved by elimination**, when a function is moved *and* renamed in
+  one commit so neither the same-name nor the same-scope pass can fire.
+- **The greedy pass giving a contested node to its best candidate** and not also claiming
+  the loser. Two plausible successors to one function; one wins, the other is an addition.
+
+Two decisions were taken here rather than left for Phase 6 to take by accident:
+
+- **`axiomap diff --json` carries a `schemaVersion`.** §3's reasoning for `graph.json` is
+  identical — §15's eighth item points CI at this output, and Phase 6 is when people start
+  scripting it. One field now; a breaking change to somebody's pipeline later.
+- **One `axiomap.config.json` governs both revisions in a diff: the invoking working
+  tree's.** *(§13 amended.)* `accessControlModifiers` feeds the Phase 4 passes and
+  `accessControl` is a compared attribute, so reading each checkout's own config would make
+  a rename *inside that file* produce an access-control regression on every function using
+  the modifier. The question `axiomap diff` answers is what changed in the protocol.
+
 ### Notes for the next session
 
 - **Phase 6 is the CLI.** `axiomap diff` exists and works; everything else in §12 does not.
@@ -1038,3 +1102,10 @@ are missing.
   up called) is where a user reaches it.
 - **The fixture pair is frozen at both tags.** If `packages/cli/test/diff.test.ts` starts
   failing, the fixture cannot have changed — only the engine can have. Read the diff.
+- **`defi-v1` and `defi-v2` exist only locally.** They have never been pushed. The first
+  push needs `git push --tags`, or CI checks out a fixture that is half missing and the
+  exit-criterion suite fails on a real repository for a reason that is not a real bug.
+- **§13's config decision is written down but not implemented**, because nothing loads the
+  file yet. When Phase 6 wires it up, the config comes from the invoking working tree and
+  is passed to `buildProjectGraph` for *both* sides of a diff. `runDiff` has the seam and
+  the comment.
