@@ -860,6 +860,19 @@ O(entrypoints × edges) and would have been far worse than either.
 - **`defi/`'s three `lock`-guarded functions are the demonstration case for that config**,
   and there is a test that flips them to `guarded: true` with `reentrancyGuards: ['lock']`.
   If the CLI ends up shipping a starter config, that is the entry to copy.
+- **`graphFromFile` reads a `graph.json` back as an `AxiomapGraph`**, committed just after
+  this entry. `buildGraph` was the only thing that could produce one, and it needs a project
+  on disk; everything from here consumes the artifact instead. The analysis passes run on
+  either side of a serialize/parse round trip with identical results, and there is a test
+  that says so.
+- **The four Phase 4 fields are transitive, and a diff must not treat them as ordinary node
+  attributes.** One edited leaf helper flips `externallyReachable`, `entrypoints` and
+  `reentrancy` on every caller above it, so diffing them naively fills the "what must I
+  re-review" list with functions whose source did not change — which is the one list §8
+  makes the product. Phase 5 has both graphs and the passes are pure, so it can attribute a
+  finding to the function whose *direct* evidence changed and report the rest as
+  consequences of it. §8 already names "previously unreachable function became externally
+  reachable" as a finding, so this needs deciding either way.
 - **Phase 5 is the diff engine.** §14 still wants `defi/` committed twice as two git tags
   with a hand-authored changeset between them; Phase 1 deferred designing the changeset
   until the engine it exists to test existed. That is now.
