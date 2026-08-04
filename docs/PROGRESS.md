@@ -714,8 +714,11 @@ answer rather than a fallback.
 
 ### Notes for the next session, continued
 
-- **Enrichment's cost at scale is unmeasured.** `defi/` is five files; a 200k-SLOC project's
-  build-info is tens of megabytes of JSON, parsed and walked twice, plus one byte-comparison
-  read per source. §9's budget covers parse and graph, and `pnpm bench:parser` measures the
-  syntactic path only, because `large/` is generated and has no artifacts. If a Phase 7
-  user reports a slow build on a compiled project, this is the first place to look.
+- **Enrichment's cost at scale is unmeasured**, and is now a §16 entry rather than a note
+  here. Measured on `defi/`: 55 ms to load a 513 KB build-info, which is 38.6x the size of
+  the sources it describes. Extrapolating that ratio to `large/` gives ~300 MB of JSON per
+  build against §9's 5-second budget — but it is an extrapolation from one small fixture,
+  and measuring it needs a *compilable* perf fixture that does not exist yet. Deferred
+  rather than guessed at: the seam for the obvious fix (a content-hash cache of the derived
+  index, behind `loadSemanticOverlay`) already exists, and an artifact too large to parse
+  degrades to the syntactic graph with a diagnostic rather than throwing.
