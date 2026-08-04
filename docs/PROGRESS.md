@@ -1102,9 +1102,10 @@ Two decisions were taken here rather than left for Phase 6 to take by accident:
   up called) is where a user reaches it.
 - **The fixture pair is frozen at both tags.** If `packages/cli/test/diff.test.ts` starts
   failing, the fixture cannot have changed — only the engine can have. Read the diff.
-- **`defi-v1` and `defi-v2` exist only locally.** They have never been pushed. The first
-  push needs `git push --tags`, or CI checks out a fixture that is half missing and the
-  exit-criterion suite fails on a real repository for a reason that is not a real bug.
+- **`defi-v1` and `defi-v2` exist only locally, and there is no remote yet.** Nothing to do
+  now; the trap is later. Whenever a remote is added — §7 says not before Phase 6 — the
+  first push needs `git push --tags`, or CI checks out a fixture that is half missing and
+  the exit-criterion suite fails for a reason that is not a bug.
 - **§13's config decision is written down but not implemented**, because nothing loads the
   file yet. When Phase 6 wires it up, the config comes from the invoking working tree and
   is passed to `buildProjectGraph` for *both* sides of a diff. `runDiff` has the seam and
