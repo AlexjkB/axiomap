@@ -192,12 +192,17 @@ export class ProjectScope {
     const direct = [...baseIds].reverse();
     const merged = c3Merge([...reversed, direct]);
 
+    // Deduplicated unconditionally, not just on the fallback path: the cycle
+    // guard above returns `[contract.id]` for a contract already being
+    // linearized, and that entry flows back up into its own chain. A
+    // linearization listing the same contract twice is malformed, and Phase 4
+    // consumes this array rather than recomputing it.
     let order: NodeId[];
     if (merged === null) {
       certainty = 'ambiguous';
-      order = [contract.id, ...dedupe(reversed.flat())];
+      order = dedupe([contract.id, ...reversed.flat()]);
     } else {
-      order = [contract.id, ...merged];
+      order = dedupe([contract.id, ...merged]);
     }
 
     visiting.delete(contract.id);

@@ -438,6 +438,68 @@ edge's `(kind, subkind, from, to, resolution, count)`, and the resolution score 
 identical across the four fixtures, and the only `bodyHash` changes are exactly the
 bodyless functions.
 
+### Pre-Phase-3 audit
+
+Phase 2 is what every later phase reads, so it was audited rather than declared done.
+Coverage over `resolve/`, `graph/` and the body walker found the branches no test reached;
+writing tests for them found two bugs that all four fixtures had missed.
+
+**Two real bugs, both invisible to the goldens:**
+
+- **A cast receiver was recorded twice.** `T(x).m()` spells the cast as a call, so the walk
+  reached the inner `T(x)` again and recorded a second, bare call to `T`. Harmless whenever
+  `T` is a known contract — the resolver discards it as a type conversion — and a spurious
+  unresolved edge whenever it is not. Every fixture casts to a known type, so nothing caught
+  it. Fixed by marking a cast's call expression consumed.
+- **A cyclic inheritance chain listed a contract twice.** The cycle guard returns
+  `[contract.id]` for a contract already being linearized, and that entry flowed back up into
+  its own chain, so `A is B, B is A` produced `linearizedBases: [A, B, A]`. Phase 4 consumes
+  this array rather than recomputing it. Fixed by deduplicating unconditionally.
+
+**Coverage of the Phase 2 modules went 90.2% → 97.1% of statements, and 98.3% → 100% of
+functions.** 16 new tests in `test/resolve-edges.test.ts` cover what no fixture reaches:
+`this.f()`, `import * as` namespaces, bare imports, `using {f} for T`, a cast to an unknown
+type, a local function pointer, unknown modifiers, events and errors, `super` with nothing
+to dispatch to, members with no using-for attachment, missing members on a known contract —
+and the malformed hierarchies a tolerant parse can produce but solc would reject outright:
+a cycle, a contract inheriting itself, and a C3 merge that cannot be completed. The
+requirement for those three is not that they resolve; it is that they terminate, say they
+are uncertain, and invent nothing.
+
+**Three properties are now tests rather than assumptions:**
+
+- **The graph is byte-identical however many workers parsed it.** The goldens are all built
+  single-threaded, so nothing would have noticed if the parallel path — the one every real
+  `axiomap build` uses — diverged. It would have surfaced as `axiomap diff` reporting phantom
+  changes because two revisions were parsed by different worker counts. It holds today;
+  now it stays holding.
+- **The graph is byte-identical warm or cold.** The disk cache returns a deserialized parse
+  result, so a field that did not survive the JSON round-trip would make a cached build
+  differ from the cold build the goldens pin.
+- **`pathological/` has a second golden with the mode gate disabled.** It resolves below the
+  threshold, so its committed graph is structural and contains no call edges at all — the
+  one adversarial fixture's call resolution was pinned by nothing. `pathological.ungated.graph.json`
+  now pins all six, including the function pointer, the selector dispatch and the low-level
+  call.
+
+`pnpm test:coverage` was added to §6's command table, framed as what it is: a way to find
+branches no test reaches, not a number to move.
+
+**Two gaps closed in the spec rather than the code:** §10 lists `natspec` on Contract and it
+is not implemented — that was a silent gap between spec and code, now an explicit §16 entry
+with its trigger. Nested namespace member calls (`H.Helpers.twice(a)`) resolve as
+`dynamic-receiver`; the single-level form works, and the nested form is a §16 entry rather
+than an undocumented limitation.
+
+**§7's Phase 3 exit criterion now defines "identical in shape".** It was one sentence that
+three different tests could have interpreted three ways. Shape is the node set plus the edge
+set keyed by `(kind, subkind, from, to)`, against `test/golden/defi.graph.json` as the
+baseline. The important half is the constraint it implies: **enrichment upgrades edges, it
+does not discover them.** A solc AST yields call sites the heuristic tier deliberately drops
+— type conversions, struct construction, `abi.*`, array members, `new bytes(n)` — and a
+Phase 3 that walks every `FunctionCall` node will add edges Phase 2 never had and fail the
+criterion for a reason that is not a resolver bug.
+
 ### Notes for the next session
 
 - **Phase 3's exit criterion is a shape comparison**, and the heuristic graph it compares

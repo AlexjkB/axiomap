@@ -28,7 +28,12 @@ import { fileURLToPath } from 'node:url';
 import { describe, expect, it } from 'vitest';
 
 import { parseGraph, serializeGraph, type GraphEdge, type GraphFile } from '../src/index.js';
-import { CORRECTNESS_FIXTURES, graphOf, type FixtureName } from './graphs.js';
+import {
+  CORRECTNESS_FIXTURES,
+  graphOf,
+  graphWithoutModeGating,
+  type FixtureName,
+} from './graphs.js';
 
 const GOLDEN_DIR = path.join(path.dirname(fileURLToPath(import.meta.url)), 'golden');
 
@@ -122,6 +127,26 @@ describe('golden graphs', () => {
           `${name}/ vendored summary`,
         );
       });
+
+      /**
+       * `pathological/` resolves below the mode threshold, so its committed
+       * graph is structural and contains no call edges at all — leaving the
+       * call resolution of the one adversarial fixture pinned by nothing. This
+       * second golden is the same project with the mode gate disabled, so the
+       * function pointer, the selector dispatch and the low-level call are
+       * regression-tested like everything else.
+       */
+      if (name === 'pathological') {
+        it('matches its committed ungated graph.json', async () => {
+          const { file } = await graphWithoutModeGating(name);
+          expect(file.mode).toBe('heuristic');
+          compare(
+            path.join(GOLDEN_DIR, `${name}.ungated.graph.json`),
+            serializeGraph(file),
+            `${name}/graph.json (mode gate disabled)`,
+          );
+        });
+      }
 
       it('has a golden that still parses against the current schema', async () => {
         const target = path.join(GOLDEN_DIR, `${name}.graph.json`);

@@ -117,6 +117,40 @@ describe('serialization', () => {
     expect(serializeGraph(second.file)).toBe(serializeGraph(first.file));
   });
 
+  /**
+   * The goldens are all built single-threaded, so nothing else would notice if
+   * the parallel path produced a different graph — and every real `axiomap
+   * build` uses it. The failure would be silent and awful: `axiomap diff`
+   * reporting phantom changes because the two revisions happened to be parsed
+   * by a different number of workers.
+   */
+  it('is byte-identical however many workers parsed it', async () => {
+    for (const name of ['minimal', 'defi', 'pathological'] as const) {
+      const single = await buildProjectGraph(fixture(name), { cacheDir: null, workers: 1 });
+      const baseline = serializeGraph(single.file);
+      for (const workers of [2, 4, 8]) {
+        const parallel = await buildProjectGraph(fixture(name), { cacheDir: null, workers });
+        expect(serializeGraph(parallel.file), `${name} differs at ${workers} workers`).toBe(
+          baseline,
+        );
+      }
+    }
+  });
+
+  /**
+   * The disk cache is keyed by content hash and returns a deserialized parse
+   * result rather than a fresh one. A field that does not survive the JSON
+   * round-trip would make a cached build differ from a cold one — and the cold
+   * build is the one the goldens pin.
+   */
+  it('is byte-identical whether the parse cache was warm or cold', async () => {
+    const cacheDir = path.join(temporaryDir(), 'parse-cache');
+    const cold = await buildProjectGraph(fixture('minimal'), { cacheDir, workers: 1 });
+    const warm = await buildProjectGraph(fixture('minimal'), { cacheDir, workers: 1 });
+    expect(warm.parseStats.cacheHits).toBeGreaterThan(0);
+    expect(serializeGraph(warm.file)).toBe(serializeGraph(cold.file));
+  });
+
   it('ends with a trailing newline and uses two-space indent', async () => {
     const { file } = await graphOf('minimal');
     const text = serializeGraph(file);
@@ -128,6 +162,11 @@ describe('serialization', () => {
     const stale = JSON.stringify({ schemaVersion: GRAPH_SCHEMA_VERSION + 1, nodes: [], edges: [] });
     expect(() => parseGraph(stale, 'stale.json')).toThrow(GraphSchemaError);
     expect(() => parseGraph(stale, 'stale.json')).toThrow(/schemaVersion/);
+  });
+
+  it('refuses a file that is not JSON, naming the file', () => {
+    expect(() => parseGraph('{ truncated', 'half-written.json')).toThrow(GraphSchemaError);
+    expect(() => parseGraph('{ truncated', 'half-written.json')).toThrow(/half-written.json/);
   });
 
   it('refuses a graph whose shape does not match the schema', async () => {

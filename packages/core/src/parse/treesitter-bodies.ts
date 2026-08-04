@@ -171,6 +171,16 @@ interface CalleeShape {
 class BodyWalker {
   readonly #positions: PositionIndex;
   readonly #skip = new Set<number>();
+  /**
+   * Call expressions already accounted for as the cast in `T(x).m()`.
+   *
+   * A cast is spelled as a call, so the inner `T(x)` is a `call_expression`
+   * that the walk reaches again on its way down. Without this it is recorded a
+   * second time as a bare call to `T` — invisible whenever `T` is a known
+   * contract, because the resolver then discards it as a type conversion, and
+   * a spurious unresolved edge whenever it is not.
+   */
+  readonly #consumedCalls = new Set<number>();
 
   readonly calls: ParsedCall[] = [];
   readonly identifiers: ParsedIdentifierUse[] = [];
@@ -411,7 +421,8 @@ class BodyWalker {
 
   #visitCall(node: TsNode, depth: number): void {
     const callee = unwrap(firstNamed(node));
-    const shape = callee === null ? null : this.#describeCallee(callee);
+    const shape =
+      callee === null || this.#consumedCalls.has(node.id) ? null : this.#describeCallee(callee);
 
     if (shape !== null) {
       const argCount = node.children.filter((c) => c?.type === 'call_argument').length;
@@ -575,6 +586,7 @@ class BodyWalker {
     if (callee === null || callee.type !== 'identifier') return null;
     const argCount = node.children.filter((c) => c?.type === 'call_argument').length;
     if (argCount !== 1) return null;
+    this.#consumedCalls.add(node.id);
     return { type: callee.text, consumed: [callee] };
   }
 

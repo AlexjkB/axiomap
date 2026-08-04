@@ -16,12 +16,14 @@
     "clean": "turbo run clean && rm -rf node_modules/.cache .turbo",
     "prepare": "husky",
     "bench:parser": "node scripts/bench-parser.mjs",
-    "test:golden": "pnpm --filter @axiomap/core exec vitest run test/golden.test.ts"
+    "test:golden": "pnpm --filter @axiomap/core exec vitest run test/golden.test.ts",
+    "test:coverage": "pnpm --filter @axiomap/core exec vitest run --coverage.enabled --coverage.provider=v8"
   },
   "devDependencies": {
     "@eslint/js": "^9.18.0",
     "@openzeppelin/contracts": "^5.6.1",
     "@types/node": "^22.10.5",
+    "@vitest/coverage-v8": "^2.1.9",
     "eslint": "^9.18.0",
     "husky": "^9.1.7",
     "lint-staged": "^15.3.0",
