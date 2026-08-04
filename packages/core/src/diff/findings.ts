@@ -106,26 +106,39 @@ function evidenceOf(change: NodeChange): 'direct' | 'consequence' {
 }
 
 /**
- * Non-constant, non-immutable state variables of one contract, in declaration
- * order — which is slot order.
+ * Every contract's storage layout: non-constant, non-immutable state variables
+ * in declaration order, which is slot order.
  *
  * Declaration order rather than the `slot` field on purpose: slots exist only
  * with build artifacts, and §8's premise is that the old revision usually has
- * none. Constants and immutables are excluded because they do not occupy a
- * slot, so inserting one is not a layout change.
+ * none. Constants, immutables and transients are excluded because they do not
+ * occupy a slot, so inserting one is not a layout change.
+ *
+ * Bucketed by scope in one pass rather than filtered per contract. The
+ * per-contract form was O(contracts × nodes) and cost **4.5 of the 5.7 seconds**
+ * a self-diff of `large/` took — 2,719 contracts against 30,708 nodes is 167
+ * million iterations for an answer that is one pass. Invisible on all four
+ * correctness fixtures, which is the argument for benchmarking the diff at
+ * scale rather than reasoning about it.
  */
-function storageOrder(nodes: readonly GraphNode[], scope: string): string[] {
-  return nodes
-    .filter(
-      (node): node is Extract<GraphNode, { kind: 'StateVariable' }> =>
-        node.kind === 'StateVariable' &&
-        node.scope === scope &&
-        !node.isConstant &&
-        !node.isImmutable &&
-        !node.isTransient,
-    )
-    .sort((a, b) => a.src.offset - b.src.offset)
-    .map((node) => node.name);
+function storageOrders(nodes: readonly GraphNode[]): Map<string, string[]> {
+  const buckets = new Map<string, Extract<GraphNode, { kind: 'StateVariable' }>[]>();
+  for (const node of nodes) {
+    if (node.kind !== 'StateVariable' || node.scope === null) continue;
+    if (node.isConstant || node.isImmutable || node.isTransient) continue;
+    const list = buckets.get(node.scope);
+    if (list === undefined) buckets.set(node.scope, [node]);
+    else list.push(node);
+  }
+
+  const out = new Map<string, string[]>();
+  for (const [scope, list] of buckets) {
+    out.set(
+      scope,
+      list.sort((a, b) => a.src.offset - b.src.offset).map((node) => node.name),
+    );
+  }
+  return out;
 }
 
 export function deriveFindings(diff: GraphDiff): DiffFinding[] {
@@ -232,12 +245,16 @@ export function deriveFindings(diff: GraphDiff): DiffFinding[] {
   // Per contract rather than per variable: §8's finding is about the layout,
   // and one inserted variable shifts every slot after it. Reporting each of
   // those as its own finding would say the same thing five times.
-  const beforeNodes = diff.nodes.map((c) => c.before).filter((n): n is GraphNode => n !== null);
-  const afterNodes = diff.nodes.map((c) => c.after).filter((n): n is GraphNode => n !== null);
+  const beforeLayouts = storageOrders(
+    diff.nodes.map((c) => c.before).filter((n): n is GraphNode => n !== null),
+  );
+  const afterLayouts = storageOrders(
+    diff.nodes.map((c) => c.after).filter((n): n is GraphNode => n !== null),
+  );
   for (const change of diff.nodes) {
     if (change.kind !== 'Contract' || change.before === null || change.after === null) continue;
-    const before = storageOrder(beforeNodes, change.before.id);
-    const after = storageOrder(afterNodes, change.after.id);
+    const before = beforeLayouts.get(change.before.id) ?? [];
+    const after = afterLayouts.get(change.after.id) ?? [];
     if (before.join(',') === after.join(',')) continue;
     add(
       'storage-layout-changed',
