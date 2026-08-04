@@ -14,7 +14,13 @@ jobs:
     name: build + test + lint
     runs-on: ubuntu-latest
     steps:
+      # Tags, not just the tip: `defi-v1` and `defi-v2` are the §14 diff
+      # fixture, and Phase 5's exit criterion diffs one against the other. A
+      # shallow checkout without them fails the suite rather than skipping it,
+      # which is deliberate but only useful if CI actually has them.
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
       - uses: pnpm/action-setup@v4
       - uses: actions/setup-node@v4
         with:
