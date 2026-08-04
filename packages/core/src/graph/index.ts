@@ -13,6 +13,7 @@ export {
   parseGraph,
   readGraph,
   serializeGraph,
+  serializeGraphCompact,
   writeGraph,
 } from './serialize.js';
 export {

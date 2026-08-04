@@ -36,7 +36,7 @@
   "diagnostics": [],
   "nodes": [
     {
-      "id": "?call",
+      "id": "?low-level:call",
       "kind": "Unresolved",
       "name": "call",
       "file": "src/Vault.sol",
@@ -48,11 +48,12 @@
         "line": 58,
         "column": 21
       },
-      "synthetic": true,
-      "reason": "call on address: the target is determined at runtime"
+      "category": "low-level",
+      "reason": "call on address: the target is determined at runtime",
+      "synthetic": true
     },
     {
-      "id": "?delegatecall",
+      "id": "?low-level:delegatecall",
       "kind": "Unresolved",
       "name": "delegatecall",
       "file": "src/Vault.sol",
@@ -64,8 +65,9 @@
         "line": 53,
         "column": 21
       },
-      "synthetic": true,
-      "reason": "delegatecall on address: the target is determined at runtime"
+      "category": "low-level",
+      "reason": "delegatecall on address: the target is determined at runtime",
+      "synthetic": true
     },
     {
       "id": "src/Base.sol",
@@ -81,12 +83,13 @@
         "column": 0
       },
       "pragma": "pragma solidity ^0.8.20;",
-      "versionSupport": "supported",
       "recovered": false,
-      "unresolvedImports": []
+      "unresolvedImports": [],
+      "versionSupport": "supported"
     },
     {
       "id": "src/Base.sol:Base",
+      "kind": "Contract",
       "name": "Base",
       "file": "src/Base.sol",
       "scope": null,
@@ -97,19 +100,19 @@
         "line": 7,
         "column": 0
       },
-      "kind": "Contract",
-      "contractKind": "abstract",
       "baseNames": [],
+      "contractKind": "abstract",
+      "isFullyImplemented": true,
+      "isMock": false,
+      "isTest": false,
+      "linearizationCertainty": "certain",
       "linearizedBases": [
         "src/Base.sol:Base"
-      ],
-      "linearizationCertainty": "certain",
-      "isFullyImplemented": true,
-      "isTest": false,
-      "isMock": false
+      ]
     },
     {
       "id": "src/Base.sol:Base#onlyOwner",
+      "kind": "Function",
       "name": "onlyOwner",
       "file": "src/Base.sol",
       "scope": "src/Base.sol:Base",
@@ -120,38 +123,29 @@
         "line": 10,
         "column": 4
       },
-      "kind": "Function",
-      "subkind": "modifier",
-      "visibility": "default",
-      "stateMutability": "nonpayable",
-      "isVirtual": false,
-      "isOverride": false,
-      "modifiers": [],
-      "params": [],
-      "returns": [],
-      "hasBody": true,
       "bodyHash": "e81eed813adbe346",
+      "flags": {
+        "readsState": true
+      },
+      "hasBody": true,
       "interfaceHash": "c160fd051bbea45c",
+      "isOverride": false,
+      "isVirtual": false,
       "metrics": {
         "sloc": 6,
         "cyclomatic": 2,
         "maxDepth": 2
       },
-      "flags": {
-        "hasAssembly": false,
-        "hasDelegatecall": false,
-        "hasLowLevelCall": false,
-        "hasSelfdestruct": false,
-        "hasCreate": false,
-        "sendsValue": false,
-        "hasUnchecked": false,
-        "hasTryCatch": false,
-        "readsState": true,
-        "writesState": false
-      }
+      "modifiers": [],
+      "params": [],
+      "returns": [],
+      "stateMutability": "nonpayable",
+      "subkind": "modifier",
+      "visibility": "default"
     },
     {
       "id": "src/Base.sol:Base.constructor()",
+      "kind": "Function",
       "name": "constructor",
       "file": "src/Base.sol",
       "scope": "src/Base.sol:Base",
@@ -162,38 +156,29 @@
         "line": 17,
         "column": 4
       },
-      "kind": "Function",
-      "subkind": "constructor",
-      "visibility": "default",
-      "stateMutability": "nonpayable",
-      "isVirtual": false,
-      "isOverride": false,
-      "modifiers": [],
-      "params": [],
-      "returns": [],
-      "hasBody": true,
       "bodyHash": "7ed1888ca7c3d0cd",
+      "flags": {
+        "writesState": true
+      },
+      "hasBody": true,
       "interfaceHash": "af0d2cd02d81da76",
+      "isOverride": false,
+      "isVirtual": false,
       "metrics": {
         "sloc": 3,
         "cyclomatic": 1,
         "maxDepth": 1
       },
-      "flags": {
-        "hasAssembly": false,
-        "hasDelegatecall": false,
-        "hasLowLevelCall": false,
-        "hasSelfdestruct": false,
-        "hasCreate": false,
-        "sendsValue": false,
-        "hasUnchecked": false,
-        "hasTryCatch": false,
-        "readsState": false,
-        "writesState": true
-      }
+      "modifiers": [],
+      "params": [],
+      "returns": [],
+      "stateMutability": "nonpayable",
+      "subkind": "constructor",
+      "visibility": "default"
     },
     {
       "id": "src/Base.sol:Base.owner",
+      "kind": "StateVariable",
       "name": "owner",
       "file": "src/Base.sol",
       "scope": "src/Base.sol:Base",
@@ -204,16 +189,16 @@
         "line": 8,
         "column": 4
       },
-      "kind": "StateVariable",
-      "type": "address",
-      "visibility": "public",
       "isConstant": false,
       "isImmutable": false,
+      "isMapping": false,
       "isTransient": false,
-      "isMapping": false
+      "type": "address",
+      "visibility": "public"
     },
     {
       "id": "src/Base.sol:Base.tag()",
+      "kind": "Function",
       "name": "tag",
       "file": "src/Base.sol",
       "scope": "src/Base.sol:Base",
@@ -224,40 +209,29 @@
         "line": 22,
         "column": 4
       },
-      "kind": "Function",
-      "subkind": "function",
-      "visibility": "public",
-      "stateMutability": "view",
-      "isVirtual": true,
-      "isOverride": false,
-      "modifiers": [],
-      "params": [],
-      "returns": [
-        {
-          "name": null,
-          "type": "string"
-        }
-      ],
-      "hasBody": true,
       "bodyHash": "37a68f975eb1cacd",
+      "flags": {},
+      "hasBody": true,
       "interfaceHash": "372430326073029a",
+      "isOverride": false,
+      "isVirtual": true,
       "metrics": {
         "sloc": 3,
         "cyclomatic": 1,
         "maxDepth": 1
       },
-      "flags": {
-        "hasAssembly": false,
-        "hasDelegatecall": false,
-        "hasLowLevelCall": false,
-        "hasSelfdestruct": false,
-        "hasCreate": false,
-        "sendsValue": false,
-        "hasUnchecked": false,
-        "hasTryCatch": false,
-        "readsState": false,
-        "writesState": false
-      }
+      "modifiers": [],
+      "params": [],
+      "returns": [
+        {
+          "name": null,
+          "type": "string",
+          "storageLocation": "memory"
+        }
+      ],
+      "stateMutability": "view",
+      "subkind": "function",
+      "visibility": "public"
     },
     {
       "id": "src/IVault.sol",
@@ -273,12 +247,13 @@
         "column": 0
       },
       "pragma": "pragma solidity ^0.8.20;",
-      "versionSupport": "supported",
       "recovered": false,
-      "unresolvedImports": []
+      "unresolvedImports": [],
+      "versionSupport": "supported"
     },
     {
       "id": "src/IVault.sol:IVault",
+      "kind": "Contract",
       "name": "IVault",
       "file": "src/IVault.sol",
       "scope": null,
@@ -289,19 +264,19 @@
         "line": 5,
         "column": 0
       },
-      "kind": "Contract",
-      "contractKind": "interface",
       "baseNames": [],
+      "contractKind": "interface",
+      "isFullyImplemented": false,
+      "isMock": false,
+      "isTest": false,
+      "linearizationCertainty": "certain",
       "linearizedBases": [
         "src/IVault.sol:IVault"
-      ],
-      "linearizationCertainty": "certain",
-      "isFullyImplemented": false,
-      "isTest": false,
-      "isMock": false
+      ]
     },
     {
       "id": "src/IVault.sol:IVault.deposit(uint256)",
+      "kind": "Function",
       "name": "deposit",
       "file": "src/IVault.sol",
       "scope": "src/IVault.sol:IVault",
@@ -312,12 +287,17 @@
         "line": 8,
         "column": 4
       },
-      "kind": "Function",
-      "subkind": "function",
-      "visibility": "external",
-      "stateMutability": "payable",
-      "isVirtual": false,
+      "bodyHash": "",
+      "flags": {},
+      "hasBody": false,
+      "interfaceHash": "58633351802ad486",
       "isOverride": false,
+      "isVirtual": false,
+      "metrics": {
+        "sloc": 0,
+        "cyclomatic": 1,
+        "maxDepth": 0
+      },
       "modifiers": [],
       "params": [
         {
@@ -326,29 +306,13 @@
         }
       ],
       "returns": [],
-      "hasBody": false,
-      "bodyHash": "3498efb3aa3800ea",
-      "interfaceHash": "58633351802ad486",
-      "metrics": {
-        "sloc": 0,
-        "cyclomatic": 1,
-        "maxDepth": 0
-      },
-      "flags": {
-        "hasAssembly": false,
-        "hasDelegatecall": false,
-        "hasLowLevelCall": false,
-        "hasSelfdestruct": false,
-        "hasCreate": false,
-        "sendsValue": false,
-        "hasUnchecked": false,
-        "hasTryCatch": false,
-        "readsState": false,
-        "writesState": false
-      }
+      "stateMutability": "payable",
+      "subkind": "function",
+      "visibility": "external"
     },
     {
       "id": "src/IVault.sol:IVault.totalAssets()",
+      "kind": "Function",
       "name": "totalAssets",
       "file": "src/IVault.sol",
       "scope": "src/IVault.sol:IVault",
@@ -359,12 +323,17 @@
         "line": 10,
         "column": 4
       },
-      "kind": "Function",
-      "subkind": "function",
-      "visibility": "external",
-      "stateMutability": "view",
-      "isVirtual": false,
+      "bodyHash": "",
+      "flags": {},
+      "hasBody": false,
+      "interfaceHash": "78d4c1387b74f3c2",
       "isOverride": false,
+      "isVirtual": false,
+      "metrics": {
+        "sloc": 0,
+        "cyclomatic": 1,
+        "maxDepth": 0
+      },
       "modifiers": [],
       "params": [],
       "returns": [
@@ -373,29 +342,13 @@
           "type": "uint256"
         }
       ],
-      "hasBody": false,
-      "bodyHash": "3498efb3aa3800ea",
-      "interfaceHash": "78d4c1387b74f3c2",
-      "metrics": {
-        "sloc": 0,
-        "cyclomatic": 1,
-        "maxDepth": 0
-      },
-      "flags": {
-        "hasAssembly": false,
-        "hasDelegatecall": false,
-        "hasLowLevelCall": false,
-        "hasSelfdestruct": false,
-        "hasCreate": false,
-        "sendsValue": false,
-        "hasUnchecked": false,
-        "hasTryCatch": false,
-        "readsState": false,
-        "writesState": false
-      }
+      "stateMutability": "view",
+      "subkind": "function",
+      "visibility": "external"
     },
     {
       "id": "src/IVault.sol:IVault^Deposited(address,uint256)",
+      "kind": "Event",
       "name": "Deposited",
       "file": "src/IVault.sol",
       "scope": "src/IVault.sol:IVault",
@@ -406,18 +359,18 @@
         "line": 6,
         "column": 4
       },
-      "kind": "Event",
+      "isAnonymous": false,
       "params": [
         {
           "name": "owner",
-          "type": "address"
+          "type": "address",
+          "indexed": true
         },
         {
           "name": "amount",
           "type": "uint256"
         }
-      ],
-      "isAnonymous": false
+      ]
     },
     {
       "id": "src/Token.sol",
@@ -433,12 +386,13 @@
         "column": 0
       },
       "pragma": "pragma solidity ^0.8.20;",
-      "versionSupport": "supported",
       "recovered": false,
-      "unresolvedImports": []
+      "unresolvedImports": [],
+      "versionSupport": "supported"
     },
     {
       "id": "src/Token.sol:Token",
+      "kind": "Contract",
       "name": "Token",
       "file": "src/Token.sol",
       "scope": null,
@@ -449,19 +403,19 @@
         "line": 5,
         "column": 0
       },
-      "kind": "Contract",
-      "contractKind": "contract",
       "baseNames": [],
+      "contractKind": "contract",
+      "isFullyImplemented": true,
+      "isMock": false,
+      "isTest": false,
+      "linearizationCertainty": "certain",
       "linearizedBases": [
         "src/Token.sol:Token"
-      ],
-      "linearizationCertainty": "certain",
-      "isFullyImplemented": true,
-      "isTest": false,
-      "isMock": false
+      ]
     },
     {
       "id": "src/Token.sol:Token.balanceOf",
+      "kind": "StateVariable",
       "name": "balanceOf",
       "file": "src/Token.sol",
       "scope": "src/Token.sol:Token",
@@ -472,16 +426,16 @@
         "line": 6,
         "column": 4
       },
-      "kind": "StateVariable",
-      "type": "mapping(address => uint256)",
-      "visibility": "public",
       "isConstant": false,
       "isImmutable": false,
+      "isMapping": true,
       "isTransient": false,
-      "isMapping": true
+      "type": "mapping(address => uint256)",
+      "visibility": "public"
     },
     {
       "id": "src/Token.sol:Token.mint(address,uint256)",
+      "kind": "Function",
       "name": "mint",
       "file": "src/Token.sol",
       "scope": "src/Token.sol:Token",
@@ -492,12 +446,20 @@
         "line": 8,
         "column": 4
       },
-      "kind": "Function",
-      "subkind": "function",
-      "visibility": "external",
-      "stateMutability": "nonpayable",
-      "isVirtual": false,
+      "bodyHash": "e89deca7f12b4181",
+      "flags": {
+        "readsState": true,
+        "writesState": true
+      },
+      "hasBody": true,
+      "interfaceHash": "ecaf9320ff5a203c",
       "isOverride": false,
+      "isVirtual": false,
+      "metrics": {
+        "sloc": 3,
+        "cyclomatic": 1,
+        "maxDepth": 1
+      },
       "modifiers": [],
       "params": [
         {
@@ -510,26 +472,9 @@
         }
       ],
       "returns": [],
-      "hasBody": true,
-      "bodyHash": "e89deca7f12b4181",
-      "interfaceHash": "ecaf9320ff5a203c",
-      "metrics": {
-        "sloc": 3,
-        "cyclomatic": 1,
-        "maxDepth": 1
-      },
-      "flags": {
-        "hasAssembly": false,
-        "hasDelegatecall": false,
-        "hasLowLevelCall": false,
-        "hasSelfdestruct": false,
-        "hasCreate": false,
-        "sendsValue": false,
-        "hasUnchecked": false,
-        "hasTryCatch": false,
-        "readsState": true,
-        "writesState": true
-      }
+      "stateMutability": "nonpayable",
+      "subkind": "function",
+      "visibility": "external"
     },
     {
       "id": "src/Types.sol",
@@ -545,12 +490,13 @@
         "column": 0
       },
       "pragma": "pragma solidity ^0.8.20;",
-      "versionSupport": "supported",
       "recovered": false,
-      "unresolvedImports": []
+      "unresolvedImports": [],
+      "versionSupport": "supported"
     },
     {
       "id": "src/Types.sol:!NotAuthorized(address)",
+      "kind": "Error",
       "name": "NotAuthorized",
       "file": "src/Types.sol",
       "scope": null,
@@ -561,7 +507,6 @@
         "line": 21,
         "column": 0
       },
-      "kind": "Error",
       "params": [
         {
           "name": "caller",
@@ -571,6 +516,7 @@
     },
     {
       "id": "src/Types.sol:MAX_DEPOSIT",
+      "kind": "StateVariable",
       "name": "MAX_DEPOSIT",
       "file": "src/Types.sol",
       "scope": null,
@@ -581,16 +527,16 @@
         "line": 24,
         "column": 0
       },
-      "kind": "StateVariable",
-      "type": "uint256",
-      "visibility": "default",
       "isConstant": true,
       "isImmutable": false,
+      "isMapping": false,
       "isTransient": false,
-      "isMapping": false
+      "type": "uint256",
+      "visibility": "default"
     },
     {
       "id": "src/Types.sol:MathLib",
+      "kind": "Contract",
       "name": "MathLib",
       "file": "src/Types.sol",
       "scope": null,
@@ -601,19 +547,19 @@
         "line": 32,
         "column": 0
       },
-      "kind": "Contract",
-      "contractKind": "library",
       "baseNames": [],
+      "contractKind": "library",
+      "isFullyImplemented": true,
+      "isMock": false,
+      "isTest": false,
+      "linearizationCertainty": "certain",
       "linearizedBases": [
         "src/Types.sol:MathLib"
-      ],
-      "linearizationCertainty": "certain",
-      "isFullyImplemented": true,
-      "isTest": false,
-      "isMock": false
+      ]
     },
     {
       "id": "src/Types.sol:MathLib.half(uint256)",
+      "kind": "Function",
       "name": "half",
       "file": "src/Types.sol",
       "scope": "src/Types.sol:MathLib",
@@ -624,12 +570,17 @@
         "line": 33,
         "column": 4
       },
-      "kind": "Function",
-      "subkind": "function",
-      "visibility": "internal",
-      "stateMutability": "pure",
-      "isVirtual": false,
+      "bodyHash": "9755e64fc9d2c9f0",
+      "flags": {},
+      "hasBody": true,
+      "interfaceHash": "e96cb36aaf168cc2",
       "isOverride": false,
+      "isVirtual": false,
+      "metrics": {
+        "sloc": 3,
+        "cyclomatic": 1,
+        "maxDepth": 1
+      },
       "modifiers": [],
       "params": [
         {
@@ -643,29 +594,13 @@
           "type": "uint256"
         }
       ],
-      "hasBody": true,
-      "bodyHash": "9755e64fc9d2c9f0",
-      "interfaceHash": "e96cb36aaf168cc2",
-      "metrics": {
-        "sloc": 3,
-        "cyclomatic": 1,
-        "maxDepth": 1
-      },
-      "flags": {
-        "hasAssembly": false,
-        "hasDelegatecall": false,
-        "hasLowLevelCall": false,
-        "hasSelfdestruct": false,
-        "hasCreate": false,
-        "sendsValue": false,
-        "hasUnchecked": false,
-        "hasTryCatch": false,
-        "readsState": false,
-        "writesState": false
-      }
+      "stateMutability": "pure",
+      "subkind": "function",
+      "visibility": "internal"
     },
     {
       "id": "src/Types.sol:scale(uint256,uint256)",
+      "kind": "Function",
       "name": "scale",
       "file": "src/Types.sol",
       "scope": null,
@@ -676,12 +611,17 @@
         "line": 27,
         "column": 0
       },
-      "kind": "Function",
-      "subkind": "function",
-      "visibility": "default",
-      "stateMutability": "pure",
-      "isVirtual": false,
+      "bodyHash": "bd76e80bd5f53df8",
+      "flags": {},
+      "hasBody": true,
+      "interfaceHash": "9609727c03bf83c6",
       "isOverride": false,
+      "isVirtual": false,
+      "metrics": {
+        "sloc": 3,
+        "cyclomatic": 1,
+        "maxDepth": 1
+      },
       "modifiers": [],
       "params": [
         {
@@ -699,29 +639,13 @@
           "type": "uint256"
         }
       ],
-      "hasBody": true,
-      "bodyHash": "bd76e80bd5f53df8",
-      "interfaceHash": "9609727c03bf83c6",
-      "metrics": {
-        "sloc": 3,
-        "cyclomatic": 1,
-        "maxDepth": 1
-      },
-      "flags": {
-        "hasAssembly": false,
-        "hasDelegatecall": false,
-        "hasLowLevelCall": false,
-        "hasSelfdestruct": false,
-        "hasCreate": false,
-        "sendsValue": false,
-        "hasUnchecked": false,
-        "hasTryCatch": false,
-        "readsState": false,
-        "writesState": false
-      }
+      "stateMutability": "pure",
+      "subkind": "function",
+      "visibility": "default"
     },
     {
       "id": "src/Types.sol:~Deposit",
+      "kind": "Struct",
       "name": "Deposit",
       "file": "src/Types.sol",
       "scope": null,
@@ -731,11 +655,11 @@
         "length": 57,
         "line": 8,
         "column": 0
-      },
-      "kind": "Struct"
+      }
     },
     {
       "id": "src/Types.sol:~Shares",
+      "kind": "UserDefinedValueType",
       "name": "Shares",
       "file": "src/Types.sol",
       "scope": null,
@@ -745,11 +669,11 @@
         "length": 23,
         "line": 5,
         "column": 0
-      },
-      "kind": "UserDefinedValueType"
+      }
     },
     {
       "id": "src/Types.sol:~Status",
+      "kind": "Enum",
       "name": "Status",
       "file": "src/Types.sol",
       "scope": null,
@@ -759,8 +683,7 @@
         "length": 48,
         "line": 14,
         "column": 0
-      },
-      "kind": "Enum"
+      }
     },
     {
       "id": "src/Vault.sol",
@@ -776,12 +699,13 @@
         "column": 0
       },
       "pragma": "pragma solidity ^0.8.20;",
-      "versionSupport": "supported",
       "recovered": false,
-      "unresolvedImports": []
+      "unresolvedImports": [],
+      "versionSupport": "supported"
     },
     {
       "id": "src/Vault.sol:Vault",
+      "kind": "Contract",
       "name": "Vault",
       "file": "src/Vault.sol",
       "scope": null,
@@ -792,24 +716,24 @@
         "line": 10,
         "column": 0
       },
-      "kind": "Contract",
-      "contractKind": "contract",
       "baseNames": [
         "Base",
         "IVault"
       ],
+      "contractKind": "contract",
+      "isFullyImplemented": true,
+      "isMock": false,
+      "isTest": false,
+      "linearizationCertainty": "certain",
       "linearizedBases": [
         "src/Vault.sol:Vault",
         "src/IVault.sol:IVault",
         "src/Base.sol:Base"
-      ],
-      "linearizationCertainty": "certain",
-      "isFullyImplemented": true,
-      "isTest": false,
-      "isMock": false
+      ]
     },
     {
       "id": "src/Vault.sol:Vault!DepositTooLarge(uint256)",
+      "kind": "Error",
       "name": "DepositTooLarge",
       "file": "src/Vault.sol",
       "scope": "src/Vault.sol:Vault",
@@ -820,7 +744,6 @@
         "line": 14,
         "column": 4
       },
-      "kind": "Error",
       "params": [
         {
           "name": "amount",
@@ -830,6 +753,7 @@
     },
     {
       "id": "src/Vault.sol:Vault._record(uint256)",
+      "kind": "Function",
       "name": "_record",
       "file": "src/Vault.sol",
       "scope": "src/Vault.sol:Vault",
@@ -840,12 +764,19 @@
         "line": 63,
         "column": 4
       },
-      "kind": "Function",
-      "subkind": "function",
-      "visibility": "internal",
-      "stateMutability": "nonpayable",
-      "isVirtual": false,
+      "bodyHash": "11311a4cf4c6dfff",
+      "flags": {
+        "writesState": true
+      },
+      "hasBody": true,
+      "interfaceHash": "74e98ab3ec50e0cf",
       "isOverride": false,
+      "isVirtual": false,
+      "metrics": {
+        "sloc": 3,
+        "cyclomatic": 2,
+        "maxDepth": 1
+      },
       "modifiers": [],
       "params": [
         {
@@ -854,29 +785,13 @@
         }
       ],
       "returns": [],
-      "hasBody": true,
-      "bodyHash": "11311a4cf4c6dfff",
-      "interfaceHash": "74e98ab3ec50e0cf",
-      "metrics": {
-        "sloc": 3,
-        "cyclomatic": 2,
-        "maxDepth": 1
-      },
-      "flags": {
-        "hasAssembly": false,
-        "hasDelegatecall": false,
-        "hasLowLevelCall": false,
-        "hasSelfdestruct": false,
-        "hasCreate": false,
-        "sendsValue": false,
-        "hasUnchecked": false,
-        "hasTryCatch": false,
-        "readsState": false,
-        "writesState": true
-      }
+      "stateMutability": "nonpayable",
+      "subkind": "function",
+      "visibility": "internal"
     },
     {
       "id": "src/Vault.sol:Vault.assets",
+      "kind": "StateVariable",
       "name": "assets",
       "file": "src/Vault.sol",
       "scope": "src/Vault.sol:Vault",
@@ -887,16 +802,16 @@
         "line": 20,
         "column": 4
       },
-      "kind": "StateVariable",
-      "type": "uint256",
-      "visibility": "internal",
       "isConstant": false,
       "isImmutable": false,
+      "isMapping": false,
       "isTransient": false,
-      "isMapping": false
+      "type": "uint256",
+      "visibility": "internal"
     },
     {
       "id": "src/Vault.sol:Vault.constructor(address)",
+      "kind": "Function",
       "name": "constructor",
       "file": "src/Vault.sol",
       "scope": "src/Vault.sol:Vault",
@@ -907,12 +822,20 @@
         "line": 25,
         "column": 4
       },
-      "kind": "Function",
-      "subkind": "constructor",
-      "visibility": "default",
-      "stateMutability": "nonpayable",
-      "isVirtual": false,
+      "bodyHash": "ca79f6a6f36f1d2b",
+      "flags": {
+        "hasCreate": true,
+        "writesState": true
+      },
+      "hasBody": true,
+      "interfaceHash": "ef1a75c1225700c1",
       "isOverride": false,
+      "isVirtual": false,
+      "metrics": {
+        "sloc": 5,
+        "cyclomatic": 1,
+        "maxDepth": 1
+      },
       "modifiers": [],
       "params": [
         {
@@ -921,29 +844,13 @@
         }
       ],
       "returns": [],
-      "hasBody": true,
-      "bodyHash": "ca79f6a6f36f1d2b",
-      "interfaceHash": "ef1a75c1225700c1",
-      "metrics": {
-        "sloc": 5,
-        "cyclomatic": 1,
-        "maxDepth": 1
-      },
-      "flags": {
-        "hasAssembly": false,
-        "hasDelegatecall": false,
-        "hasLowLevelCall": false,
-        "hasSelfdestruct": false,
-        "hasCreate": true,
-        "sendsValue": false,
-        "hasUnchecked": false,
-        "hasTryCatch": false,
-        "readsState": false,
-        "writesState": true
-      }
+      "stateMutability": "nonpayable",
+      "subkind": "constructor",
+      "visibility": "default"
     },
     {
       "id": "src/Vault.sol:Vault.deposit(uint256)",
+      "kind": "Function",
       "name": "deposit",
       "file": "src/Vault.sol",
       "scope": "src/Vault.sol:Vault",
@@ -954,12 +861,20 @@
         "line": 32,
         "column": 4
       },
-      "kind": "Function",
-      "subkind": "function",
-      "visibility": "external",
-      "stateMutability": "payable",
-      "isVirtual": false,
+      "bodyHash": "83f747497186c27b",
+      "flags": {
+        "readsState": true,
+        "writesState": true
+      },
+      "hasBody": true,
+      "interfaceHash": "58633351802ad486",
       "isOverride": true,
+      "isVirtual": false,
+      "metrics": {
+        "sloc": 10,
+        "cyclomatic": 2,
+        "maxDepth": 2
+      },
       "modifiers": [],
       "params": [
         {
@@ -968,29 +883,13 @@
         }
       ],
       "returns": [],
-      "hasBody": true,
-      "bodyHash": "83f747497186c27b",
-      "interfaceHash": "58633351802ad486",
-      "metrics": {
-        "sloc": 10,
-        "cyclomatic": 2,
-        "maxDepth": 2
-      },
-      "flags": {
-        "hasAssembly": false,
-        "hasDelegatecall": false,
-        "hasLowLevelCall": false,
-        "hasSelfdestruct": false,
-        "hasCreate": false,
-        "sendsValue": false,
-        "hasUnchecked": false,
-        "hasTryCatch": false,
-        "readsState": true,
-        "writesState": true
-      }
+      "stateMutability": "payable",
+      "subkind": "function",
+      "visibility": "external"
     },
     {
       "id": "src/Vault.sol:Vault.deposits",
+      "kind": "StateVariable",
       "name": "deposits",
       "file": "src/Vault.sol",
       "scope": "src/Vault.sol:Vault",
@@ -1001,16 +900,16 @@
         "line": 22,
         "column": 4
       },
-      "kind": "StateVariable",
-      "type": "Deposit[]",
-      "visibility": "internal",
       "isConstant": false,
       "isImmutable": false,
+      "isMapping": false,
       "isTransient": false,
-      "isMapping": false
+      "type": "Deposit[]",
+      "visibility": "internal"
     },
     {
       "id": "src/Vault.sol:Vault.implementation",
+      "kind": "StateVariable",
       "name": "implementation",
       "file": "src/Vault.sol",
       "scope": "src/Vault.sol:Vault",
@@ -1021,16 +920,16 @@
         "line": 23,
         "column": 4
       },
-      "kind": "StateVariable",
-      "type": "address",
-      "visibility": "public",
       "isConstant": false,
       "isImmutable": false,
+      "isMapping": false,
       "isTransient": false,
-      "isMapping": false
+      "type": "address",
+      "visibility": "public"
     },
     {
       "id": "src/Vault.sol:Vault.status",
+      "kind": "StateVariable",
       "name": "status",
       "file": "src/Vault.sol",
       "scope": "src/Vault.sol:Vault",
@@ -1041,16 +940,16 @@
         "line": 21,
         "column": 4
       },
-      "kind": "StateVariable",
-      "type": "Status",
-      "visibility": "public",
       "isConstant": false,
       "isImmutable": false,
+      "isMapping": false,
       "isTransient": false,
-      "isMapping": false
+      "type": "Status",
+      "visibility": "public"
     },
     {
       "id": "src/Vault.sol:Vault.sweep(address payable)",
+      "kind": "Function",
       "name": "sweep",
       "file": "src/Vault.sol",
       "scope": "src/Vault.sol:Vault",
@@ -1061,12 +960,20 @@
         "line": 57,
         "column": 4
       },
-      "kind": "Function",
-      "subkind": "function",
-      "visibility": "external",
-      "stateMutability": "nonpayable",
-      "isVirtual": false,
+      "bodyHash": "9152fd34f2cf6d03",
+      "flags": {
+        "hasLowLevelCall": true,
+        "sendsValue": true
+      },
+      "hasBody": true,
+      "interfaceHash": "7e61d49ee95cb9a3",
       "isOverride": false,
+      "isVirtual": false,
+      "metrics": {
+        "sloc": 5,
+        "cyclomatic": 1,
+        "maxDepth": 1
+      },
       "modifiers": [
         "src/Base.sol:Base#onlyOwner"
       ],
@@ -1077,29 +984,13 @@
         }
       ],
       "returns": [],
-      "hasBody": true,
-      "bodyHash": "9152fd34f2cf6d03",
-      "interfaceHash": "7e61d49ee95cb9a3",
-      "metrics": {
-        "sloc": 5,
-        "cyclomatic": 1,
-        "maxDepth": 1
-      },
-      "flags": {
-        "hasAssembly": false,
-        "hasDelegatecall": false,
-        "hasLowLevelCall": true,
-        "hasSelfdestruct": false,
-        "hasCreate": false,
-        "sendsValue": true,
-        "hasUnchecked": false,
-        "hasTryCatch": false,
-        "readsState": false,
-        "writesState": false
-      }
+      "stateMutability": "nonpayable",
+      "subkind": "function",
+      "visibility": "external"
     },
     {
       "id": "src/Vault.sol:Vault.tag()",
+      "kind": "Function",
       "name": "tag",
       "file": "src/Vault.sol",
       "scope": "src/Vault.sol:Vault",
@@ -1110,43 +1001,33 @@
         "line": 48,
         "column": 4
       },
-      "kind": "Function",
-      "subkind": "function",
-      "visibility": "public",
-      "stateMutability": "view",
-      "isVirtual": true,
-      "isOverride": true,
-      "modifiers": [],
-      "params": [],
-      "returns": [
-        {
-          "name": null,
-          "type": "string"
-        }
-      ],
-      "hasBody": true,
       "bodyHash": "30b5e2115ff90885",
+      "flags": {},
+      "hasBody": true,
       "interfaceHash": "372430326073029a",
+      "isOverride": true,
+      "isVirtual": true,
       "metrics": {
         "sloc": 3,
         "cyclomatic": 1,
         "maxDepth": 1
       },
-      "flags": {
-        "hasAssembly": false,
-        "hasDelegatecall": false,
-        "hasLowLevelCall": false,
-        "hasSelfdestruct": false,
-        "hasCreate": false,
-        "sendsValue": false,
-        "hasUnchecked": false,
-        "hasTryCatch": false,
-        "readsState": false,
-        "writesState": false
-      }
+      "modifiers": [],
+      "params": [],
+      "returns": [
+        {
+          "name": null,
+          "type": "string",
+          "storageLocation": "memory"
+        }
+      ],
+      "stateMutability": "view",
+      "subkind": "function",
+      "visibility": "public"
     },
     {
       "id": "src/Vault.sol:Vault.token",
+      "kind": "StateVariable",
       "name": "token",
       "file": "src/Vault.sol",
       "scope": "src/Vault.sol:Vault",
@@ -1157,16 +1038,16 @@
         "line": 19,
         "column": 4
       },
-      "kind": "StateVariable",
-      "type": "Token",
-      "visibility": "public",
       "isConstant": false,
       "isImmutable": false,
+      "isMapping": false,
       "isTransient": false,
-      "isMapping": false
+      "type": "Token",
+      "visibility": "public"
     },
     {
       "id": "src/Vault.sol:Vault.totalAssets()",
+      "kind": "Function",
       "name": "totalAssets",
       "file": "src/Vault.sol",
       "scope": "src/Vault.sol:Vault",
@@ -1177,12 +1058,19 @@
         "line": 44,
         "column": 4
       },
-      "kind": "Function",
-      "subkind": "function",
-      "visibility": "external",
-      "stateMutability": "view",
-      "isVirtual": false,
+      "bodyHash": "82c6dfe34d28c003",
+      "flags": {
+        "readsState": true
+      },
+      "hasBody": true,
+      "interfaceHash": "78d4c1387b74f3c2",
       "isOverride": true,
+      "isVirtual": false,
+      "metrics": {
+        "sloc": 3,
+        "cyclomatic": 1,
+        "maxDepth": 1
+      },
       "modifiers": [],
       "params": [],
       "returns": [
@@ -1191,29 +1079,13 @@
           "type": "uint256"
         }
       ],
-      "hasBody": true,
-      "bodyHash": "82c6dfe34d28c003",
-      "interfaceHash": "78d4c1387b74f3c2",
-      "metrics": {
-        "sloc": 3,
-        "cyclomatic": 1,
-        "maxDepth": 1
-      },
-      "flags": {
-        "hasAssembly": false,
-        "hasDelegatecall": false,
-        "hasLowLevelCall": false,
-        "hasSelfdestruct": false,
-        "hasCreate": false,
-        "sendsValue": false,
-        "hasUnchecked": false,
-        "hasTryCatch": false,
-        "readsState": true,
-        "writesState": false
-      }
+      "stateMutability": "view",
+      "subkind": "function",
+      "visibility": "external"
     },
     {
       "id": "src/Vault.sol:Vault.upgrade(bytes)",
+      "kind": "Function",
       "name": "upgrade",
       "file": "src/Vault.sol",
       "scope": "src/Vault.sol:Vault",
@@ -1224,45 +1096,38 @@
         "line": 52,
         "column": 4
       },
-      "kind": "Function",
-      "subkind": "function",
-      "visibility": "external",
-      "stateMutability": "nonpayable",
-      "isVirtual": false,
+      "bodyHash": "eff191a945560ab3",
+      "flags": {
+        "hasDelegatecall": true,
+        "readsState": true
+      },
+      "hasBody": true,
+      "interfaceHash": "66b23b06b6801265",
       "isOverride": false,
+      "isVirtual": false,
+      "metrics": {
+        "sloc": 4,
+        "cyclomatic": 1,
+        "maxDepth": 1
+      },
       "modifiers": [
         "src/Base.sol:Base#onlyOwner"
       ],
       "params": [
         {
           "name": "data",
-          "type": "bytes"
+          "type": "bytes",
+          "storageLocation": "calldata"
         }
       ],
       "returns": [],
-      "hasBody": true,
-      "bodyHash": "eff191a945560ab3",
-      "interfaceHash": "66b23b06b6801265",
-      "metrics": {
-        "sloc": 4,
-        "cyclomatic": 1,
-        "maxDepth": 1
-      },
-      "flags": {
-        "hasAssembly": false,
-        "hasDelegatecall": true,
-        "hasLowLevelCall": false,
-        "hasSelfdestruct": false,
-        "hasCreate": false,
-        "sendsValue": false,
-        "hasUnchecked": false,
-        "hasTryCatch": false,
-        "readsState": true,
-        "writesState": false
-      }
+      "stateMutability": "nonpayable",
+      "subkind": "function",
+      "visibility": "external"
     },
     {
       "id": "src/Vault.sol:Vault^Swept(address)",
+      "kind": "Event",
       "name": "Swept",
       "file": "src/Vault.sol",
       "scope": "src/Vault.sol:Vault",
@@ -1273,14 +1138,14 @@
         "line": 17,
         "column": 4
       },
-      "kind": "Event",
+      "isAnonymous": false,
       "params": [
         {
           "name": "to",
-          "type": "address"
+          "type": "address",
+          "indexed": true
         }
-      ],
-      "isAnonymous": false
+      ]
     }
   ],
   "edges": [
@@ -1290,13 +1155,7 @@
       "from": "src/Base.sol:Base#onlyOwner",
       "to": "src/Base.sol:Base.owner",
       "resolution": "heuristic",
-      "src": {
-        "file": "src/Base.sol",
-        "offset": 292,
-        "length": 5,
-        "line": 11,
-        "column": 26
-      },
+      "count": 1,
       "sites": [
         {
           "file": "src/Base.sol",
@@ -1306,7 +1165,6 @@
           "column": 26
         }
       ],
-      "count": 1,
       "possibleTargets": []
     },
     {
@@ -1315,13 +1173,7 @@
       "from": "src/Base.sol:Base#onlyOwner",
       "to": "src/Types.sol:!NotAuthorized(address)",
       "resolution": "heuristic",
-      "src": {
-        "file": "src/Base.sol",
-        "offset": 313,
-        "length": 33,
-        "line": 12,
-        "column": 12
-      },
+      "count": 1,
       "sites": [
         {
           "file": "src/Base.sol",
@@ -1331,7 +1183,6 @@
           "column": 12
         }
       ],
-      "count": 1,
       "possibleTargets": []
     },
     {
@@ -1340,13 +1191,7 @@
       "from": "src/Base.sol:Base.constructor()",
       "to": "src/Base.sol:Base.owner",
       "resolution": "heuristic",
-      "src": {
-        "file": "src/Base.sol",
-        "offset": 403,
-        "length": 5,
-        "line": 18,
-        "column": 8
-      },
+      "count": 1,
       "sites": [
         {
           "file": "src/Base.sol",
@@ -1356,7 +1201,6 @@
           "column": 8
         }
       ],
-      "count": 1,
       "possibleTargets": []
     },
     {
@@ -1365,13 +1209,7 @@
       "from": "src/Base.sol:Base",
       "to": "src/Base.sol:Base#onlyOwner",
       "resolution": "heuristic",
-      "src": {
-        "file": "src/Base.sol",
-        "offset": 243,
-        "length": 130,
-        "line": 10,
-        "column": 4
-      },
+      "count": 1,
       "sites": [
         {
           "file": "src/Base.sol",
@@ -1381,7 +1219,6 @@
           "column": 4
         }
       ],
-      "count": 1,
       "possibleTargets": []
     },
     {
@@ -1390,13 +1227,7 @@
       "from": "src/Base.sol:Base",
       "to": "src/Base.sol:Base.constructor()",
       "resolution": "heuristic",
-      "src": {
-        "file": "src/Base.sol",
-        "offset": 379,
-        "length": 49,
-        "line": 17,
-        "column": 4
-      },
+      "count": 1,
       "sites": [
         {
           "file": "src/Base.sol",
@@ -1406,7 +1237,6 @@
           "column": 4
         }
       ],
-      "count": 1,
       "possibleTargets": []
     },
     {
@@ -1415,13 +1245,7 @@
       "from": "src/Base.sol:Base",
       "to": "src/Base.sol:Base.owner",
       "resolution": "heuristic",
-      "src": {
-        "file": "src/Base.sol",
-        "offset": 216,
-        "length": 21,
-        "line": 8,
-        "column": 4
-      },
+      "count": 1,
       "sites": [
         {
           "file": "src/Base.sol",
@@ -1431,7 +1255,6 @@
           "column": 4
         }
       ],
-      "count": 1,
       "possibleTargets": []
     },
     {
@@ -1440,13 +1263,7 @@
       "from": "src/Base.sol:Base",
       "to": "src/Base.sol:Base.tag()",
       "resolution": "heuristic",
-      "src": {
-        "file": "src/Base.sol",
-        "offset": 509,
-        "length": 89,
-        "line": 22,
-        "column": 4
-      },
+      "count": 1,
       "sites": [
         {
           "file": "src/Base.sol",
@@ -1456,7 +1273,6 @@
           "column": 4
         }
       ],
-      "count": 1,
       "possibleTargets": []
     },
     {
@@ -1465,13 +1281,7 @@
       "from": "src/Base.sol",
       "to": "src/Base.sol:Base",
       "resolution": "heuristic",
-      "src": {
-        "file": "src/Base.sol",
-        "offset": 187,
-        "length": 413,
-        "line": 7,
-        "column": 0
-      },
+      "count": 1,
       "sites": [
         {
           "file": "src/Base.sol",
@@ -1481,7 +1291,6 @@
           "column": 0
         }
       ],
-      "count": 1,
       "possibleTargets": []
     },
     {
@@ -1490,13 +1299,7 @@
       "from": "src/IVault.sol:IVault",
       "to": "src/IVault.sol:IVault.deposit(uint256)",
       "resolution": "heuristic",
-      "src": {
-        "file": "src/IVault.sol",
-        "offset": 186,
-        "length": 50,
-        "line": 8,
-        "column": 4
-      },
+      "count": 1,
       "sites": [
         {
           "file": "src/IVault.sol",
@@ -1506,7 +1309,6 @@
           "column": 4
         }
       ],
-      "count": 1,
       "possibleTargets": []
     },
     {
@@ -1515,13 +1317,7 @@
       "from": "src/IVault.sol:IVault",
       "to": "src/IVault.sol:IVault.totalAssets()",
       "resolution": "heuristic",
-      "src": {
-        "file": "src/IVault.sol",
-        "offset": 242,
-        "length": 55,
-        "line": 10,
-        "column": 4
-      },
+      "count": 1,
       "sites": [
         {
           "file": "src/IVault.sol",
@@ -1531,7 +1327,6 @@
           "column": 4
         }
       ],
-      "count": 1,
       "possibleTargets": []
     },
     {
@@ -1540,13 +1335,7 @@
       "from": "src/IVault.sol:IVault",
       "to": "src/IVault.sol:IVault^Deposited(address,uint256)",
       "resolution": "heuristic",
-      "src": {
-        "file": "src/IVault.sol",
-        "offset": 125,
-        "length": 55,
-        "line": 6,
-        "column": 4
-      },
+      "count": 1,
       "sites": [
         {
           "file": "src/IVault.sol",
@@ -1556,7 +1345,6 @@
           "column": 4
         }
       ],
-      "count": 1,
       "possibleTargets": []
     },
     {
@@ -1565,13 +1353,7 @@
       "from": "src/IVault.sol",
       "to": "src/IVault.sol:IVault",
       "resolution": "heuristic",
-      "src": {
-        "file": "src/IVault.sol",
-        "offset": 102,
-        "length": 197,
-        "line": 5,
-        "column": 0
-      },
+      "count": 1,
       "sites": [
         {
           "file": "src/IVault.sol",
@@ -1581,7 +1363,6 @@
           "column": 0
         }
       ],
-      "count": 1,
       "possibleTargets": []
     },
     {
@@ -1590,13 +1371,7 @@
       "from": "src/Token.sol:Token.mint(address,uint256)",
       "to": "src/Token.sol:Token.balanceOf",
       "resolution": "heuristic",
-      "src": {
-        "file": "src/Token.sol",
-        "offset": 257,
-        "length": 9,
-        "line": 9,
-        "column": 8
-      },
+      "count": 1,
       "sites": [
         {
           "file": "src/Token.sol",
@@ -1606,7 +1381,6 @@
           "column": 8
         }
       ],
-      "count": 1,
       "possibleTargets": []
     },
     {
@@ -1615,13 +1389,7 @@
       "from": "src/Token.sol:Token.mint(address,uint256)",
       "to": "src/Token.sol:Token.balanceOf",
       "resolution": "heuristic",
-      "src": {
-        "file": "src/Token.sol",
-        "offset": 257,
-        "length": 9,
-        "line": 9,
-        "column": 8
-      },
+      "count": 1,
       "sites": [
         {
           "file": "src/Token.sol",
@@ -1631,7 +1399,6 @@
           "column": 8
         }
       ],
-      "count": 1,
       "possibleTargets": []
     },
     {
@@ -1640,13 +1407,7 @@
       "from": "src/Token.sol:Token",
       "to": "src/Token.sol:Token.balanceOf",
       "resolution": "heuristic",
-      "src": {
-        "file": "src/Token.sol",
-        "offset": 145,
-        "length": 45,
-        "line": 6,
-        "column": 4
-      },
+      "count": 1,
       "sites": [
         {
           "file": "src/Token.sol",
@@ -1656,7 +1417,6 @@
           "column": 4
         }
       ],
-      "count": 1,
       "possibleTargets": []
     },
     {
@@ -1665,13 +1425,7 @@
       "from": "src/Token.sol:Token",
       "to": "src/Token.sol:Token.mint(address,uint256)",
       "resolution": "heuristic",
-      "src": {
-        "file": "src/Token.sol",
-        "offset": 196,
-        "length": 91,
-        "line": 8,
-        "column": 4
-      },
+      "count": 1,
       "sites": [
         {
           "file": "src/Token.sol",
@@ -1681,7 +1435,6 @@
           "column": 4
         }
       ],
-      "count": 1,
       "possibleTargets": []
     },
     {
@@ -1690,13 +1443,7 @@
       "from": "src/Token.sol",
       "to": "src/Token.sol:Token",
       "resolution": "heuristic",
-      "src": {
-        "file": "src/Token.sol",
-        "offset": 124,
-        "length": 165,
-        "line": 5,
-        "column": 0
-      },
+      "count": 1,
       "sites": [
         {
           "file": "src/Token.sol",
@@ -1706,7 +1453,6 @@
           "column": 0
         }
       ],
-      "count": 1,
       "possibleTargets": []
     },
     {
@@ -1715,13 +1461,7 @@
       "from": "src/Types.sol:MathLib",
       "to": "src/Types.sol:MathLib.half(uint256)",
       "resolution": "heuristic",
-      "src": {
-        "file": "src/Types.sol",
-        "offset": 704,
-        "length": 94,
-        "line": 33,
-        "column": 4
-      },
+      "count": 1,
       "sites": [
         {
           "file": "src/Types.sol",
@@ -1731,7 +1471,6 @@
           "column": 4
         }
       ],
-      "count": 1,
       "possibleTargets": []
     },
     {
@@ -1740,13 +1479,7 @@
       "from": "src/Types.sol",
       "to": "src/Types.sol:!NotAuthorized(address)",
       "resolution": "heuristic",
-      "src": {
-        "file": "src/Types.sol",
-        "offset": 356,
-        "length": 36,
-        "line": 21,
-        "column": 0
-      },
+      "count": 1,
       "sites": [
         {
           "file": "src/Types.sol",
@@ -1756,7 +1489,6 @@
           "column": 0
         }
       ],
-      "count": 1,
       "possibleTargets": []
     },
     {
@@ -1765,13 +1497,7 @@
       "from": "src/Types.sol",
       "to": "src/Types.sol:MAX_DEPOSIT",
       "resolution": "heuristic",
-      "src": {
-        "file": "src/Types.sol",
-        "offset": 429,
-        "length": 47,
-        "line": 24,
-        "column": 0
-      },
+      "count": 1,
       "sites": [
         {
           "file": "src/Types.sol",
@@ -1781,7 +1507,6 @@
           "column": 0
         }
       ],
-      "count": 1,
       "possibleTargets": []
     },
     {
@@ -1790,13 +1515,7 @@
       "from": "src/Types.sol",
       "to": "src/Types.sol:MathLib",
       "resolution": "heuristic",
-      "src": {
-        "file": "src/Types.sol",
-        "offset": 682,
-        "length": 118,
-        "line": 32,
-        "column": 0
-      },
+      "count": 1,
       "sites": [
         {
           "file": "src/Types.sol",
@@ -1806,7 +1525,6 @@
           "column": 0
         }
       ],
-      "count": 1,
       "possibleTargets": []
     },
     {
@@ -1815,13 +1533,7 @@
       "from": "src/Types.sol",
       "to": "src/Types.sol:scale(uint256,uint256)",
       "resolution": "heuristic",
-      "src": {
-        "file": "src/Types.sol",
-        "offset": 518,
-        "length": 101,
-        "line": 27,
-        "column": 0
-      },
+      "count": 1,
       "sites": [
         {
           "file": "src/Types.sol",
@@ -1831,7 +1543,6 @@
           "column": 0
         }
       ],
-      "count": 1,
       "possibleTargets": []
     },
     {
@@ -1840,13 +1551,7 @@
       "from": "src/Types.sol",
       "to": "src/Types.sol:~Deposit",
       "resolution": "heuristic",
-      "src": {
-        "file": "src/Types.sol",
-        "offset": 184,
-        "length": 57,
-        "line": 8,
-        "column": 0
-      },
+      "count": 1,
       "sites": [
         {
           "file": "src/Types.sol",
@@ -1856,7 +1561,6 @@
           "column": 0
         }
       ],
-      "count": 1,
       "possibleTargets": []
     },
     {
@@ -1865,13 +1569,7 @@
       "from": "src/Types.sol",
       "to": "src/Types.sol:~Shares",
       "resolution": "heuristic",
-      "src": {
-        "file": "src/Types.sol",
-        "offset": 126,
-        "length": 23,
-        "line": 5,
-        "column": 0
-      },
+      "count": 1,
       "sites": [
         {
           "file": "src/Types.sol",
@@ -1881,7 +1579,6 @@
           "column": 0
         }
       ],
-      "count": 1,
       "possibleTargets": []
     },
     {
@@ -1890,13 +1587,7 @@
       "from": "src/Types.sol",
       "to": "src/Types.sol:~Status",
       "resolution": "heuristic",
-      "src": {
-        "file": "src/Types.sol",
-        "offset": 274,
-        "length": 48,
-        "line": 14,
-        "column": 0
-      },
+      "count": 1,
       "sites": [
         {
           "file": "src/Types.sol",
@@ -1906,7 +1597,6 @@
           "column": 0
         }
       ],
-      "count": 1,
       "possibleTargets": []
     },
     {
@@ -1915,13 +1605,7 @@
       "from": "src/Vault.sol:Vault._record(uint256)",
       "to": "src/Vault.sol:Vault.status",
       "resolution": "heuristic",
-      "src": {
-        "file": "src/Vault.sol",
-        "offset": 1989,
-        "length": 6,
-        "line": 64,
-        "column": 8
-      },
+      "count": 1,
       "sites": [
         {
           "file": "src/Vault.sol",
@@ -1931,7 +1615,6 @@
           "column": 8
         }
       ],
-      "count": 1,
       "possibleTargets": []
     },
     {
@@ -1940,13 +1623,7 @@
       "from": "src/Vault.sol:Vault.constructor(address)",
       "to": "src/Token.sol:Token",
       "resolution": "heuristic",
-      "src": {
-        "file": "src/Vault.sol",
-        "offset": 808,
-        "length": 11,
-        "line": 26,
-        "column": 16
-      },
+      "count": 1,
       "sites": [
         {
           "file": "src/Vault.sol",
@@ -1956,7 +1633,6 @@
           "column": 16
         }
       ],
-      "count": 1,
       "possibleTargets": []
     },
     {
@@ -1965,13 +1641,7 @@
       "from": "src/Vault.sol:Vault.constructor(address)",
       "to": "src/Vault.sol:Vault.implementation",
       "resolution": "heuristic",
-      "src": {
-        "file": "src/Vault.sol",
-        "offset": 829,
-        "length": 14,
-        "line": 27,
-        "column": 8
-      },
+      "count": 1,
       "sites": [
         {
           "file": "src/Vault.sol",
@@ -1981,7 +1651,6 @@
           "column": 8
         }
       ],
-      "count": 1,
       "possibleTargets": []
     },
     {
@@ -1990,13 +1659,7 @@
       "from": "src/Vault.sol:Vault.constructor(address)",
       "to": "src/Vault.sol:Vault.status",
       "resolution": "heuristic",
-      "src": {
-        "file": "src/Vault.sol",
-        "offset": 860,
-        "length": 6,
-        "line": 28,
-        "column": 8
-      },
+      "count": 1,
       "sites": [
         {
           "file": "src/Vault.sol",
@@ -2006,7 +1669,6 @@
           "column": 8
         }
       ],
-      "count": 1,
       "possibleTargets": []
     },
     {
@@ -2015,13 +1677,7 @@
       "from": "src/Vault.sol:Vault.constructor(address)",
       "to": "src/Vault.sol:Vault.token",
       "resolution": "heuristic",
-      "src": {
-        "file": "src/Vault.sol",
-        "offset": 800,
-        "length": 5,
-        "line": 26,
-        "column": 8
-      },
+      "count": 1,
       "sites": [
         {
           "file": "src/Vault.sol",
@@ -2031,7 +1687,6 @@
           "column": 8
         }
       ],
-      "count": 1,
       "possibleTargets": []
     },
     {
@@ -2040,13 +1695,7 @@
       "from": "src/Vault.sol:Vault.deposit(uint256)",
       "to": "src/IVault.sol:IVault.deposit(uint256)",
       "resolution": "heuristic",
-      "src": {
-        "file": "src/Vault.sol",
-        "offset": 922,
-        "length": 360,
-        "line": 32,
-        "column": 4
-      },
+      "count": 1,
       "sites": [
         {
           "file": "src/Vault.sol",
@@ -2056,7 +1705,6 @@
           "column": 4
         }
       ],
-      "count": 1,
       "possibleTargets": []
     },
     {
@@ -2065,13 +1713,7 @@
       "from": "src/Vault.sol:Vault.deposit(uint256)",
       "to": "src/IVault.sol:IVault^Deposited(address,uint256)",
       "resolution": "heuristic",
-      "src": {
-        "file": "src/Vault.sol",
-        "offset": 1241,
-        "length": 35,
-        "line": 40,
-        "column": 8
-      },
+      "count": 1,
       "sites": [
         {
           "file": "src/Vault.sol",
@@ -2081,22 +1723,16 @@
           "column": 8
         }
       ],
-      "count": 1,
       "possibleTargets": []
     },
     {
       "id": "src/Vault.sol:Vault.deposit(uint256)|src/Token.sol:Token.mint(address,uint256)|calls|external",
       "kind": "calls",
+      "subkind": "external",
       "from": "src/Vault.sol:Vault.deposit(uint256)",
       "to": "src/Token.sol:Token.mint(address,uint256)",
       "resolution": "heuristic",
-      "src": {
-        "file": "src/Vault.sol",
-        "offset": 1176,
-        "length": 30,
-        "line": 38,
-        "column": 8
-      },
+      "count": 1,
       "sites": [
         {
           "file": "src/Vault.sol",
@@ -2106,9 +1742,7 @@
           "column": 8
         }
       ],
-      "count": 1,
-      "possibleTargets": [],
-      "subkind": "external"
+      "possibleTargets": []
     },
     {
       "id": "src/Vault.sol:Vault.deposit(uint256)|src/Types.sol:MAX_DEPOSIT|reads|",
@@ -2116,13 +1750,7 @@
       "from": "src/Vault.sol:Vault.deposit(uint256)",
       "to": "src/Types.sol:MAX_DEPOSIT",
       "resolution": "heuristic",
-      "src": {
-        "file": "src/Vault.sol",
-        "offset": 1004,
-        "length": 11,
-        "line": 33,
-        "column": 21
-      },
+      "count": 1,
       "sites": [
         {
           "file": "src/Vault.sol",
@@ -2132,7 +1760,6 @@
           "column": 21
         }
       ],
-      "count": 1,
       "possibleTargets": []
     },
     {
@@ -2141,13 +1768,7 @@
       "from": "src/Vault.sol:Vault.deposit(uint256)",
       "to": "src/Vault.sol:Vault!DepositTooLarge(uint256)",
       "resolution": "heuristic",
-      "src": {
-        "file": "src/Vault.sol",
-        "offset": 1031,
-        "length": 31,
-        "line": 34,
-        "column": 12
-      },
+      "count": 1,
       "sites": [
         {
           "file": "src/Vault.sol",
@@ -2157,22 +1778,16 @@
           "column": 12
         }
       ],
-      "count": 1,
       "possibleTargets": []
     },
     {
       "id": "src/Vault.sol:Vault.deposit(uint256)|src/Vault.sol:Vault._record(uint256)|calls|internal",
       "kind": "calls",
+      "subkind": "internal",
       "from": "src/Vault.sol:Vault.deposit(uint256)",
       "to": "src/Vault.sol:Vault._record(uint256)",
       "resolution": "heuristic",
-      "src": {
-        "file": "src/Vault.sol",
-        "offset": 1216,
-        "length": 15,
-        "line": 39,
-        "column": 8
-      },
+      "count": 1,
       "sites": [
         {
           "file": "src/Vault.sol",
@@ -2182,9 +1797,7 @@
           "column": 8
         }
       ],
-      "count": 1,
-      "possibleTargets": [],
-      "subkind": "internal"
+      "possibleTargets": []
     },
     {
       "id": "src/Vault.sol:Vault.deposit(uint256)|src/Vault.sol:Vault.assets|reads|",
@@ -2192,13 +1805,7 @@
       "from": "src/Vault.sol:Vault.deposit(uint256)",
       "to": "src/Vault.sol:Vault.assets",
       "resolution": "heuristic",
-      "src": {
-        "file": "src/Vault.sol",
-        "offset": 1081,
-        "length": 6,
-        "line": 36,
-        "column": 8
-      },
+      "count": 1,
       "sites": [
         {
           "file": "src/Vault.sol",
@@ -2208,7 +1815,6 @@
           "column": 8
         }
       ],
-      "count": 1,
       "possibleTargets": []
     },
     {
@@ -2217,13 +1823,7 @@
       "from": "src/Vault.sol:Vault.deposit(uint256)",
       "to": "src/Vault.sol:Vault.assets",
       "resolution": "heuristic",
-      "src": {
-        "file": "src/Vault.sol",
-        "offset": 1081,
-        "length": 6,
-        "line": 36,
-        "column": 8
-      },
+      "count": 1,
       "sites": [
         {
           "file": "src/Vault.sol",
@@ -2233,7 +1833,6 @@
           "column": 8
         }
       ],
-      "count": 1,
       "possibleTargets": []
     },
     {
@@ -2242,13 +1841,7 @@
       "from": "src/Vault.sol:Vault.deposit(uint256)",
       "to": "src/Vault.sol:Vault.deposits",
       "resolution": "heuristic",
-      "src": {
-        "file": "src/Vault.sol",
-        "offset": 1107,
-        "length": 8,
-        "line": 37,
-        "column": 8
-      },
+      "count": 1,
       "sites": [
         {
           "file": "src/Vault.sol",
@@ -2258,7 +1851,6 @@
           "column": 8
         }
       ],
-      "count": 1,
       "possibleTargets": []
     },
     {
@@ -2267,13 +1859,7 @@
       "from": "src/Vault.sol:Vault.deposit(uint256)",
       "to": "src/Vault.sol:Vault.deposits",
       "resolution": "heuristic",
-      "src": {
-        "file": "src/Vault.sol",
-        "offset": 1107,
-        "length": 8,
-        "line": 37,
-        "column": 8
-      },
+      "count": 1,
       "sites": [
         {
           "file": "src/Vault.sol",
@@ -2283,7 +1869,6 @@
           "column": 8
         }
       ],
-      "count": 1,
       "possibleTargets": []
     },
     {
@@ -2292,13 +1877,7 @@
       "from": "src/Vault.sol:Vault.deposit(uint256)",
       "to": "src/Vault.sol:Vault.token",
       "resolution": "heuristic",
-      "src": {
-        "file": "src/Vault.sol",
-        "offset": 1176,
-        "length": 5,
-        "line": 38,
-        "column": 8
-      },
+      "count": 1,
       "sites": [
         {
           "file": "src/Vault.sol",
@@ -2308,22 +1887,16 @@
           "column": 8
         }
       ],
-      "count": 1,
       "possibleTargets": []
     },
     {
-      "id": "src/Vault.sol:Vault.sweep(address payable)|?call|calls|lowlevel",
+      "id": "src/Vault.sol:Vault.sweep(address payable)|?low-level:call|calls|lowlevel",
       "kind": "calls",
+      "subkind": "lowlevel",
       "from": "src/Vault.sol:Vault.sweep(address payable)",
-      "to": "?call",
+      "to": "?low-level:call",
       "resolution": "unresolved",
-      "src": {
-        "file": "src/Vault.sol",
-        "offset": 1822,
-        "length": 41,
-        "line": 58,
-        "column": 21
-      },
+      "count": 1,
       "sites": [
         {
           "file": "src/Vault.sol",
@@ -2333,9 +1906,7 @@
           "column": 21
         }
       ],
-      "count": 1,
       "possibleTargets": [],
-      "subkind": "lowlevel",
       "reason": "call on address: the target is determined at runtime"
     },
     {
@@ -2344,13 +1915,7 @@
       "from": "src/Vault.sol:Vault.sweep(address payable)",
       "to": "src/Base.sol:Base#onlyOwner",
       "resolution": "heuristic",
-      "src": {
-        "file": "src/Vault.sol",
-        "offset": 1745,
-        "length": 186,
-        "line": 57,
-        "column": 4
-      },
+      "count": 1,
       "sites": [
         {
           "file": "src/Vault.sol",
@@ -2360,7 +1925,6 @@
           "column": 4
         }
       ],
-      "count": 1,
       "possibleTargets": []
     },
     {
@@ -2369,13 +1933,7 @@
       "from": "src/Vault.sol:Vault.sweep(address payable)",
       "to": "src/Vault.sol:Vault^Swept(address)",
       "resolution": "heuristic",
-      "src": {
-        "file": "src/Vault.sol",
-        "offset": 1910,
-        "length": 15,
-        "line": 60,
-        "column": 8
-      },
+      "count": 1,
       "sites": [
         {
           "file": "src/Vault.sol",
@@ -2385,22 +1943,16 @@
           "column": 8
         }
       ],
-      "count": 1,
       "possibleTargets": []
     },
     {
       "id": "src/Vault.sol:Vault.tag()|src/Base.sol:Base.tag()|calls|super",
       "kind": "calls",
+      "subkind": "super",
       "from": "src/Vault.sol:Vault.tag()",
       "to": "src/Base.sol:Base.tag()",
       "resolution": "heuristic",
-      "src": {
-        "file": "src/Vault.sol",
-        "offset": 1540,
-        "length": 11,
-        "line": 49,
-        "column": 29
-      },
+      "count": 1,
       "sites": [
         {
           "file": "src/Vault.sol",
@@ -2410,9 +1962,7 @@
           "column": 29
         }
       ],
-      "count": 1,
-      "possibleTargets": [],
-      "subkind": "super"
+      "possibleTargets": []
     },
     {
       "id": "src/Vault.sol:Vault.tag()|src/Base.sol:Base.tag()|overrides|",
@@ -2420,13 +1970,7 @@
       "from": "src/Vault.sol:Vault.tag()",
       "to": "src/Base.sol:Base.tag()",
       "resolution": "heuristic",
-      "src": {
-        "file": "src/Vault.sol",
-        "offset": 1441,
-        "length": 128,
-        "line": 48,
-        "column": 4
-      },
+      "count": 1,
       "sites": [
         {
           "file": "src/Vault.sol",
@@ -2436,7 +1980,6 @@
           "column": 4
         }
       ],
-      "count": 1,
       "possibleTargets": []
     },
     {
@@ -2445,13 +1988,7 @@
       "from": "src/Vault.sol:Vault.totalAssets()",
       "to": "src/IVault.sol:IVault.totalAssets()",
       "resolution": "heuristic",
-      "src": {
-        "file": "src/Vault.sol",
-        "offset": 1315,
-        "length": 120,
-        "line": 44,
-        "column": 4
-      },
+      "count": 1,
       "sites": [
         {
           "file": "src/Vault.sol",
@@ -2461,22 +1998,16 @@
           "column": 4
         }
       ],
-      "count": 1,
       "possibleTargets": []
     },
     {
       "id": "src/Vault.sol:Vault.totalAssets()|src/Types.sol:MathLib.half(uint256)|calls|library",
       "kind": "calls",
+      "subkind": "library",
       "from": "src/Vault.sol:Vault.totalAssets()",
       "to": "src/Types.sol:MathLib.half(uint256)",
       "resolution": "heuristic",
-      "src": {
-        "file": "src/Vault.sol",
-        "offset": 1396,
-        "length": 13,
-        "line": 45,
-        "column": 15
-      },
+      "count": 1,
       "sites": [
         {
           "file": "src/Vault.sol",
@@ -2486,23 +2017,16 @@
           "column": 15
         }
       ],
-      "count": 1,
-      "possibleTargets": [],
-      "subkind": "library"
+      "possibleTargets": []
     },
     {
       "id": "src/Vault.sol:Vault.totalAssets()|src/Types.sol:scale(uint256,uint256)|calls|internal",
       "kind": "calls",
+      "subkind": "internal",
       "from": "src/Vault.sol:Vault.totalAssets()",
       "to": "src/Types.sol:scale(uint256,uint256)",
       "resolution": "heuristic",
-      "src": {
-        "file": "src/Vault.sol",
-        "offset": 1412,
-        "length": 16,
-        "line": 45,
-        "column": 31
-      },
+      "count": 1,
       "sites": [
         {
           "file": "src/Vault.sol",
@@ -2512,9 +2036,7 @@
           "column": 31
         }
       ],
-      "count": 1,
-      "possibleTargets": [],
-      "subkind": "internal"
+      "possibleTargets": []
     },
     {
       "id": "src/Vault.sol:Vault.totalAssets()|src/Vault.sol:Vault.assets|reads|",
@@ -2522,13 +2044,7 @@
       "from": "src/Vault.sol:Vault.totalAssets()",
       "to": "src/Vault.sol:Vault.assets",
       "resolution": "heuristic",
-      "src": {
-        "file": "src/Vault.sol",
-        "offset": 1396,
-        "length": 6,
-        "line": 45,
-        "column": 15
-      },
+      "count": 2,
       "sites": [
         {
           "file": "src/Vault.sol",
@@ -2545,22 +2061,16 @@
           "column": 37
         }
       ],
-      "count": 2,
       "possibleTargets": []
     },
     {
-      "id": "src/Vault.sol:Vault.upgrade(bytes)|?delegatecall|calls|delegatecall",
+      "id": "src/Vault.sol:Vault.upgrade(bytes)|?low-level:delegatecall|calls|delegatecall",
       "kind": "calls",
+      "subkind": "delegatecall",
       "from": "src/Vault.sol:Vault.upgrade(bytes)",
-      "to": "?delegatecall",
+      "to": "?low-level:delegatecall",
       "resolution": "unresolved",
-      "src": {
-        "file": "src/Vault.sol",
-        "offset": 1655,
-        "length": 33,
-        "line": 53,
-        "column": 21
-      },
+      "count": 1,
       "sites": [
         {
           "file": "src/Vault.sol",
@@ -2570,9 +2080,7 @@
           "column": 21
         }
       ],
-      "count": 1,
       "possibleTargets": [],
-      "subkind": "delegatecall",
       "reason": "delegatecall on address: the target is determined at runtime"
     },
     {
@@ -2581,13 +2089,7 @@
       "from": "src/Vault.sol:Vault.upgrade(bytes)",
       "to": "src/Base.sol:Base#onlyOwner",
       "resolution": "heuristic",
-      "src": {
-        "file": "src/Vault.sol",
-        "offset": 1575,
-        "length": 164,
-        "line": 52,
-        "column": 4
-      },
+      "count": 1,
       "sites": [
         {
           "file": "src/Vault.sol",
@@ -2597,7 +2099,6 @@
           "column": 4
         }
       ],
-      "count": 1,
       "possibleTargets": []
     },
     {
@@ -2606,13 +2107,7 @@
       "from": "src/Vault.sol:Vault.upgrade(bytes)",
       "to": "src/Vault.sol:Vault.implementation",
       "resolution": "heuristic",
-      "src": {
-        "file": "src/Vault.sol",
-        "offset": 1655,
-        "length": 14,
-        "line": 53,
-        "column": 21
-      },
+      "count": 1,
       "sites": [
         {
           "file": "src/Vault.sol",
@@ -2622,7 +2117,6 @@
           "column": 21
         }
       ],
-      "count": 1,
       "possibleTargets": []
     },
     {
@@ -2631,13 +2125,7 @@
       "from": "src/Vault.sol:Vault",
       "to": "src/Base.sol:Base",
       "resolution": "heuristic",
-      "src": {
-        "file": "src/Vault.sol",
-        "offset": 326,
-        "length": 1722,
-        "line": 10,
-        "column": 0
-      },
+      "count": 1,
       "sites": [
         {
           "file": "src/Vault.sol",
@@ -2647,9 +2135,8 @@
           "column": 0
         }
       ],
-      "count": 1,
-      "possibleTargets": [],
-      "linearizationIndex": 2
+      "linearizationIndex": 2,
+      "possibleTargets": []
     },
     {
       "id": "src/Vault.sol:Vault|src/IVault.sol:IVault|inherits|",
@@ -2657,13 +2144,7 @@
       "from": "src/Vault.sol:Vault",
       "to": "src/IVault.sol:IVault",
       "resolution": "heuristic",
-      "src": {
-        "file": "src/Vault.sol",
-        "offset": 326,
-        "length": 1722,
-        "line": 10,
-        "column": 0
-      },
+      "count": 1,
       "sites": [
         {
           "file": "src/Vault.sol",
@@ -2673,9 +2154,8 @@
           "column": 0
         }
       ],
-      "count": 1,
-      "possibleTargets": [],
-      "linearizationIndex": 1
+      "linearizationIndex": 1,
+      "possibleTargets": []
     },
     {
       "id": "src/Vault.sol:Vault|src/Vault.sol:Vault!DepositTooLarge(uint256)|declares|",
@@ -2683,13 +2163,7 @@
       "from": "src/Vault.sol:Vault",
       "to": "src/Vault.sol:Vault!DepositTooLarge(uint256)",
       "resolution": "heuristic",
-      "src": {
-        "file": "src/Vault.sol",
-        "offset": 463,
-        "length": 38,
-        "line": 14,
-        "column": 4
-      },
+      "count": 1,
       "sites": [
         {
           "file": "src/Vault.sol",
@@ -2699,7 +2173,6 @@
           "column": 4
         }
       ],
-      "count": 1,
       "possibleTargets": []
     },
     {
@@ -2708,13 +2181,7 @@
       "from": "src/Vault.sol:Vault",
       "to": "src/Vault.sol:Vault._record(uint256)",
       "resolution": "heuristic",
-      "src": {
-        "file": "src/Vault.sol",
-        "offset": 1937,
-        "length": 109,
-        "line": 63,
-        "column": 4
-      },
+      "count": 1,
       "sites": [
         {
           "file": "src/Vault.sol",
@@ -2724,7 +2191,6 @@
           "column": 4
         }
       ],
-      "count": 1,
       "possibleTargets": []
     },
     {
@@ -2733,13 +2199,7 @@
       "from": "src/Vault.sol:Vault",
       "to": "src/Vault.sol:Vault.assets",
       "resolution": "heuristic",
-      "src": {
-        "file": "src/Vault.sol",
-        "offset": 640,
-        "length": 24,
-        "line": 20,
-        "column": 4
-      },
+      "count": 1,
       "sites": [
         {
           "file": "src/Vault.sol",
@@ -2749,7 +2209,6 @@
           "column": 4
         }
       ],
-      "count": 1,
       "possibleTargets": []
     },
     {
@@ -2758,13 +2217,7 @@
       "from": "src/Vault.sol:Vault",
       "to": "src/Vault.sol:Vault.constructor(address)",
       "resolution": "heuristic",
-      "src": {
-        "file": "src/Vault.sol",
-        "offset": 764,
-        "length": 125,
-        "line": 25,
-        "column": 4
-      },
+      "count": 1,
       "sites": [
         {
           "file": "src/Vault.sol",
@@ -2774,7 +2227,6 @@
           "column": 4
         }
       ],
-      "count": 1,
       "possibleTargets": []
     },
     {
@@ -2783,13 +2235,7 @@
       "from": "src/Vault.sol:Vault",
       "to": "src/Vault.sol:Vault.deposit(uint256)",
       "resolution": "heuristic",
-      "src": {
-        "file": "src/Vault.sol",
-        "offset": 922,
-        "length": 360,
-        "line": 32,
-        "column": 4
-      },
+      "count": 1,
       "sites": [
         {
           "file": "src/Vault.sol",
@@ -2799,7 +2245,6 @@
           "column": 4
         }
       ],
-      "count": 1,
       "possibleTargets": []
     },
     {
@@ -2808,13 +2253,7 @@
       "from": "src/Vault.sol:Vault",
       "to": "src/Vault.sol:Vault.deposits",
       "resolution": "heuristic",
-      "src": {
-        "file": "src/Vault.sol",
-        "offset": 695,
-        "length": 28,
-        "line": 22,
-        "column": 4
-      },
+      "count": 1,
       "sites": [
         {
           "file": "src/Vault.sol",
@@ -2824,7 +2263,6 @@
           "column": 4
         }
       ],
-      "count": 1,
       "possibleTargets": []
     },
     {
@@ -2833,13 +2271,7 @@
       "from": "src/Vault.sol:Vault",
       "to": "src/Vault.sol:Vault.implementation",
       "resolution": "heuristic",
-      "src": {
-        "file": "src/Vault.sol",
-        "offset": 728,
-        "length": 30,
-        "line": 23,
-        "column": 4
-      },
+      "count": 1,
       "sites": [
         {
           "file": "src/Vault.sol",
@@ -2849,7 +2281,6 @@
           "column": 4
         }
       ],
-      "count": 1,
       "possibleTargets": []
     },
     {
@@ -2858,13 +2289,7 @@
       "from": "src/Vault.sol:Vault",
       "to": "src/Vault.sol:Vault.status",
       "resolution": "heuristic",
-      "src": {
-        "file": "src/Vault.sol",
-        "offset": 669,
-        "length": 21,
-        "line": 21,
-        "column": 4
-      },
+      "count": 1,
       "sites": [
         {
           "file": "src/Vault.sol",
@@ -2874,7 +2299,6 @@
           "column": 4
         }
       ],
-      "count": 1,
       "possibleTargets": []
     },
     {
@@ -2883,13 +2307,7 @@
       "from": "src/Vault.sol:Vault",
       "to": "src/Vault.sol:Vault.sweep(address payable)",
       "resolution": "heuristic",
-      "src": {
-        "file": "src/Vault.sol",
-        "offset": 1745,
-        "length": 186,
-        "line": 57,
-        "column": 4
-      },
+      "count": 1,
       "sites": [
         {
           "file": "src/Vault.sol",
@@ -2899,7 +2317,6 @@
           "column": 4
         }
       ],
-      "count": 1,
       "possibleTargets": []
     },
     {
@@ -2908,13 +2325,7 @@
       "from": "src/Vault.sol:Vault",
       "to": "src/Vault.sol:Vault.tag()",
       "resolution": "heuristic",
-      "src": {
-        "file": "src/Vault.sol",
-        "offset": 1441,
-        "length": 128,
-        "line": 48,
-        "column": 4
-      },
+      "count": 1,
       "sites": [
         {
           "file": "src/Vault.sol",
@@ -2924,7 +2335,6 @@
           "column": 4
         }
       ],
-      "count": 1,
       "possibleTargets": []
     },
     {
@@ -2933,13 +2343,7 @@
       "from": "src/Vault.sol:Vault",
       "to": "src/Vault.sol:Vault.token",
       "resolution": "heuristic",
-      "src": {
-        "file": "src/Vault.sol",
-        "offset": 616,
-        "length": 19,
-        "line": 19,
-        "column": 4
-      },
+      "count": 1,
       "sites": [
         {
           "file": "src/Vault.sol",
@@ -2949,7 +2353,6 @@
           "column": 4
         }
       ],
-      "count": 1,
       "possibleTargets": []
     },
     {
@@ -2958,13 +2361,7 @@
       "from": "src/Vault.sol:Vault",
       "to": "src/Vault.sol:Vault.totalAssets()",
       "resolution": "heuristic",
-      "src": {
-        "file": "src/Vault.sol",
-        "offset": 1315,
-        "length": 120,
-        "line": 44,
-        "column": 4
-      },
+      "count": 1,
       "sites": [
         {
           "file": "src/Vault.sol",
@@ -2974,7 +2371,6 @@
           "column": 4
         }
       ],
-      "count": 1,
       "possibleTargets": []
     },
     {
@@ -2983,13 +2379,7 @@
       "from": "src/Vault.sol:Vault",
       "to": "src/Vault.sol:Vault.upgrade(bytes)",
       "resolution": "heuristic",
-      "src": {
-        "file": "src/Vault.sol",
-        "offset": 1575,
-        "length": 164,
-        "line": 52,
-        "column": 4
-      },
+      "count": 1,
       "sites": [
         {
           "file": "src/Vault.sol",
@@ -2999,7 +2389,6 @@
           "column": 4
         }
       ],
-      "count": 1,
       "possibleTargets": []
     },
     {
@@ -3008,13 +2397,7 @@
       "from": "src/Vault.sol:Vault",
       "to": "src/Vault.sol:Vault^Swept(address)",
       "resolution": "heuristic",
-      "src": {
-        "file": "src/Vault.sol",
-        "offset": 578,
-        "length": 32,
-        "line": 17,
-        "column": 4
-      },
+      "count": 1,
       "sites": [
         {
           "file": "src/Vault.sol",
@@ -3024,7 +2407,6 @@
           "column": 4
         }
       ],
-      "count": 1,
       "possibleTargets": []
     },
     {
@@ -3033,13 +2415,7 @@
       "from": "src/Vault.sol",
       "to": "src/Vault.sol:Vault",
       "resolution": "heuristic",
-      "src": {
-        "file": "src/Vault.sol",
-        "offset": 326,
-        "length": 1722,
-        "line": 10,
-        "column": 0
-      },
+      "count": 1,
       "sites": [
         {
           "file": "src/Vault.sol",
@@ -3049,7 +2425,6 @@
           "column": 0
         }
       ],
-      "count": 1,
       "possibleTargets": []
     }
   ]

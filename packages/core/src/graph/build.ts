@@ -34,6 +34,7 @@ import {
   type GraphEdge,
   type GraphFile,
   type GraphNode,
+  type Param,
   type Resolution,
 } from './schema.js';
 import { HASH_VERSION } from './hash.js';
@@ -64,8 +65,20 @@ const CONFIDENCE: Record<Resolution, number> = {
   unresolved: 0,
 };
 
-function paramRecords(params: readonly ParsedParam[]): { name: string | null; type: string }[] {
-  return params.map((p) => ({ name: p.name, type: p.typeName }));
+/**
+ * `indexed` and `storageLocation` are carried through because they are part of
+ * the declared interface: flipping `indexed` on an event parameter changes the
+ * ABI and breaks every log consumer, which is a §8 breaking change rather than
+ * a re-review trigger. Both hold their default on most parameters, so the
+ * serializer drops them and costs nothing at rest.
+ */
+function paramRecords(params: readonly ParsedParam[]): Param[] {
+  return params.map((p) => ({
+    name: p.name,
+    type: p.typeName,
+    indexed: p.indexed,
+    storageLocation: p.storageLocation,
+  }));
 }
 
 function fileRef(file: string): SourceRef {
@@ -273,6 +286,7 @@ export function buildGraph(options: BuildGraphOptions): BuiltGraph {
       scope: null,
       src: target.src,
       synthetic: true,
+      category: target.category,
       reason: target.reason,
     });
   }

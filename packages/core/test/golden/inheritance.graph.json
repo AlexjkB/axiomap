@@ -49,12 +49,13 @@
         "column": 0
       },
       "pragma": "pragma solidity ^0.8.20;",
-      "versionSupport": "supported",
       "recovered": false,
-      "unresolvedImports": []
+      "unresolvedImports": [],
+      "versionSupport": "supported"
     },
     {
       "id": "src/Diamond.sol:A",
+      "kind": "Contract",
       "name": "A",
       "file": "src/Diamond.sol",
       "scope": null,
@@ -65,19 +66,19 @@
         "line": 6,
         "column": 0
       },
-      "kind": "Contract",
-      "contractKind": "abstract",
       "baseNames": [],
+      "contractKind": "abstract",
+      "isFullyImplemented": true,
+      "isMock": false,
+      "isTest": false,
+      "linearizationCertainty": "certain",
       "linearizedBases": [
         "src/Diamond.sol:A"
-      ],
-      "linearizationCertainty": "certain",
-      "isFullyImplemented": true,
-      "isTest": false,
-      "isMock": false
+      ]
     },
     {
       "id": "src/Diamond.sol:A.ping()",
+      "kind": "Function",
       "name": "ping",
       "file": "src/Diamond.sol",
       "scope": "src/Diamond.sol:A",
@@ -88,38 +89,30 @@
         "line": 9,
         "column": 4
       },
-      "kind": "Function",
-      "subkind": "function",
-      "visibility": "public",
-      "stateMutability": "nonpayable",
-      "isVirtual": true,
-      "isOverride": false,
-      "modifiers": [],
-      "params": [],
-      "returns": [],
-      "hasBody": true,
       "bodyHash": "d76b1b2f31f21489",
+      "flags": {
+        "readsState": true,
+        "writesState": true
+      },
+      "hasBody": true,
       "interfaceHash": "e57485c9887b8c99",
+      "isOverride": false,
+      "isVirtual": true,
       "metrics": {
         "sloc": 3,
         "cyclomatic": 1,
         "maxDepth": 1
       },
-      "flags": {
-        "hasAssembly": false,
-        "hasDelegatecall": false,
-        "hasLowLevelCall": false,
-        "hasSelfdestruct": false,
-        "hasCreate": false,
-        "sendsValue": false,
-        "hasUnchecked": false,
-        "hasTryCatch": false,
-        "readsState": true,
-        "writesState": true
-      }
+      "modifiers": [],
+      "params": [],
+      "returns": [],
+      "stateMutability": "nonpayable",
+      "subkind": "function",
+      "visibility": "public"
     },
     {
       "id": "src/Diamond.sol:A.trail",
+      "kind": "StateVariable",
       "name": "trail",
       "file": "src/Diamond.sol",
       "scope": "src/Diamond.sol:A",
@@ -130,16 +123,16 @@
         "line": 7,
         "column": 4
       },
-      "kind": "StateVariable",
-      "type": "uint256",
-      "visibility": "public",
       "isConstant": false,
       "isImmutable": false,
+      "isMapping": false,
       "isTransient": false,
-      "isMapping": false
+      "type": "uint256",
+      "visibility": "public"
     },
     {
       "id": "src/Diamond.sol:B",
+      "kind": "Contract",
       "name": "B",
       "file": "src/Diamond.sol",
       "scope": null,
@@ -150,22 +143,22 @@
         "line": 14,
         "column": 0
       },
-      "kind": "Contract",
-      "contractKind": "abstract",
       "baseNames": [
         "A"
       ],
+      "contractKind": "abstract",
+      "isFullyImplemented": true,
+      "isMock": false,
+      "isTest": false,
+      "linearizationCertainty": "certain",
       "linearizedBases": [
         "src/Diamond.sol:B",
         "src/Diamond.sol:A"
-      ],
-      "linearizationCertainty": "certain",
-      "isFullyImplemented": true,
-      "isTest": false,
-      "isMock": false
+      ]
     },
     {
       "id": "src/Diamond.sol:B.ping()",
+      "kind": "Function",
       "name": "ping",
       "file": "src/Diamond.sol",
       "scope": "src/Diamond.sol:B",
@@ -176,38 +169,30 @@
         "line": 15,
         "column": 4
       },
-      "kind": "Function",
-      "subkind": "function",
-      "visibility": "public",
-      "stateMutability": "nonpayable",
-      "isVirtual": true,
-      "isOverride": true,
-      "modifiers": [],
-      "params": [],
-      "returns": [],
-      "hasBody": true,
       "bodyHash": "9dbb7e6a7b759059",
+      "flags": {
+        "readsState": true,
+        "writesState": true
+      },
+      "hasBody": true,
       "interfaceHash": "e57485c9887b8c99",
+      "isOverride": true,
+      "isVirtual": true,
       "metrics": {
         "sloc": 4,
         "cyclomatic": 1,
         "maxDepth": 1
       },
-      "flags": {
-        "hasAssembly": false,
-        "hasDelegatecall": false,
-        "hasLowLevelCall": false,
-        "hasSelfdestruct": false,
-        "hasCreate": false,
-        "sendsValue": false,
-        "hasUnchecked": false,
-        "hasTryCatch": false,
-        "readsState": true,
-        "writesState": true
-      }
+      "modifiers": [],
+      "params": [],
+      "returns": [],
+      "stateMutability": "nonpayable",
+      "subkind": "function",
+      "visibility": "public"
     },
     {
       "id": "src/Diamond.sol:C",
+      "kind": "Contract",
       "name": "C",
       "file": "src/Diamond.sol",
       "scope": null,
@@ -218,22 +203,22 @@
         "line": 21,
         "column": 0
       },
-      "kind": "Contract",
-      "contractKind": "abstract",
       "baseNames": [
         "A"
       ],
+      "contractKind": "abstract",
+      "isFullyImplemented": true,
+      "isMock": false,
+      "isTest": false,
+      "linearizationCertainty": "certain",
       "linearizedBases": [
         "src/Diamond.sol:C",
         "src/Diamond.sol:A"
-      ],
-      "linearizationCertainty": "certain",
-      "isFullyImplemented": true,
-      "isTest": false,
-      "isMock": false
+      ]
     },
     {
       "id": "src/Diamond.sol:C.ping()",
+      "kind": "Function",
       "name": "ping",
       "file": "src/Diamond.sol",
       "scope": "src/Diamond.sol:C",
@@ -244,38 +229,30 @@
         "line": 22,
         "column": 4
       },
-      "kind": "Function",
-      "subkind": "function",
-      "visibility": "public",
-      "stateMutability": "nonpayable",
-      "isVirtual": true,
-      "isOverride": true,
-      "modifiers": [],
-      "params": [],
-      "returns": [],
-      "hasBody": true,
       "bodyHash": "c602c5af8ccbbcbc",
+      "flags": {
+        "readsState": true,
+        "writesState": true
+      },
+      "hasBody": true,
       "interfaceHash": "e57485c9887b8c99",
+      "isOverride": true,
+      "isVirtual": true,
       "metrics": {
         "sloc": 4,
         "cyclomatic": 1,
         "maxDepth": 1
       },
-      "flags": {
-        "hasAssembly": false,
-        "hasDelegatecall": false,
-        "hasLowLevelCall": false,
-        "hasSelfdestruct": false,
-        "hasCreate": false,
-        "sendsValue": false,
-        "hasUnchecked": false,
-        "hasTryCatch": false,
-        "readsState": true,
-        "writesState": true
-      }
+      "modifiers": [],
+      "params": [],
+      "returns": [],
+      "stateMutability": "nonpayable",
+      "subkind": "function",
+      "visibility": "public"
     },
     {
       "id": "src/Diamond.sol:D",
+      "kind": "Contract",
       "name": "D",
       "file": "src/Diamond.sol",
       "scope": null,
@@ -286,25 +263,25 @@
         "line": 28,
         "column": 0
       },
-      "kind": "Contract",
-      "contractKind": "contract",
       "baseNames": [
         "B",
         "C"
       ],
+      "contractKind": "contract",
+      "isFullyImplemented": true,
+      "isMock": false,
+      "isTest": false,
+      "linearizationCertainty": "certain",
       "linearizedBases": [
         "src/Diamond.sol:D",
         "src/Diamond.sol:C",
         "src/Diamond.sol:B",
         "src/Diamond.sol:A"
-      ],
-      "linearizationCertainty": "certain",
-      "isFullyImplemented": true,
-      "isTest": false,
-      "isMock": false
+      ]
     },
     {
       "id": "src/Diamond.sol:D.ping()",
+      "kind": "Function",
       "name": "ping",
       "file": "src/Diamond.sol",
       "scope": "src/Diamond.sol:D",
@@ -315,38 +292,30 @@
         "line": 29,
         "column": 4
       },
-      "kind": "Function",
-      "subkind": "function",
-      "visibility": "public",
-      "stateMutability": "nonpayable",
-      "isVirtual": false,
-      "isOverride": true,
-      "modifiers": [],
-      "params": [],
-      "returns": [],
-      "hasBody": true,
       "bodyHash": "65311d7cfcb3b92b",
+      "flags": {
+        "readsState": true,
+        "writesState": true
+      },
+      "hasBody": true,
       "interfaceHash": "e57485c9887b8c99",
+      "isOverride": true,
+      "isVirtual": false,
       "metrics": {
         "sloc": 4,
         "cyclomatic": 1,
         "maxDepth": 1
       },
-      "flags": {
-        "hasAssembly": false,
-        "hasDelegatecall": false,
-        "hasLowLevelCall": false,
-        "hasSelfdestruct": false,
-        "hasCreate": false,
-        "sendsValue": false,
-        "hasUnchecked": false,
-        "hasTryCatch": false,
-        "readsState": true,
-        "writesState": true
-      }
+      "modifiers": [],
+      "params": [],
+      "returns": [],
+      "stateMutability": "nonpayable",
+      "subkind": "function",
+      "visibility": "public"
     },
     {
       "id": "src/Diamond.sol:E",
+      "kind": "Contract",
       "name": "E",
       "file": "src/Diamond.sol",
       "scope": null,
@@ -357,25 +326,25 @@
         "line": 37,
         "column": 0
       },
-      "kind": "Contract",
-      "contractKind": "contract",
       "baseNames": [
         "C",
         "B"
       ],
+      "contractKind": "contract",
+      "isFullyImplemented": true,
+      "isMock": false,
+      "isTest": false,
+      "linearizationCertainty": "certain",
       "linearizedBases": [
         "src/Diamond.sol:E",
         "src/Diamond.sol:B",
         "src/Diamond.sol:C",
         "src/Diamond.sol:A"
-      ],
-      "linearizationCertainty": "certain",
-      "isFullyImplemented": true,
-      "isTest": false,
-      "isMock": false
+      ]
     },
     {
       "id": "src/Diamond.sol:E.ping()",
+      "kind": "Function",
       "name": "ping",
       "file": "src/Diamond.sol",
       "scope": "src/Diamond.sol:E",
@@ -386,35 +355,26 @@
         "line": 38,
         "column": 4
       },
-      "kind": "Function",
-      "subkind": "function",
-      "visibility": "public",
-      "stateMutability": "nonpayable",
-      "isVirtual": false,
-      "isOverride": true,
-      "modifiers": [],
-      "params": [],
-      "returns": [],
-      "hasBody": true,
       "bodyHash": "5362e214be52a78f",
+      "flags": {
+        "readsState": true,
+        "writesState": true
+      },
+      "hasBody": true,
       "interfaceHash": "e57485c9887b8c99",
+      "isOverride": true,
+      "isVirtual": false,
       "metrics": {
         "sloc": 4,
         "cyclomatic": 1,
         "maxDepth": 1
       },
-      "flags": {
-        "hasAssembly": false,
-        "hasDelegatecall": false,
-        "hasLowLevelCall": false,
-        "hasSelfdestruct": false,
-        "hasCreate": false,
-        "sendsValue": false,
-        "hasUnchecked": false,
-        "hasTryCatch": false,
-        "readsState": true,
-        "writesState": true
-      }
+      "modifiers": [],
+      "params": [],
+      "returns": [],
+      "stateMutability": "nonpayable",
+      "subkind": "function",
+      "visibility": "public"
     },
     {
       "id": "src/GovernedToken.sol",
@@ -430,12 +390,13 @@
         "column": 0
       },
       "pragma": "pragma solidity ^0.8.20;",
-      "versionSupport": "supported",
       "recovered": false,
-      "unresolvedImports": []
+      "unresolvedImports": [],
+      "versionSupport": "supported"
     },
     {
       "id": "src/GovernedToken.sol:GovernedToken",
+      "kind": "Contract",
       "name": "GovernedToken",
       "file": "src/GovernedToken.sol",
       "scope": null,
@@ -446,14 +407,17 @@
         "line": 12,
         "column": 0
       },
-      "kind": "Contract",
-      "contractKind": "contract",
       "baseNames": [
         "ERC20",
         "ERC20Burnable",
         "ERC20Pausable",
         "Ownable2Step"
       ],
+      "contractKind": "contract",
+      "isFullyImplemented": true,
+      "isMock": false,
+      "isTest": false,
+      "linearizationCertainty": "certain",
       "linearizedBases": [
         "src/GovernedToken.sol:GovernedToken",
         "lib/openzeppelin-contracts/contracts/access/Ownable2Step.sol:Ownable2Step",
@@ -466,14 +430,11 @@
         "lib/openzeppelin-contracts/contracts/token/ERC20/extensions/IERC20Metadata.sol:IERC20Metadata",
         "lib/openzeppelin-contracts/contracts/token/ERC20/IERC20.sol:IERC20",
         "lib/openzeppelin-contracts/contracts/utils/Context.sol:Context"
-      ],
-      "linearizationCertainty": "certain",
-      "isFullyImplemented": true,
-      "isTest": false,
-      "isMock": false
+      ]
     },
     {
       "id": "src/GovernedToken.sol:GovernedToken._transferOwnership(address)",
+      "kind": "Function",
       "name": "_transferOwnership",
       "file": "src/GovernedToken.sol",
       "scope": "src/GovernedToken.sol:GovernedToken",
@@ -484,12 +445,17 @@
         "line": 35,
         "column": 4
       },
-      "kind": "Function",
-      "subkind": "function",
-      "visibility": "internal",
-      "stateMutability": "nonpayable",
-      "isVirtual": false,
+      "bodyHash": "4719f1243a81696a",
+      "flags": {},
+      "hasBody": true,
+      "interfaceHash": "078c17841eedd140",
       "isOverride": true,
+      "isVirtual": false,
+      "metrics": {
+        "sloc": 3,
+        "cyclomatic": 1,
+        "maxDepth": 1
+      },
       "modifiers": [],
       "params": [
         {
@@ -498,29 +464,13 @@
         }
       ],
       "returns": [],
-      "hasBody": true,
-      "bodyHash": "4719f1243a81696a",
-      "interfaceHash": "078c17841eedd140",
-      "metrics": {
-        "sloc": 3,
-        "cyclomatic": 1,
-        "maxDepth": 1
-      },
-      "flags": {
-        "hasAssembly": false,
-        "hasDelegatecall": false,
-        "hasLowLevelCall": false,
-        "hasSelfdestruct": false,
-        "hasCreate": false,
-        "sendsValue": false,
-        "hasUnchecked": false,
-        "hasTryCatch": false,
-        "readsState": false,
-        "writesState": false
-      }
+      "stateMutability": "nonpayable",
+      "subkind": "function",
+      "visibility": "internal"
     },
     {
       "id": "src/GovernedToken.sol:GovernedToken._update(address,address,uint256)",
+      "kind": "Function",
       "name": "_update",
       "file": "src/GovernedToken.sol",
       "scope": "src/GovernedToken.sol:GovernedToken",
@@ -531,12 +481,17 @@
         "line": 26,
         "column": 4
       },
-      "kind": "Function",
-      "subkind": "function",
-      "visibility": "internal",
-      "stateMutability": "nonpayable",
-      "isVirtual": false,
+      "bodyHash": "cda587a99d524109",
+      "flags": {},
+      "hasBody": true,
+      "interfaceHash": "fd499400b7cdb763",
       "isOverride": true,
+      "isVirtual": false,
+      "metrics": {
+        "sloc": 3,
+        "cyclomatic": 1,
+        "maxDepth": 1
+      },
       "modifiers": [],
       "params": [
         {
@@ -553,29 +508,13 @@
         }
       ],
       "returns": [],
-      "hasBody": true,
-      "bodyHash": "cda587a99d524109",
-      "interfaceHash": "fd499400b7cdb763",
-      "metrics": {
-        "sloc": 3,
-        "cyclomatic": 1,
-        "maxDepth": 1
-      },
-      "flags": {
-        "hasAssembly": false,
-        "hasDelegatecall": false,
-        "hasLowLevelCall": false,
-        "hasSelfdestruct": false,
-        "hasCreate": false,
-        "sendsValue": false,
-        "hasUnchecked": false,
-        "hasTryCatch": false,
-        "readsState": false,
-        "writesState": false
-      }
+      "stateMutability": "nonpayable",
+      "subkind": "function",
+      "visibility": "internal"
     },
     {
       "id": "src/GovernedToken.sol:GovernedToken.constructor(address)",
+      "kind": "Function",
       "name": "constructor",
       "file": "src/GovernedToken.sol",
       "scope": "src/GovernedToken.sol:GovernedToken",
@@ -586,12 +525,17 @@
         "line": 13,
         "column": 4
       },
-      "kind": "Function",
-      "subkind": "constructor",
-      "visibility": "default",
-      "stateMutability": "nonpayable",
-      "isVirtual": false,
+      "bodyHash": "1198e21d84770d5b",
+      "flags": {},
+      "hasBody": true,
+      "interfaceHash": "ea2951d997c9ba17",
       "isOverride": false,
+      "isVirtual": false,
+      "metrics": {
+        "sloc": 3,
+        "cyclomatic": 1,
+        "maxDepth": 1
+      },
       "modifiers": [],
       "params": [
         {
@@ -600,29 +544,13 @@
         }
       ],
       "returns": [],
-      "hasBody": true,
-      "bodyHash": "1198e21d84770d5b",
-      "interfaceHash": "ea2951d997c9ba17",
-      "metrics": {
-        "sloc": 3,
-        "cyclomatic": 1,
-        "maxDepth": 1
-      },
-      "flags": {
-        "hasAssembly": false,
-        "hasDelegatecall": false,
-        "hasLowLevelCall": false,
-        "hasSelfdestruct": false,
-        "hasCreate": false,
-        "sendsValue": false,
-        "hasUnchecked": false,
-        "hasTryCatch": false,
-        "readsState": false,
-        "writesState": false
-      }
+      "stateMutability": "nonpayable",
+      "subkind": "constructor",
+      "visibility": "default"
     },
     {
       "id": "src/GovernedToken.sol:GovernedToken.pause()",
+      "kind": "Function",
       "name": "pause",
       "file": "src/GovernedToken.sol",
       "scope": "src/GovernedToken.sol:GovernedToken",
@@ -633,40 +561,29 @@
         "line": 17,
         "column": 4
       },
-      "kind": "Function",
-      "subkind": "function",
-      "visibility": "external",
-      "stateMutability": "nonpayable",
-      "isVirtual": false,
-      "isOverride": false,
-      "modifiers": [
-        "lib/openzeppelin-contracts/contracts/access/Ownable.sol:Ownable#onlyOwner"
-      ],
-      "params": [],
-      "returns": [],
-      "hasBody": true,
       "bodyHash": "98126481c6626436",
+      "flags": {},
+      "hasBody": true,
       "interfaceHash": "e382d288b5fff75a",
+      "isOverride": false,
+      "isVirtual": false,
       "metrics": {
         "sloc": 3,
         "cyclomatic": 1,
         "maxDepth": 1
       },
-      "flags": {
-        "hasAssembly": false,
-        "hasDelegatecall": false,
-        "hasLowLevelCall": false,
-        "hasSelfdestruct": false,
-        "hasCreate": false,
-        "sendsValue": false,
-        "hasUnchecked": false,
-        "hasTryCatch": false,
-        "readsState": false,
-        "writesState": false
-      }
+      "modifiers": [
+        "lib/openzeppelin-contracts/contracts/access/Ownable.sol:Ownable#onlyOwner"
+      ],
+      "params": [],
+      "returns": [],
+      "stateMutability": "nonpayable",
+      "subkind": "function",
+      "visibility": "external"
     },
     {
       "id": "src/GovernedToken.sol:GovernedToken.unpause()",
+      "kind": "Function",
       "name": "unpause",
       "file": "src/GovernedToken.sol",
       "scope": "src/GovernedToken.sol:GovernedToken",
@@ -677,37 +594,25 @@
         "line": 21,
         "column": 4
       },
-      "kind": "Function",
-      "subkind": "function",
-      "visibility": "external",
-      "stateMutability": "nonpayable",
-      "isVirtual": false,
-      "isOverride": false,
-      "modifiers": [
-        "lib/openzeppelin-contracts/contracts/access/Ownable.sol:Ownable#onlyOwner"
-      ],
-      "params": [],
-      "returns": [],
-      "hasBody": true,
       "bodyHash": "05164725c3b51383",
+      "flags": {},
+      "hasBody": true,
       "interfaceHash": "c31c276d1778858e",
+      "isOverride": false,
+      "isVirtual": false,
       "metrics": {
         "sloc": 3,
         "cyclomatic": 1,
         "maxDepth": 1
       },
-      "flags": {
-        "hasAssembly": false,
-        "hasDelegatecall": false,
-        "hasLowLevelCall": false,
-        "hasSelfdestruct": false,
-        "hasCreate": false,
-        "sendsValue": false,
-        "hasUnchecked": false,
-        "hasTryCatch": false,
-        "readsState": false,
-        "writesState": false
-      }
+      "modifiers": [
+        "lib/openzeppelin-contracts/contracts/access/Ownable.sol:Ownable#onlyOwner"
+      ],
+      "params": [],
+      "returns": [],
+      "stateMutability": "nonpayable",
+      "subkind": "function",
+      "visibility": "external"
     },
     {
       "id": "src/Shadowing.sol",
@@ -723,12 +628,13 @@
         "column": 0
       },
       "pragma": "pragma solidity ^0.8.20;",
-      "versionSupport": "supported",
       "recovered": false,
-      "unresolvedImports": []
+      "unresolvedImports": [],
+      "versionSupport": "supported"
     },
     {
       "id": "src/Shadowing.sol:Greeter",
+      "kind": "Contract",
       "name": "Greeter",
       "file": "src/Shadowing.sol",
       "scope": null,
@@ -739,24 +645,24 @@
         "line": 13,
         "column": 0
       },
-      "kind": "Contract",
-      "contractKind": "abstract",
       "baseNames": [
         "IGreeter",
         "INamed"
       ],
+      "contractKind": "abstract",
+      "isFullyImplemented": false,
+      "isMock": false,
+      "isTest": false,
+      "linearizationCertainty": "certain",
       "linearizedBases": [
         "src/Shadowing.sol:Greeter",
         "src/Shadowing.sol:INamed",
         "src/Shadowing.sol:IGreeter"
-      ],
-      "linearizationCertainty": "certain",
-      "isFullyImplemented": false,
-      "isTest": false,
-      "isMock": false
+      ]
     },
     {
       "id": "src/Shadowing.sol:Greeter._greeting",
+      "kind": "StateVariable",
       "name": "_greeting",
       "file": "src/Shadowing.sol",
       "scope": "src/Shadowing.sol:Greeter",
@@ -767,16 +673,16 @@
         "line": 14,
         "column": 4
       },
-      "kind": "StateVariable",
-      "type": "string",
-      "visibility": "internal",
       "isConstant": false,
       "isImmutable": false,
+      "isMapping": false,
       "isTransient": false,
-      "isMapping": false
+      "type": "string",
+      "visibility": "internal"
     },
     {
       "id": "src/Shadowing.sol:Greeter.greet()",
+      "kind": "Function",
       "name": "greet",
       "file": "src/Shadowing.sol",
       "scope": "src/Shadowing.sol:Greeter",
@@ -787,43 +693,35 @@
         "line": 16,
         "column": 4
       },
-      "kind": "Function",
-      "subkind": "function",
-      "visibility": "public",
-      "stateMutability": "view",
-      "isVirtual": true,
-      "isOverride": true,
-      "modifiers": [],
-      "params": [],
-      "returns": [
-        {
-          "name": null,
-          "type": "string"
-        }
-      ],
-      "hasBody": true,
       "bodyHash": "8cd99d3af3347c4a",
+      "flags": {
+        "readsState": true
+      },
+      "hasBody": true,
       "interfaceHash": "b8f6dc0c3e96d06f",
+      "isOverride": true,
+      "isVirtual": true,
       "metrics": {
         "sloc": 3,
         "cyclomatic": 1,
         "maxDepth": 1
       },
-      "flags": {
-        "hasAssembly": false,
-        "hasDelegatecall": false,
-        "hasLowLevelCall": false,
-        "hasSelfdestruct": false,
-        "hasCreate": false,
-        "sendsValue": false,
-        "hasUnchecked": false,
-        "hasTryCatch": false,
-        "readsState": true,
-        "writesState": false
-      }
+      "modifiers": [],
+      "params": [],
+      "returns": [
+        {
+          "name": null,
+          "type": "string",
+          "storageLocation": "memory"
+        }
+      ],
+      "stateMutability": "view",
+      "subkind": "function",
+      "visibility": "public"
     },
     {
       "id": "src/Shadowing.sol:Greeter.name()",
+      "kind": "Function",
       "name": "name",
       "file": "src/Shadowing.sol",
       "scope": "src/Shadowing.sol:Greeter",
@@ -834,43 +732,33 @@
         "line": 21,
         "column": 4
       },
-      "kind": "Function",
-      "subkind": "function",
-      "visibility": "public",
-      "stateMutability": "view",
-      "isVirtual": true,
-      "isOverride": true,
-      "modifiers": [],
-      "params": [],
-      "returns": [
-        {
-          "name": null,
-          "type": "string"
-        }
-      ],
+      "bodyHash": "",
+      "flags": {},
       "hasBody": false,
-      "bodyHash": "3498efb3aa3800ea",
       "interfaceHash": "7cbc4e1c8e5aef79",
+      "isOverride": true,
+      "isVirtual": true,
       "metrics": {
         "sloc": 0,
         "cyclomatic": 1,
         "maxDepth": 0
       },
-      "flags": {
-        "hasAssembly": false,
-        "hasDelegatecall": false,
-        "hasLowLevelCall": false,
-        "hasSelfdestruct": false,
-        "hasCreate": false,
-        "sendsValue": false,
-        "hasUnchecked": false,
-        "hasTryCatch": false,
-        "readsState": false,
-        "writesState": false
-      }
+      "modifiers": [],
+      "params": [],
+      "returns": [
+        {
+          "name": null,
+          "type": "string",
+          "storageLocation": "memory"
+        }
+      ],
+      "stateMutability": "view",
+      "subkind": "function",
+      "visibility": "public"
     },
     {
       "id": "src/Shadowing.sol:IGreeter",
+      "kind": "Contract",
       "name": "IGreeter",
       "file": "src/Shadowing.sol",
       "scope": null,
@@ -881,19 +769,19 @@
         "line": 4,
         "column": 0
       },
-      "kind": "Contract",
-      "contractKind": "interface",
       "baseNames": [],
+      "contractKind": "interface",
+      "isFullyImplemented": false,
+      "isMock": false,
+      "isTest": false,
+      "linearizationCertainty": "certain",
       "linearizedBases": [
         "src/Shadowing.sol:IGreeter"
-      ],
-      "linearizationCertainty": "certain",
-      "isFullyImplemented": false,
-      "isTest": false,
-      "isMock": false
+      ]
     },
     {
       "id": "src/Shadowing.sol:IGreeter.greet()",
+      "kind": "Function",
       "name": "greet",
       "file": "src/Shadowing.sol",
       "scope": "src/Shadowing.sol:IGreeter",
@@ -904,43 +792,33 @@
         "line": 5,
         "column": 4
       },
-      "kind": "Function",
-      "subkind": "function",
-      "visibility": "external",
-      "stateMutability": "view",
-      "isVirtual": false,
-      "isOverride": false,
-      "modifiers": [],
-      "params": [],
-      "returns": [
-        {
-          "name": null,
-          "type": "string"
-        }
-      ],
+      "bodyHash": "",
+      "flags": {},
       "hasBody": false,
-      "bodyHash": "3498efb3aa3800ea",
       "interfaceHash": "b28728c34d14ef75",
+      "isOverride": false,
+      "isVirtual": false,
       "metrics": {
         "sloc": 0,
         "cyclomatic": 1,
         "maxDepth": 0
       },
-      "flags": {
-        "hasAssembly": false,
-        "hasDelegatecall": false,
-        "hasLowLevelCall": false,
-        "hasSelfdestruct": false,
-        "hasCreate": false,
-        "sendsValue": false,
-        "hasUnchecked": false,
-        "hasTryCatch": false,
-        "readsState": false,
-        "writesState": false
-      }
+      "modifiers": [],
+      "params": [],
+      "returns": [
+        {
+          "name": null,
+          "type": "string",
+          "storageLocation": "memory"
+        }
+      ],
+      "stateMutability": "view",
+      "subkind": "function",
+      "visibility": "external"
     },
     {
       "id": "src/Shadowing.sol:INamed",
+      "kind": "Contract",
       "name": "INamed",
       "file": "src/Shadowing.sol",
       "scope": null,
@@ -951,19 +829,19 @@
         "line": 8,
         "column": 0
       },
-      "kind": "Contract",
-      "contractKind": "interface",
       "baseNames": [],
+      "contractKind": "interface",
+      "isFullyImplemented": false,
+      "isMock": false,
+      "isTest": false,
+      "linearizationCertainty": "certain",
       "linearizedBases": [
         "src/Shadowing.sol:INamed"
-      ],
-      "linearizationCertainty": "certain",
-      "isFullyImplemented": false,
-      "isTest": false,
-      "isMock": false
+      ]
     },
     {
       "id": "src/Shadowing.sol:INamed.name()",
+      "kind": "Function",
       "name": "name",
       "file": "src/Shadowing.sol",
       "scope": "src/Shadowing.sol:INamed",
@@ -974,43 +852,33 @@
         "line": 9,
         "column": 4
       },
-      "kind": "Function",
-      "subkind": "function",
-      "visibility": "external",
-      "stateMutability": "view",
-      "isVirtual": false,
-      "isOverride": false,
-      "modifiers": [],
-      "params": [],
-      "returns": [
-        {
-          "name": null,
-          "type": "string"
-        }
-      ],
+      "bodyHash": "",
+      "flags": {},
       "hasBody": false,
-      "bodyHash": "3498efb3aa3800ea",
       "interfaceHash": "d5bf5f7c3f28df07",
+      "isOverride": false,
+      "isVirtual": false,
       "metrics": {
         "sloc": 0,
         "cyclomatic": 1,
         "maxDepth": 0
       },
-      "flags": {
-        "hasAssembly": false,
-        "hasDelegatecall": false,
-        "hasLowLevelCall": false,
-        "hasSelfdestruct": false,
-        "hasCreate": false,
-        "sendsValue": false,
-        "hasUnchecked": false,
-        "hasTryCatch": false,
-        "readsState": false,
-        "writesState": false
-      }
+      "modifiers": [],
+      "params": [],
+      "returns": [
+        {
+          "name": null,
+          "type": "string",
+          "storageLocation": "memory"
+        }
+      ],
+      "stateMutability": "view",
+      "subkind": "function",
+      "visibility": "external"
     },
     {
       "id": "src/Shadowing.sol:Loud",
+      "kind": "Contract",
       "name": "Loud",
       "file": "src/Shadowing.sol",
       "scope": null,
@@ -1021,25 +889,25 @@
         "line": 39,
         "column": 0
       },
-      "kind": "Contract",
-      "contractKind": "contract",
       "baseNames": [
         "Politeness"
       ],
+      "contractKind": "contract",
+      "isFullyImplemented": true,
+      "isMock": false,
+      "isTest": false,
+      "linearizationCertainty": "certain",
       "linearizedBases": [
         "src/Shadowing.sol:Loud",
         "src/Shadowing.sol:Politeness",
         "src/Shadowing.sol:Greeter",
         "src/Shadowing.sol:INamed",
         "src/Shadowing.sol:IGreeter"
-      ],
-      "linearizationCertainty": "certain",
-      "isFullyImplemented": true,
-      "isTest": false,
-      "isMock": false
+      ]
     },
     {
       "id": "src/Shadowing.sol:Loud.greet()",
+      "kind": "Function",
       "name": "greet",
       "file": "src/Shadowing.sol",
       "scope": "src/Shadowing.sol:Loud",
@@ -1050,43 +918,33 @@
         "line": 40,
         "column": 4
       },
-      "kind": "Function",
-      "subkind": "function",
-      "visibility": "public",
-      "stateMutability": "view",
-      "isVirtual": false,
-      "isOverride": true,
-      "modifiers": [],
-      "params": [],
-      "returns": [
-        {
-          "name": null,
-          "type": "string"
-        }
-      ],
-      "hasBody": true,
       "bodyHash": "e090522e60b5cd36",
+      "flags": {},
+      "hasBody": true,
       "interfaceHash": "b8f6dc0c3e96d06f",
+      "isOverride": true,
+      "isVirtual": false,
       "metrics": {
         "sloc": 3,
         "cyclomatic": 1,
         "maxDepth": 1
       },
-      "flags": {
-        "hasAssembly": false,
-        "hasDelegatecall": false,
-        "hasLowLevelCall": false,
-        "hasSelfdestruct": false,
-        "hasCreate": false,
-        "sendsValue": false,
-        "hasUnchecked": false,
-        "hasTryCatch": false,
-        "readsState": false,
-        "writesState": false
-      }
+      "modifiers": [],
+      "params": [],
+      "returns": [
+        {
+          "name": null,
+          "type": "string",
+          "storageLocation": "memory"
+        }
+      ],
+      "stateMutability": "view",
+      "subkind": "function",
+      "visibility": "public"
     },
     {
       "id": "src/Shadowing.sol:Politeness",
+      "kind": "Contract",
       "name": "Politeness",
       "file": "src/Shadowing.sol",
       "scope": null,
@@ -1097,24 +955,24 @@
         "line": 26,
         "column": 0
       },
-      "kind": "Contract",
-      "contractKind": "contract",
       "baseNames": [
         "Greeter"
       ],
+      "contractKind": "contract",
+      "isFullyImplemented": true,
+      "isMock": false,
+      "isTest": false,
+      "linearizationCertainty": "certain",
       "linearizedBases": [
         "src/Shadowing.sol:Politeness",
         "src/Shadowing.sol:Greeter",
         "src/Shadowing.sol:INamed",
         "src/Shadowing.sol:IGreeter"
-      ],
-      "linearizationCertainty": "certain",
-      "isFullyImplemented": true,
-      "isTest": false,
-      "isMock": false
+      ]
     },
     {
       "id": "src/Shadowing.sol:Politeness.greet()",
+      "kind": "Function",
       "name": "greet",
       "file": "src/Shadowing.sol",
       "scope": "src/Shadowing.sol:Politeness",
@@ -1125,43 +983,33 @@
         "line": 31,
         "column": 4
       },
-      "kind": "Function",
-      "subkind": "function",
-      "visibility": "public",
-      "stateMutability": "view",
-      "isVirtual": false,
-      "isOverride": true,
-      "modifiers": [],
-      "params": [],
-      "returns": [
-        {
-          "name": null,
-          "type": "string"
-        }
-      ],
-      "hasBody": true,
       "bodyHash": "7461eefda4d93831",
+      "flags": {},
+      "hasBody": true,
       "interfaceHash": "b8f6dc0c3e96d06f",
+      "isOverride": true,
+      "isVirtual": false,
       "metrics": {
         "sloc": 4,
         "cyclomatic": 1,
         "maxDepth": 1
       },
-      "flags": {
-        "hasAssembly": false,
-        "hasDelegatecall": false,
-        "hasLowLevelCall": false,
-        "hasSelfdestruct": false,
-        "hasCreate": false,
-        "sendsValue": false,
-        "hasUnchecked": false,
-        "hasTryCatch": false,
-        "readsState": false,
-        "writesState": false
-      }
+      "modifiers": [],
+      "params": [],
+      "returns": [
+        {
+          "name": null,
+          "type": "string",
+          "storageLocation": "memory"
+        }
+      ],
+      "stateMutability": "view",
+      "subkind": "function",
+      "visibility": "public"
     },
     {
       "id": "src/Shadowing.sol:Politeness.name()",
+      "kind": "Function",
       "name": "name",
       "file": "src/Shadowing.sol",
       "scope": "src/Shadowing.sol:Politeness",
@@ -1172,40 +1020,29 @@
         "line": 27,
         "column": 4
       },
-      "kind": "Function",
-      "subkind": "function",
-      "visibility": "public",
-      "stateMutability": "pure",
-      "isVirtual": false,
-      "isOverride": true,
-      "modifiers": [],
-      "params": [],
-      "returns": [
-        {
-          "name": null,
-          "type": "string"
-        }
-      ],
-      "hasBody": true,
       "bodyHash": "37a68f975eb1cacd",
+      "flags": {},
+      "hasBody": true,
       "interfaceHash": "556bfecb4949ab4f",
+      "isOverride": true,
+      "isVirtual": false,
       "metrics": {
         "sloc": 3,
         "cyclomatic": 1,
         "maxDepth": 1
       },
-      "flags": {
-        "hasAssembly": false,
-        "hasDelegatecall": false,
-        "hasLowLevelCall": false,
-        "hasSelfdestruct": false,
-        "hasCreate": false,
-        "sendsValue": false,
-        "hasUnchecked": false,
-        "hasTryCatch": false,
-        "readsState": false,
-        "writesState": false
-      }
+      "modifiers": [],
+      "params": [],
+      "returns": [
+        {
+          "name": null,
+          "type": "string",
+          "storageLocation": "memory"
+        }
+      ],
+      "stateMutability": "pure",
+      "subkind": "function",
+      "visibility": "public"
     }
   ],
   "edges": [
@@ -1215,13 +1052,7 @@
       "from": "src/Diamond.sol:A.ping()",
       "to": "src/Diamond.sol:A.trail",
       "resolution": "heuristic",
-      "src": {
-        "file": "src/Diamond.sol",
-        "offset": 297,
-        "length": 5,
-        "line": 10,
-        "column": 16
-      },
+      "count": 1,
       "sites": [
         {
           "file": "src/Diamond.sol",
@@ -1231,7 +1062,6 @@
           "column": 16
         }
       ],
-      "count": 1,
       "possibleTargets": []
     },
     {
@@ -1240,13 +1070,7 @@
       "from": "src/Diamond.sol:A.ping()",
       "to": "src/Diamond.sol:A.trail",
       "resolution": "heuristic",
-      "src": {
-        "file": "src/Diamond.sol",
-        "offset": 289,
-        "length": 5,
-        "line": 10,
-        "column": 8
-      },
+      "count": 1,
       "sites": [
         {
           "file": "src/Diamond.sol",
@@ -1256,7 +1080,6 @@
           "column": 8
         }
       ],
-      "count": 1,
       "possibleTargets": []
     },
     {
@@ -1265,13 +1088,7 @@
       "from": "src/Diamond.sol:A",
       "to": "src/Diamond.sol:A.ping()",
       "resolution": "heuristic",
-      "src": {
-        "file": "src/Diamond.sol",
-        "offset": 248,
-        "length": 70,
-        "line": 9,
-        "column": 4
-      },
+      "count": 1,
       "sites": [
         {
           "file": "src/Diamond.sol",
@@ -1281,7 +1098,6 @@
           "column": 4
         }
       ],
-      "count": 1,
       "possibleTargets": []
     },
     {
@@ -1290,13 +1106,7 @@
       "from": "src/Diamond.sol:A",
       "to": "src/Diamond.sol:A.trail",
       "resolution": "heuristic",
-      "src": {
-        "file": "src/Diamond.sol",
-        "offset": 221,
-        "length": 21,
-        "line": 7,
-        "column": 4
-      },
+      "count": 1,
       "sites": [
         {
           "file": "src/Diamond.sol",
@@ -1306,22 +1116,16 @@
           "column": 4
         }
       ],
-      "count": 1,
       "possibleTargets": []
     },
     {
       "id": "src/Diamond.sol:B.ping()|src/Diamond.sol:A.ping()|calls|super",
       "kind": "calls",
+      "subkind": "super",
       "from": "src/Diamond.sol:B.ping()",
       "to": "src/Diamond.sol:A.ping()",
       "resolution": "heuristic",
-      "src": {
-        "file": "src/Diamond.sol",
-        "offset": 403,
-        "length": 12,
-        "line": 16,
-        "column": 8
-      },
+      "count": 1,
       "sites": [
         {
           "file": "src/Diamond.sol",
@@ -1331,9 +1135,7 @@
           "column": 8
         }
       ],
-      "count": 1,
-      "possibleTargets": [],
-      "subkind": "super"
+      "possibleTargets": []
     },
     {
       "id": "src/Diamond.sol:B.ping()|src/Diamond.sol:A.ping()|overrides|",
@@ -1341,13 +1143,7 @@
       "from": "src/Diamond.sol:B.ping()",
       "to": "src/Diamond.sol:A.ping()",
       "resolution": "heuristic",
-      "src": {
-        "file": "src/Diamond.sol",
-        "offset": 353,
-        "length": 101,
-        "line": 15,
-        "column": 4
-      },
+      "count": 1,
       "sites": [
         {
           "file": "src/Diamond.sol",
@@ -1357,7 +1153,6 @@
           "column": 4
         }
       ],
-      "count": 1,
       "possibleTargets": []
     },
     {
@@ -1366,13 +1161,7 @@
       "from": "src/Diamond.sol:B.ping()",
       "to": "src/Diamond.sol:A.trail",
       "resolution": "heuristic",
-      "src": {
-        "file": "src/Diamond.sol",
-        "offset": 433,
-        "length": 5,
-        "line": 17,
-        "column": 16
-      },
+      "count": 1,
       "sites": [
         {
           "file": "src/Diamond.sol",
@@ -1382,7 +1171,6 @@
           "column": 16
         }
       ],
-      "count": 1,
       "possibleTargets": []
     },
     {
@@ -1391,13 +1179,7 @@
       "from": "src/Diamond.sol:B.ping()",
       "to": "src/Diamond.sol:A.trail",
       "resolution": "heuristic",
-      "src": {
-        "file": "src/Diamond.sol",
-        "offset": 425,
-        "length": 5,
-        "line": 17,
-        "column": 8
-      },
+      "count": 1,
       "sites": [
         {
           "file": "src/Diamond.sol",
@@ -1407,7 +1189,6 @@
           "column": 8
         }
       ],
-      "count": 1,
       "possibleTargets": []
     },
     {
@@ -1416,13 +1197,7 @@
       "from": "src/Diamond.sol:B",
       "to": "src/Diamond.sol:A",
       "resolution": "heuristic",
-      "src": {
-        "file": "src/Diamond.sol",
-        "offset": 322,
-        "length": 134,
-        "line": 14,
-        "column": 0
-      },
+      "count": 1,
       "sites": [
         {
           "file": "src/Diamond.sol",
@@ -1432,9 +1207,8 @@
           "column": 0
         }
       ],
-      "count": 1,
-      "possibleTargets": [],
-      "linearizationIndex": 1
+      "linearizationIndex": 1,
+      "possibleTargets": []
     },
     {
       "id": "src/Diamond.sol:B|src/Diamond.sol:B.ping()|declares|",
@@ -1442,13 +1216,7 @@
       "from": "src/Diamond.sol:B",
       "to": "src/Diamond.sol:B.ping()",
       "resolution": "heuristic",
-      "src": {
-        "file": "src/Diamond.sol",
-        "offset": 353,
-        "length": 101,
-        "line": 15,
-        "column": 4
-      },
+      "count": 1,
       "sites": [
         {
           "file": "src/Diamond.sol",
@@ -1458,22 +1226,16 @@
           "column": 4
         }
       ],
-      "count": 1,
       "possibleTargets": []
     },
     {
       "id": "src/Diamond.sol:C.ping()|src/Diamond.sol:A.ping()|calls|super",
       "kind": "calls",
+      "subkind": "super",
       "from": "src/Diamond.sol:C.ping()",
       "to": "src/Diamond.sol:A.ping()",
       "resolution": "heuristic",
-      "src": {
-        "file": "src/Diamond.sol",
-        "offset": 539,
-        "length": 12,
-        "line": 23,
-        "column": 8
-      },
+      "count": 1,
       "sites": [
         {
           "file": "src/Diamond.sol",
@@ -1483,9 +1245,7 @@
           "column": 8
         }
       ],
-      "count": 1,
-      "possibleTargets": [],
-      "subkind": "super"
+      "possibleTargets": []
     },
     {
       "id": "src/Diamond.sol:C.ping()|src/Diamond.sol:A.ping()|overrides|",
@@ -1493,13 +1253,7 @@
       "from": "src/Diamond.sol:C.ping()",
       "to": "src/Diamond.sol:A.ping()",
       "resolution": "heuristic",
-      "src": {
-        "file": "src/Diamond.sol",
-        "offset": 489,
-        "length": 101,
-        "line": 22,
-        "column": 4
-      },
+      "count": 1,
       "sites": [
         {
           "file": "src/Diamond.sol",
@@ -1509,7 +1263,6 @@
           "column": 4
         }
       ],
-      "count": 1,
       "possibleTargets": []
     },
     {
@@ -1518,13 +1271,7 @@
       "from": "src/Diamond.sol:C.ping()",
       "to": "src/Diamond.sol:A.trail",
       "resolution": "heuristic",
-      "src": {
-        "file": "src/Diamond.sol",
-        "offset": 569,
-        "length": 5,
-        "line": 24,
-        "column": 16
-      },
+      "count": 1,
       "sites": [
         {
           "file": "src/Diamond.sol",
@@ -1534,7 +1281,6 @@
           "column": 16
         }
       ],
-      "count": 1,
       "possibleTargets": []
     },
     {
@@ -1543,13 +1289,7 @@
       "from": "src/Diamond.sol:C.ping()",
       "to": "src/Diamond.sol:A.trail",
       "resolution": "heuristic",
-      "src": {
-        "file": "src/Diamond.sol",
-        "offset": 561,
-        "length": 5,
-        "line": 24,
-        "column": 8
-      },
+      "count": 1,
       "sites": [
         {
           "file": "src/Diamond.sol",
@@ -1559,7 +1299,6 @@
           "column": 8
         }
       ],
-      "count": 1,
       "possibleTargets": []
     },
     {
@@ -1568,13 +1307,7 @@
       "from": "src/Diamond.sol:C",
       "to": "src/Diamond.sol:A",
       "resolution": "heuristic",
-      "src": {
-        "file": "src/Diamond.sol",
-        "offset": 458,
-        "length": 134,
-        "line": 21,
-        "column": 0
-      },
+      "count": 1,
       "sites": [
         {
           "file": "src/Diamond.sol",
@@ -1584,9 +1317,8 @@
           "column": 0
         }
       ],
-      "count": 1,
-      "possibleTargets": [],
-      "linearizationIndex": 1
+      "linearizationIndex": 1,
+      "possibleTargets": []
     },
     {
       "id": "src/Diamond.sol:C|src/Diamond.sol:C.ping()|declares|",
@@ -1594,13 +1326,7 @@
       "from": "src/Diamond.sol:C",
       "to": "src/Diamond.sol:C.ping()",
       "resolution": "heuristic",
-      "src": {
-        "file": "src/Diamond.sol",
-        "offset": 489,
-        "length": 101,
-        "line": 22,
-        "column": 4
-      },
+      "count": 1,
       "sites": [
         {
           "file": "src/Diamond.sol",
@@ -1610,7 +1336,6 @@
           "column": 4
         }
       ],
-      "count": 1,
       "possibleTargets": []
     },
     {
@@ -1619,13 +1344,7 @@
       "from": "src/Diamond.sol:D.ping()",
       "to": "src/Diamond.sol:A.ping()",
       "resolution": "heuristic",
-      "src": {
-        "file": "src/Diamond.sol",
-        "offset": 619,
-        "length": 99,
-        "line": 29,
-        "column": 4
-      },
+      "count": 1,
       "sites": [
         {
           "file": "src/Diamond.sol",
@@ -1635,7 +1354,6 @@
           "column": 4
         }
       ],
-      "count": 1,
       "possibleTargets": []
     },
     {
@@ -1644,13 +1362,7 @@
       "from": "src/Diamond.sol:D.ping()",
       "to": "src/Diamond.sol:A.trail",
       "resolution": "heuristic",
-      "src": {
-        "file": "src/Diamond.sol",
-        "offset": 697,
-        "length": 5,
-        "line": 31,
-        "column": 16
-      },
+      "count": 1,
       "sites": [
         {
           "file": "src/Diamond.sol",
@@ -1660,7 +1372,6 @@
           "column": 16
         }
       ],
-      "count": 1,
       "possibleTargets": []
     },
     {
@@ -1669,13 +1380,7 @@
       "from": "src/Diamond.sol:D.ping()",
       "to": "src/Diamond.sol:A.trail",
       "resolution": "heuristic",
-      "src": {
-        "file": "src/Diamond.sol",
-        "offset": 689,
-        "length": 5,
-        "line": 31,
-        "column": 8
-      },
+      "count": 1,
       "sites": [
         {
           "file": "src/Diamond.sol",
@@ -1685,7 +1390,6 @@
           "column": 8
         }
       ],
-      "count": 1,
       "possibleTargets": []
     },
     {
@@ -1694,13 +1398,7 @@
       "from": "src/Diamond.sol:D.ping()",
       "to": "src/Diamond.sol:B.ping()",
       "resolution": "heuristic",
-      "src": {
-        "file": "src/Diamond.sol",
-        "offset": 619,
-        "length": 99,
-        "line": 29,
-        "column": 4
-      },
+      "count": 1,
       "sites": [
         {
           "file": "src/Diamond.sol",
@@ -1710,22 +1408,16 @@
           "column": 4
         }
       ],
-      "count": 1,
       "possibleTargets": []
     },
     {
       "id": "src/Diamond.sol:D.ping()|src/Diamond.sol:C.ping()|calls|super",
       "kind": "calls",
+      "subkind": "super",
       "from": "src/Diamond.sol:D.ping()",
       "to": "src/Diamond.sol:C.ping()",
       "resolution": "heuristic",
-      "src": {
-        "file": "src/Diamond.sol",
-        "offset": 667,
-        "length": 12,
-        "line": 30,
-        "column": 8
-      },
+      "count": 1,
       "sites": [
         {
           "file": "src/Diamond.sol",
@@ -1735,9 +1427,7 @@
           "column": 8
         }
       ],
-      "count": 1,
-      "possibleTargets": [],
-      "subkind": "super"
+      "possibleTargets": []
     },
     {
       "id": "src/Diamond.sol:D.ping()|src/Diamond.sol:C.ping()|overrides|",
@@ -1745,13 +1435,7 @@
       "from": "src/Diamond.sol:D.ping()",
       "to": "src/Diamond.sol:C.ping()",
       "resolution": "heuristic",
-      "src": {
-        "file": "src/Diamond.sol",
-        "offset": 619,
-        "length": 99,
-        "line": 29,
-        "column": 4
-      },
+      "count": 1,
       "sites": [
         {
           "file": "src/Diamond.sol",
@@ -1761,7 +1445,6 @@
           "column": 4
         }
       ],
-      "count": 1,
       "possibleTargets": []
     },
     {
@@ -1770,13 +1453,7 @@
       "from": "src/Diamond.sol:D",
       "to": "src/Diamond.sol:B",
       "resolution": "heuristic",
-      "src": {
-        "file": "src/Diamond.sol",
-        "offset": 594,
-        "length": 126,
-        "line": 28,
-        "column": 0
-      },
+      "count": 1,
       "sites": [
         {
           "file": "src/Diamond.sol",
@@ -1786,9 +1463,8 @@
           "column": 0
         }
       ],
-      "count": 1,
-      "possibleTargets": [],
-      "linearizationIndex": 2
+      "linearizationIndex": 2,
+      "possibleTargets": []
     },
     {
       "id": "src/Diamond.sol:D|src/Diamond.sol:C|inherits|",
@@ -1796,13 +1472,7 @@
       "from": "src/Diamond.sol:D",
       "to": "src/Diamond.sol:C",
       "resolution": "heuristic",
-      "src": {
-        "file": "src/Diamond.sol",
-        "offset": 594,
-        "length": 126,
-        "line": 28,
-        "column": 0
-      },
+      "count": 1,
       "sites": [
         {
           "file": "src/Diamond.sol",
@@ -1812,9 +1482,8 @@
           "column": 0
         }
       ],
-      "count": 1,
-      "possibleTargets": [],
-      "linearizationIndex": 1
+      "linearizationIndex": 1,
+      "possibleTargets": []
     },
     {
       "id": "src/Diamond.sol:D|src/Diamond.sol:D.ping()|declares|",
@@ -1822,13 +1491,7 @@
       "from": "src/Diamond.sol:D",
       "to": "src/Diamond.sol:D.ping()",
       "resolution": "heuristic",
-      "src": {
-        "file": "src/Diamond.sol",
-        "offset": 619,
-        "length": 99,
-        "line": 29,
-        "column": 4
-      },
+      "count": 1,
       "sites": [
         {
           "file": "src/Diamond.sol",
@@ -1838,7 +1501,6 @@
           "column": 4
         }
       ],
-      "count": 1,
       "possibleTargets": []
     },
     {
@@ -1847,13 +1509,7 @@
       "from": "src/Diamond.sol:E.ping()",
       "to": "src/Diamond.sol:A.ping()",
       "resolution": "heuristic",
-      "src": {
-        "file": "src/Diamond.sol",
-        "offset": 909,
-        "length": 99,
-        "line": 38,
-        "column": 4
-      },
+      "count": 1,
       "sites": [
         {
           "file": "src/Diamond.sol",
@@ -1863,7 +1519,6 @@
           "column": 4
         }
       ],
-      "count": 1,
       "possibleTargets": []
     },
     {
@@ -1872,13 +1527,7 @@
       "from": "src/Diamond.sol:E.ping()",
       "to": "src/Diamond.sol:A.trail",
       "resolution": "heuristic",
-      "src": {
-        "file": "src/Diamond.sol",
-        "offset": 987,
-        "length": 5,
-        "line": 40,
-        "column": 16
-      },
+      "count": 1,
       "sites": [
         {
           "file": "src/Diamond.sol",
@@ -1888,7 +1537,6 @@
           "column": 16
         }
       ],
-      "count": 1,
       "possibleTargets": []
     },
     {
@@ -1897,13 +1545,7 @@
       "from": "src/Diamond.sol:E.ping()",
       "to": "src/Diamond.sol:A.trail",
       "resolution": "heuristic",
-      "src": {
-        "file": "src/Diamond.sol",
-        "offset": 979,
-        "length": 5,
-        "line": 40,
-        "column": 8
-      },
+      "count": 1,
       "sites": [
         {
           "file": "src/Diamond.sol",
@@ -1913,22 +1555,16 @@
           "column": 8
         }
       ],
-      "count": 1,
       "possibleTargets": []
     },
     {
       "id": "src/Diamond.sol:E.ping()|src/Diamond.sol:B.ping()|calls|super",
       "kind": "calls",
+      "subkind": "super",
       "from": "src/Diamond.sol:E.ping()",
       "to": "src/Diamond.sol:B.ping()",
       "resolution": "heuristic",
-      "src": {
-        "file": "src/Diamond.sol",
-        "offset": 957,
-        "length": 12,
-        "line": 39,
-        "column": 8
-      },
+      "count": 1,
       "sites": [
         {
           "file": "src/Diamond.sol",
@@ -1938,9 +1574,7 @@
           "column": 8
         }
       ],
-      "count": 1,
-      "possibleTargets": [],
-      "subkind": "super"
+      "possibleTargets": []
     },
     {
       "id": "src/Diamond.sol:E.ping()|src/Diamond.sol:B.ping()|overrides|",
@@ -1948,13 +1582,7 @@
       "from": "src/Diamond.sol:E.ping()",
       "to": "src/Diamond.sol:B.ping()",
       "resolution": "heuristic",
-      "src": {
-        "file": "src/Diamond.sol",
-        "offset": 909,
-        "length": 99,
-        "line": 38,
-        "column": 4
-      },
+      "count": 1,
       "sites": [
         {
           "file": "src/Diamond.sol",
@@ -1964,7 +1592,6 @@
           "column": 4
         }
       ],
-      "count": 1,
       "possibleTargets": []
     },
     {
@@ -1973,13 +1600,7 @@
       "from": "src/Diamond.sol:E.ping()",
       "to": "src/Diamond.sol:C.ping()",
       "resolution": "heuristic",
-      "src": {
-        "file": "src/Diamond.sol",
-        "offset": 909,
-        "length": 99,
-        "line": 38,
-        "column": 4
-      },
+      "count": 1,
       "sites": [
         {
           "file": "src/Diamond.sol",
@@ -1989,7 +1610,6 @@
           "column": 4
         }
       ],
-      "count": 1,
       "possibleTargets": []
     },
     {
@@ -1998,13 +1618,7 @@
       "from": "src/Diamond.sol:E",
       "to": "src/Diamond.sol:B",
       "resolution": "heuristic",
-      "src": {
-        "file": "src/Diamond.sol",
-        "offset": 884,
-        "length": 126,
-        "line": 37,
-        "column": 0
-      },
+      "count": 1,
       "sites": [
         {
           "file": "src/Diamond.sol",
@@ -2014,9 +1628,8 @@
           "column": 0
         }
       ],
-      "count": 1,
-      "possibleTargets": [],
-      "linearizationIndex": 1
+      "linearizationIndex": 1,
+      "possibleTargets": []
     },
     {
       "id": "src/Diamond.sol:E|src/Diamond.sol:C|inherits|",
@@ -2024,13 +1637,7 @@
       "from": "src/Diamond.sol:E",
       "to": "src/Diamond.sol:C",
       "resolution": "heuristic",
-      "src": {
-        "file": "src/Diamond.sol",
-        "offset": 884,
-        "length": 126,
-        "line": 37,
-        "column": 0
-      },
+      "count": 1,
       "sites": [
         {
           "file": "src/Diamond.sol",
@@ -2040,9 +1647,8 @@
           "column": 0
         }
       ],
-      "count": 1,
-      "possibleTargets": [],
-      "linearizationIndex": 2
+      "linearizationIndex": 2,
+      "possibleTargets": []
     },
     {
       "id": "src/Diamond.sol:E|src/Diamond.sol:E.ping()|declares|",
@@ -2050,13 +1656,7 @@
       "from": "src/Diamond.sol:E",
       "to": "src/Diamond.sol:E.ping()",
       "resolution": "heuristic",
-      "src": {
-        "file": "src/Diamond.sol",
-        "offset": 909,
-        "length": 99,
-        "line": 38,
-        "column": 4
-      },
+      "count": 1,
       "sites": [
         {
           "file": "src/Diamond.sol",
@@ -2066,7 +1666,6 @@
           "column": 4
         }
       ],
-      "count": 1,
       "possibleTargets": []
     },
     {
@@ -2075,13 +1674,7 @@
       "from": "src/Diamond.sol",
       "to": "src/Diamond.sol:A",
       "resolution": "heuristic",
-      "src": {
-        "file": "src/Diamond.sol",
-        "offset": 195,
-        "length": 125,
-        "line": 6,
-        "column": 0
-      },
+      "count": 1,
       "sites": [
         {
           "file": "src/Diamond.sol",
@@ -2091,7 +1684,6 @@
           "column": 0
         }
       ],
-      "count": 1,
       "possibleTargets": []
     },
     {
@@ -2100,13 +1692,7 @@
       "from": "src/Diamond.sol",
       "to": "src/Diamond.sol:B",
       "resolution": "heuristic",
-      "src": {
-        "file": "src/Diamond.sol",
-        "offset": 322,
-        "length": 134,
-        "line": 14,
-        "column": 0
-      },
+      "count": 1,
       "sites": [
         {
           "file": "src/Diamond.sol",
@@ -2116,7 +1702,6 @@
           "column": 0
         }
       ],
-      "count": 1,
       "possibleTargets": []
     },
     {
@@ -2125,13 +1710,7 @@
       "from": "src/Diamond.sol",
       "to": "src/Diamond.sol:C",
       "resolution": "heuristic",
-      "src": {
-        "file": "src/Diamond.sol",
-        "offset": 458,
-        "length": 134,
-        "line": 21,
-        "column": 0
-      },
+      "count": 1,
       "sites": [
         {
           "file": "src/Diamond.sol",
@@ -2141,7 +1720,6 @@
           "column": 0
         }
       ],
-      "count": 1,
       "possibleTargets": []
     },
     {
@@ -2150,13 +1728,7 @@
       "from": "src/Diamond.sol",
       "to": "src/Diamond.sol:D",
       "resolution": "heuristic",
-      "src": {
-        "file": "src/Diamond.sol",
-        "offset": 594,
-        "length": 126,
-        "line": 28,
-        "column": 0
-      },
+      "count": 1,
       "sites": [
         {
           "file": "src/Diamond.sol",
@@ -2166,7 +1738,6 @@
           "column": 0
         }
       ],
-      "count": 1,
       "possibleTargets": []
     },
     {
@@ -2175,13 +1746,7 @@
       "from": "src/Diamond.sol",
       "to": "src/Diamond.sol:E",
       "resolution": "heuristic",
-      "src": {
-        "file": "src/Diamond.sol",
-        "offset": 884,
-        "length": 126,
-        "line": 37,
-        "column": 0
-      },
+      "count": 1,
       "sites": [
         {
           "file": "src/Diamond.sol",
@@ -2191,7 +1756,6 @@
           "column": 0
         }
       ],
-      "count": 1,
       "possibleTargets": []
     },
     {
@@ -2200,13 +1764,7 @@
       "from": "src/GovernedToken.sol:GovernedToken",
       "to": "src/GovernedToken.sol:GovernedToken._transferOwnership(address)",
       "resolution": "heuristic",
-      "src": {
-        "file": "src/GovernedToken.sol",
-        "offset": 1364,
-        "length": 138,
-        "line": 35,
-        "column": 4
-      },
+      "count": 1,
       "sites": [
         {
           "file": "src/GovernedToken.sol",
@@ -2216,7 +1774,6 @@
           "column": 4
         }
       ],
-      "count": 1,
       "possibleTargets": []
     },
     {
@@ -2225,13 +1782,7 @@
       "from": "src/GovernedToken.sol:GovernedToken",
       "to": "src/GovernedToken.sol:GovernedToken._update(address,address,uint256)",
       "resolution": "heuristic",
-      "src": {
-        "file": "src/GovernedToken.sol",
-        "offset": 1058,
-        "length": 165,
-        "line": 26,
-        "column": 4
-      },
+      "count": 1,
       "sites": [
         {
           "file": "src/GovernedToken.sol",
@@ -2241,7 +1792,6 @@
           "column": 4
         }
       ],
-      "count": 1,
       "possibleTargets": []
     },
     {
@@ -2250,13 +1800,7 @@
       "from": "src/GovernedToken.sol:GovernedToken",
       "to": "src/GovernedToken.sol:GovernedToken.constructor(address)",
       "resolution": "heuristic",
-      "src": {
-        "file": "src/GovernedToken.sol",
-        "offset": 701,
-        "length": 131,
-        "line": 13,
-        "column": 4
-      },
+      "count": 1,
       "sites": [
         {
           "file": "src/GovernedToken.sol",
@@ -2266,7 +1810,6 @@
           "column": 4
         }
       ],
-      "count": 1,
       "possibleTargets": []
     },
     {
@@ -2275,13 +1818,7 @@
       "from": "src/GovernedToken.sol:GovernedToken",
       "to": "src/GovernedToken.sol:GovernedToken.pause()",
       "resolution": "heuristic",
-      "src": {
-        "file": "src/GovernedToken.sol",
-        "offset": 838,
-        "length": 61,
-        "line": 17,
-        "column": 4
-      },
+      "count": 1,
       "sites": [
         {
           "file": "src/GovernedToken.sol",
@@ -2291,7 +1828,6 @@
           "column": 4
         }
       ],
-      "count": 1,
       "possibleTargets": []
     },
     {
@@ -2300,13 +1836,7 @@
       "from": "src/GovernedToken.sol:GovernedToken",
       "to": "src/GovernedToken.sol:GovernedToken.unpause()",
       "resolution": "heuristic",
-      "src": {
-        "file": "src/GovernedToken.sol",
-        "offset": 905,
-        "length": 65,
-        "line": 21,
-        "column": 4
-      },
+      "count": 1,
       "sites": [
         {
           "file": "src/GovernedToken.sol",
@@ -2316,7 +1846,6 @@
           "column": 4
         }
       ],
-      "count": 1,
       "possibleTargets": []
     },
     {
@@ -2325,13 +1854,7 @@
       "from": "src/GovernedToken.sol",
       "to": "src/GovernedToken.sol:GovernedToken",
       "resolution": "heuristic",
-      "src": {
-        "file": "src/GovernedToken.sol",
-        "offset": 619,
-        "length": 885,
-        "line": 12,
-        "column": 0
-      },
+      "count": 1,
       "sites": [
         {
           "file": "src/GovernedToken.sol",
@@ -2341,7 +1864,6 @@
           "column": 0
         }
       ],
-      "count": 1,
       "possibleTargets": []
     },
     {
@@ -2350,13 +1872,7 @@
       "from": "src/Shadowing.sol:Greeter.greet()",
       "to": "src/Shadowing.sol:Greeter._greeting",
       "resolution": "heuristic",
-      "src": {
-        "file": "src/Shadowing.sol",
-        "offset": 485,
-        "length": 9,
-        "line": 17,
-        "column": 15
-      },
+      "count": 1,
       "sites": [
         {
           "file": "src/Shadowing.sol",
@@ -2366,7 +1882,6 @@
           "column": 15
         }
       ],
-      "count": 1,
       "possibleTargets": []
     },
     {
@@ -2375,13 +1890,7 @@
       "from": "src/Shadowing.sol:Greeter.greet()",
       "to": "src/Shadowing.sol:IGreeter.greet()",
       "resolution": "heuristic",
-      "src": {
-        "file": "src/Shadowing.sol",
-        "offset": 398,
-        "length": 103,
-        "line": 16,
-        "column": 4
-      },
+      "count": 1,
       "sites": [
         {
           "file": "src/Shadowing.sol",
@@ -2391,7 +1900,6 @@
           "column": 4
         }
       ],
-      "count": 1,
       "possibleTargets": []
     },
     {
@@ -2400,13 +1908,7 @@
       "from": "src/Shadowing.sol:Greeter.name()",
       "to": "src/Shadowing.sol:INamed.name()",
       "resolution": "heuristic",
-      "src": {
-        "file": "src/Shadowing.sol",
-        "offset": 588,
-        "length": 69,
-        "line": 21,
-        "column": 4
-      },
+      "count": 1,
       "sites": [
         {
           "file": "src/Shadowing.sol",
@@ -2416,7 +1918,6 @@
           "column": 4
         }
       ],
-      "count": 1,
       "possibleTargets": []
     },
     {
@@ -2425,13 +1926,7 @@
       "from": "src/Shadowing.sol:Greeter",
       "to": "src/Shadowing.sol:Greeter._greeting",
       "resolution": "heuristic",
-      "src": {
-        "file": "src/Shadowing.sol",
-        "offset": 356,
-        "length": 36,
-        "line": 14,
-        "column": 4
-      },
+      "count": 1,
       "sites": [
         {
           "file": "src/Shadowing.sol",
@@ -2441,7 +1936,6 @@
           "column": 4
         }
       ],
-      "count": 1,
       "possibleTargets": []
     },
     {
@@ -2450,13 +1944,7 @@
       "from": "src/Shadowing.sol:Greeter",
       "to": "src/Shadowing.sol:Greeter.greet()",
       "resolution": "heuristic",
-      "src": {
-        "file": "src/Shadowing.sol",
-        "offset": 398,
-        "length": 103,
-        "line": 16,
-        "column": 4
-      },
+      "count": 1,
       "sites": [
         {
           "file": "src/Shadowing.sol",
@@ -2466,7 +1954,6 @@
           "column": 4
         }
       ],
-      "count": 1,
       "possibleTargets": []
     },
     {
@@ -2475,13 +1962,7 @@
       "from": "src/Shadowing.sol:Greeter",
       "to": "src/Shadowing.sol:Greeter.name()",
       "resolution": "heuristic",
-      "src": {
-        "file": "src/Shadowing.sol",
-        "offset": 588,
-        "length": 69,
-        "line": 21,
-        "column": 4
-      },
+      "count": 1,
       "sites": [
         {
           "file": "src/Shadowing.sol",
@@ -2491,7 +1972,6 @@
           "column": 4
         }
       ],
-      "count": 1,
       "possibleTargets": []
     },
     {
@@ -2500,13 +1980,7 @@
       "from": "src/Shadowing.sol:Greeter",
       "to": "src/Shadowing.sol:IGreeter",
       "resolution": "heuristic",
-      "src": {
-        "file": "src/Shadowing.sol",
-        "offset": 304,
-        "length": 355,
-        "line": 13,
-        "column": 0
-      },
+      "count": 1,
       "sites": [
         {
           "file": "src/Shadowing.sol",
@@ -2516,9 +1990,8 @@
           "column": 0
         }
       ],
-      "count": 1,
-      "possibleTargets": [],
-      "linearizationIndex": 2
+      "linearizationIndex": 2,
+      "possibleTargets": []
     },
     {
       "id": "src/Shadowing.sol:Greeter|src/Shadowing.sol:INamed|inherits|",
@@ -2526,13 +1999,7 @@
       "from": "src/Shadowing.sol:Greeter",
       "to": "src/Shadowing.sol:INamed",
       "resolution": "heuristic",
-      "src": {
-        "file": "src/Shadowing.sol",
-        "offset": 304,
-        "length": 355,
-        "line": 13,
-        "column": 0
-      },
+      "count": 1,
       "sites": [
         {
           "file": "src/Shadowing.sol",
@@ -2542,9 +2009,8 @@
           "column": 0
         }
       ],
-      "count": 1,
-      "possibleTargets": [],
-      "linearizationIndex": 1
+      "linearizationIndex": 1,
+      "possibleTargets": []
     },
     {
       "id": "src/Shadowing.sol:IGreeter|src/Shadowing.sol:IGreeter.greet()|declares|",
@@ -2552,13 +2018,7 @@
       "from": "src/Shadowing.sol:IGreeter",
       "to": "src/Shadowing.sol:IGreeter.greet()",
       "resolution": "heuristic",
-      "src": {
-        "file": "src/Shadowing.sol",
-        "offset": 83,
-        "length": 55,
-        "line": 5,
-        "column": 4
-      },
+      "count": 1,
       "sites": [
         {
           "file": "src/Shadowing.sol",
@@ -2568,7 +2028,6 @@
           "column": 4
         }
       ],
-      "count": 1,
       "possibleTargets": []
     },
     {
@@ -2577,13 +2036,7 @@
       "from": "src/Shadowing.sol:INamed",
       "to": "src/Shadowing.sol:INamed.name()",
       "resolution": "heuristic",
-      "src": {
-        "file": "src/Shadowing.sol",
-        "offset": 165,
-        "length": 54,
-        "line": 9,
-        "column": 4
-      },
+      "count": 1,
       "sites": [
         {
           "file": "src/Shadowing.sol",
@@ -2593,7 +2046,6 @@
           "column": 4
         }
       ],
-      "count": 1,
       "possibleTargets": []
     },
     {
@@ -2602,13 +2054,7 @@
       "from": "src/Shadowing.sol:Loud.greet()",
       "to": "src/Shadowing.sol:Greeter.greet()",
       "resolution": "heuristic",
-      "src": {
-        "file": "src/Shadowing.sol",
-        "offset": 1274,
-        "length": 119,
-        "line": 40,
-        "column": 4
-      },
+      "count": 1,
       "sites": [
         {
           "file": "src/Shadowing.sol",
@@ -2618,7 +2064,6 @@
           "column": 4
         }
       ],
-      "count": 1,
       "possibleTargets": []
     },
     {
@@ -2627,13 +2072,7 @@
       "from": "src/Shadowing.sol:Loud.greet()",
       "to": "src/Shadowing.sol:IGreeter.greet()",
       "resolution": "heuristic",
-      "src": {
-        "file": "src/Shadowing.sol",
-        "offset": 1274,
-        "length": 119,
-        "line": 40,
-        "column": 4
-      },
+      "count": 1,
       "sites": [
         {
           "file": "src/Shadowing.sol",
@@ -2643,22 +2082,16 @@
           "column": 4
         }
       ],
-      "count": 1,
       "possibleTargets": []
     },
     {
       "id": "src/Shadowing.sol:Loud.greet()|src/Shadowing.sol:Politeness.greet()|calls|super",
       "kind": "calls",
+      "subkind": "super",
       "from": "src/Shadowing.sol:Loud.greet()",
       "to": "src/Shadowing.sol:Politeness.greet()",
       "resolution": "heuristic",
-      "src": {
-        "file": "src/Shadowing.sol",
-        "offset": 1367,
-        "length": 13,
-        "line": 41,
-        "column": 29
-      },
+      "count": 1,
       "sites": [
         {
           "file": "src/Shadowing.sol",
@@ -2668,9 +2101,7 @@
           "column": 29
         }
       ],
-      "count": 1,
-      "possibleTargets": [],
-      "subkind": "super"
+      "possibleTargets": []
     },
     {
       "id": "src/Shadowing.sol:Loud.greet()|src/Shadowing.sol:Politeness.greet()|overrides|",
@@ -2678,13 +2109,7 @@
       "from": "src/Shadowing.sol:Loud.greet()",
       "to": "src/Shadowing.sol:Politeness.greet()",
       "resolution": "heuristic",
-      "src": {
-        "file": "src/Shadowing.sol",
-        "offset": 1274,
-        "length": 119,
-        "line": 40,
-        "column": 4
-      },
+      "count": 1,
       "sites": [
         {
           "file": "src/Shadowing.sol",
@@ -2694,7 +2119,6 @@
           "column": 4
         }
       ],
-      "count": 1,
       "possibleTargets": []
     },
     {
@@ -2703,13 +2127,7 @@
       "from": "src/Shadowing.sol:Loud",
       "to": "src/Shadowing.sol:Loud.greet()",
       "resolution": "heuristic",
-      "src": {
-        "file": "src/Shadowing.sol",
-        "offset": 1274,
-        "length": 119,
-        "line": 40,
-        "column": 4
-      },
+      "count": 1,
       "sites": [
         {
           "file": "src/Shadowing.sol",
@@ -2719,7 +2137,6 @@
           "column": 4
         }
       ],
-      "count": 1,
       "possibleTargets": []
     },
     {
@@ -2728,13 +2145,7 @@
       "from": "src/Shadowing.sol:Loud",
       "to": "src/Shadowing.sol:Politeness",
       "resolution": "heuristic",
-      "src": {
-        "file": "src/Shadowing.sol",
-        "offset": 1240,
-        "length": 155,
-        "line": 39,
-        "column": 0
-      },
+      "count": 1,
       "sites": [
         {
           "file": "src/Shadowing.sol",
@@ -2744,23 +2155,17 @@
           "column": 0
         }
       ],
-      "count": 1,
-      "possibleTargets": [],
-      "linearizationIndex": 1
+      "linearizationIndex": 1,
+      "possibleTargets": []
     },
     {
       "id": "src/Shadowing.sol:Politeness.greet()|src/Shadowing.sol:Greeter.greet()|calls|super",
       "kind": "calls",
+      "subkind": "super",
       "from": "src/Shadowing.sol:Politeness.greet()",
       "to": "src/Shadowing.sol:Greeter.greet()",
       "resolution": "heuristic",
-      "src": {
-        "file": "src/Shadowing.sol",
-        "offset": 1040,
-        "length": 13,
-        "line": 32,
-        "column": 34
-      },
+      "count": 1,
       "sites": [
         {
           "file": "src/Shadowing.sol",
@@ -2770,9 +2175,7 @@
           "column": 34
         }
       ],
-      "count": 1,
-      "possibleTargets": [],
-      "subkind": "super"
+      "possibleTargets": []
     },
     {
       "id": "src/Shadowing.sol:Politeness.greet()|src/Shadowing.sol:Greeter.greet()|overrides|",
@@ -2780,13 +2183,7 @@
       "from": "src/Shadowing.sol:Politeness.greet()",
       "to": "src/Shadowing.sol:Greeter.greet()",
       "resolution": "heuristic",
-      "src": {
-        "file": "src/Shadowing.sol",
-        "offset": 942,
-        "length": 171,
-        "line": 31,
-        "column": 4
-      },
+      "count": 1,
       "sites": [
         {
           "file": "src/Shadowing.sol",
@@ -2796,7 +2193,6 @@
           "column": 4
         }
       ],
-      "count": 1,
       "possibleTargets": []
     },
     {
@@ -2805,13 +2201,7 @@
       "from": "src/Shadowing.sol:Politeness.greet()",
       "to": "src/Shadowing.sol:IGreeter.greet()",
       "resolution": "heuristic",
-      "src": {
-        "file": "src/Shadowing.sol",
-        "offset": 942,
-        "length": 171,
-        "line": 31,
-        "column": 4
-      },
+      "count": 1,
       "sites": [
         {
           "file": "src/Shadowing.sol",
@@ -2821,7 +2211,6 @@
           "column": 4
         }
       ],
-      "count": 1,
       "possibleTargets": []
     },
     {
@@ -2830,13 +2219,7 @@
       "from": "src/Shadowing.sol:Politeness.name()",
       "to": "src/Shadowing.sol:Greeter.name()",
       "resolution": "heuristic",
-      "src": {
-        "file": "src/Shadowing.sol",
-        "offset": 839,
-        "length": 97,
-        "line": 27,
-        "column": 4
-      },
+      "count": 1,
       "sites": [
         {
           "file": "src/Shadowing.sol",
@@ -2846,7 +2229,6 @@
           "column": 4
         }
       ],
-      "count": 1,
       "possibleTargets": []
     },
     {
@@ -2855,13 +2237,7 @@
       "from": "src/Shadowing.sol:Politeness.name()",
       "to": "src/Shadowing.sol:INamed.name()",
       "resolution": "heuristic",
-      "src": {
-        "file": "src/Shadowing.sol",
-        "offset": 839,
-        "length": 97,
-        "line": 27,
-        "column": 4
-      },
+      "count": 1,
       "sites": [
         {
           "file": "src/Shadowing.sol",
@@ -2871,7 +2247,6 @@
           "column": 4
         }
       ],
-      "count": 1,
       "possibleTargets": []
     },
     {
@@ -2880,13 +2255,7 @@
       "from": "src/Shadowing.sol:Politeness",
       "to": "src/Shadowing.sol:Greeter",
       "resolution": "heuristic",
-      "src": {
-        "file": "src/Shadowing.sol",
-        "offset": 802,
-        "length": 313,
-        "line": 26,
-        "column": 0
-      },
+      "count": 1,
       "sites": [
         {
           "file": "src/Shadowing.sol",
@@ -2896,9 +2265,8 @@
           "column": 0
         }
       ],
-      "count": 1,
-      "possibleTargets": [],
-      "linearizationIndex": 1
+      "linearizationIndex": 1,
+      "possibleTargets": []
     },
     {
       "id": "src/Shadowing.sol:Politeness|src/Shadowing.sol:Politeness.greet()|declares|",
@@ -2906,13 +2274,7 @@
       "from": "src/Shadowing.sol:Politeness",
       "to": "src/Shadowing.sol:Politeness.greet()",
       "resolution": "heuristic",
-      "src": {
-        "file": "src/Shadowing.sol",
-        "offset": 942,
-        "length": 171,
-        "line": 31,
-        "column": 4
-      },
+      "count": 1,
       "sites": [
         {
           "file": "src/Shadowing.sol",
@@ -2922,7 +2284,6 @@
           "column": 4
         }
       ],
-      "count": 1,
       "possibleTargets": []
     },
     {
@@ -2931,13 +2292,7 @@
       "from": "src/Shadowing.sol:Politeness",
       "to": "src/Shadowing.sol:Politeness.name()",
       "resolution": "heuristic",
-      "src": {
-        "file": "src/Shadowing.sol",
-        "offset": 839,
-        "length": 97,
-        "line": 27,
-        "column": 4
-      },
+      "count": 1,
       "sites": [
         {
           "file": "src/Shadowing.sol",
@@ -2947,7 +2302,6 @@
           "column": 4
         }
       ],
-      "count": 1,
       "possibleTargets": []
     },
     {
@@ -2956,13 +2310,7 @@
       "from": "src/Shadowing.sol",
       "to": "src/Shadowing.sol:Greeter",
       "resolution": "heuristic",
-      "src": {
-        "file": "src/Shadowing.sol",
-        "offset": 304,
-        "length": 355,
-        "line": 13,
-        "column": 0
-      },
+      "count": 1,
       "sites": [
         {
           "file": "src/Shadowing.sol",
@@ -2972,7 +2320,6 @@
           "column": 0
         }
       ],
-      "count": 1,
       "possibleTargets": []
     },
     {
@@ -2981,13 +2328,7 @@
       "from": "src/Shadowing.sol",
       "to": "src/Shadowing.sol:IGreeter",
       "resolution": "heuristic",
-      "src": {
-        "file": "src/Shadowing.sol",
-        "offset": 58,
-        "length": 82,
-        "line": 4,
-        "column": 0
-      },
+      "count": 1,
       "sites": [
         {
           "file": "src/Shadowing.sol",
@@ -2997,7 +2338,6 @@
           "column": 0
         }
       ],
-      "count": 1,
       "possibleTargets": []
     },
     {
@@ -3006,13 +2346,7 @@
       "from": "src/Shadowing.sol",
       "to": "src/Shadowing.sol:INamed",
       "resolution": "heuristic",
-      "src": {
-        "file": "src/Shadowing.sol",
-        "offset": 142,
-        "length": 79,
-        "line": 8,
-        "column": 0
-      },
+      "count": 1,
       "sites": [
         {
           "file": "src/Shadowing.sol",
@@ -3022,7 +2356,6 @@
           "column": 0
         }
       ],
-      "count": 1,
       "possibleTargets": []
     },
     {
@@ -3031,13 +2364,7 @@
       "from": "src/Shadowing.sol",
       "to": "src/Shadowing.sol:Loud",
       "resolution": "heuristic",
-      "src": {
-        "file": "src/Shadowing.sol",
-        "offset": 1240,
-        "length": 155,
-        "line": 39,
-        "column": 0
-      },
+      "count": 1,
       "sites": [
         {
           "file": "src/Shadowing.sol",
@@ -3047,7 +2374,6 @@
           "column": 0
         }
       ],
-      "count": 1,
       "possibleTargets": []
     },
     {
@@ -3056,13 +2382,7 @@
       "from": "src/Shadowing.sol",
       "to": "src/Shadowing.sol:Politeness",
       "resolution": "heuristic",
-      "src": {
-        "file": "src/Shadowing.sol",
-        "offset": 802,
-        "length": 313,
-        "line": 26,
-        "column": 0
-      },
+      "count": 1,
       "sites": [
         {
           "file": "src/Shadowing.sol",
@@ -3072,7 +2392,6 @@
           "column": 0
         }
       ],
-      "count": 1,
       "possibleTargets": []
     }
   ]

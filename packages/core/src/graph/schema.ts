@@ -78,22 +78,35 @@ export const callSubkindSchema = z.enum([
 
 export const resolutionSchema = z.enum(['semantic', 'heuristic', 'ambiguous', 'unresolved']);
 
+/**
+ * Fields carrying a default are **omitted when they hold it**, and zod fills
+ * them back in on read. At 200k SLOC that is a third of the artifact, and it
+ * also makes a golden diff readable: a function node lists the flags that are
+ * true rather than ten booleans of which eight are noise.
+ *
+ * The round-trip test in `graph.test.ts` asserts `parse(serialize(g))` deep-
+ * equals `g` for every fixture, which is what stops the serializer and this
+ * schema from drifting apart and losing data silently.
+ */
 export const paramSchema = z.object({
   name: z.string().nullable(),
   type: z.string(),
+  /** Events only, but part of the ABI, so a change here is breaking. */
+  indexed: z.boolean().default(false),
+  storageLocation: z.enum(['memory', 'storage', 'calldata']).nullable().default(null),
 });
 
 export const functionFlagsSchema = z.object({
-  hasAssembly: z.boolean(),
-  hasDelegatecall: z.boolean(),
-  hasLowLevelCall: z.boolean(),
-  hasSelfdestruct: z.boolean(),
-  hasCreate: z.boolean(),
-  sendsValue: z.boolean(),
-  hasUnchecked: z.boolean(),
-  hasTryCatch: z.boolean(),
-  readsState: z.boolean(),
-  writesState: z.boolean(),
+  hasAssembly: z.boolean().default(false),
+  hasDelegatecall: z.boolean().default(false),
+  hasLowLevelCall: z.boolean().default(false),
+  hasSelfdestruct: z.boolean().default(false),
+  hasCreate: z.boolean().default(false),
+  sendsValue: z.boolean().default(false),
+  hasUnchecked: z.boolean().default(false),
+  hasTryCatch: z.boolean().default(false),
+  readsState: z.boolean().default(false),
+  writesState: z.boolean().default(false),
 });
 
 export const functionMetricsSchema = z.object({
@@ -181,11 +194,39 @@ export const typeNodeSchema = z.object({
   kind: z.enum(['Struct', 'Enum', 'UserDefinedValueType']),
 });
 
+/**
+ * Why a name could not be bound, as a closed set.
+ *
+ * The category is part of the node's id (`?low-level:call`), not just an
+ * attribute, because the id is what makes two placeholders the same node. Keyed
+ * on the bare name alone, an unresolvable `.call` and an ordinary missing
+ * function that happened to be called `call` would collapse onto one node
+ * carrying one explanation — and `call` is a common enough function name that
+ * this is a matter of when, not if.
+ *
+ * A closed set rather than the prose `reason` so that §16's "instrument *why*
+ * edges are unresolved" is a count over categories, and so §15's CI query can
+ * fail on a new `?low-level:*` while ignoring churn elsewhere.
+ */
+export const unresolvedCategorySchema = z.enum([
+  /** `.call` / `.delegatecall` / `.send` / `.transfer` — target chosen at runtime. */
+  'low-level',
+  /** Called through a function pointer or a local value. */
+  'function-pointer',
+  /** The receiver is an expression with no syntactically declared type. */
+  'dynamic-receiver',
+  /** A member on a known non-contract type with no `using`-for attachment. */
+  'unattached-member',
+  /** The name is not declared anywhere the file can see. */
+  'not-found',
+]);
+
 export const unresolvedNodeSchema = z.object({
   ...nodeBase,
   kind: z.literal('Unresolved'),
   synthetic: z.literal(true),
-  /** Why nothing could be bound. Feeds §16's "instrument why" backlog item. */
+  category: unresolvedCategorySchema,
+  /** The human-readable form of `category`, with the specifics filled in. */
   reason: z.string(),
 });
 
@@ -207,9 +248,18 @@ export const graphEdgeSchema = z.object({
   from: z.string(),
   to: z.string(),
   resolution: resolutionSchema,
-  /** First call site. §10: clicking the edge lands *at the call*. */
+  /**
+   * First call site. §10: clicking the edge lands *at the call*.
+   *
+   * Always `sites[0]`, so it is **not written to disk** — `serialize.ts` drops
+   * it and `parseGraph` restores it through `storedGraphEdgeSchema` below. It
+   * stays required on the type because §10 requires every edge to carry one.
+   * `id` is kept on disk by contrast: it is identity rather than an alias, and
+   * a public artifact people script against should not have to rebuild the
+   * primary key before it can join on anything.
+   */
   src: sourceRefSchema,
-  sites: z.array(sourceRefSchema),
+  sites: z.array(sourceRefSchema).nonempty(),
   count: z.number().int().positive(),
   /** Virtual dispatch and interface calls fan out to these. */
   possibleTargets: z.array(z.string()),
@@ -218,6 +268,15 @@ export const graphEdgeSchema = z.object({
   /** Present on ambiguous and unresolved edges. */
   reason: z.string().optional(),
 });
+
+/**
+ * The on-disk form of an edge: `src` absent, restored from `sites[0]`. The
+ * transform's output is structurally identical to `graphEdgeSchema`'s, which is
+ * what lets one `GraphEdge` type serve both.
+ */
+export const storedGraphEdgeSchema = graphEdgeSchema
+  .extend({ src: sourceRefSchema.optional() })
+  .transform((edge) => ({ ...edge, src: edge.src ?? edge.sites[0] }));
 
 export const resolutionCountsSchema = z.object({
   semantic: z.number().int().nonnegative(),
@@ -264,7 +323,7 @@ export const graphFileSchema = z.object({
   score: resolutionScoreSchema,
   diagnostics: z.array(graphDiagnosticSchema),
   nodes: z.array(graphNodeSchema),
-  edges: z.array(graphEdgeSchema),
+  edges: z.array(storedGraphEdgeSchema),
 });
 
 export type SourceRefRecord = z.infer<typeof sourceRefSchema>;
@@ -276,6 +335,8 @@ export type GraphNode = z.infer<typeof graphNodeSchema>;
 export type ContractNode = z.infer<typeof contractNodeSchema>;
 export type FunctionNode = z.infer<typeof functionNodeSchema>;
 export type GraphEdge = z.infer<typeof graphEdgeSchema>;
+export type UnresolvedCategory = z.infer<typeof unresolvedCategorySchema>;
+export type Param = z.infer<typeof paramSchema>;
 export type ResolutionCounts = z.infer<typeof resolutionCountsSchema>;
 export type ResolutionScore = z.infer<typeof resolutionScoreSchema>;
 export type GraphMode = z.infer<typeof graphModeSchema>;

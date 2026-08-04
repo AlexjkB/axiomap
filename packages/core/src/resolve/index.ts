@@ -21,7 +21,12 @@
 
 import type { ParsedCall, ParsedParam } from '../parse/interface.js';
 import type { SourceRef } from '../parse/positions.js';
-import type { CallSubkind, EdgeKind, Resolution } from '../graph/schema.js';
+import type {
+  CallSubkind,
+  EdgeKind,
+  Resolution,
+  UnresolvedCategory,
+} from '../graph/schema.js';
 import { normaliseTypeName, type NodeId } from '../symbols/ids.js';
 import type {
   AnySymbol,
@@ -51,6 +56,7 @@ export interface EdgeDraft {
 export interface UnresolvedTarget {
   id: NodeId;
   name: string;
+  category: UnresolvedCategory;
   reason: string;
   file: string;
   src: SourceRef;
@@ -166,21 +172,34 @@ class Resolver {
   }
 
   /**
-   * Point an edge at a synthetic `Unresolved` node. The id is the callee name
-   * so that every unresolved `call` in a project collapses onto one node the
-   * UI can filter on; the individual call sites stay on the edges.
+   * Point an edge at a synthetic `Unresolved` node.
+   *
+   * The id is `?<category>:<name>`, project-wide. Project-wide because that is
+   * what keeps a diff clean: a new low-level call anywhere becomes one new
+   * *edge* to a node that already existed, rather than an added node and an
+   * added edge, and a function rename does not churn a synthetic pair
+   * alongside the real one. These nodes have no outgoing edges by construction
+   * — nothing resolves *from* a placeholder — so a hop-limited traversal
+   * reaches one and stops, and the high in-degree only shows up in the query
+   * that wants it ("who makes low-level calls").
+   *
+   * The category is in the id because a bare name collides: an unresolvable
+   * `.call` and a missing ordinary function named `call` are different
+   * failures and must not share a node, or one explanation overwrites the
+   * other.
    */
   #unresolved(
     from: NodeId,
     kind: EdgeKind,
     name: string,
+    category: UnresolvedCategory,
     reason: string,
     src: SourceRef,
     subkind?: CallSubkind,
   ): void {
-    const id = `?${name}`;
+    const id = `?${category}:${name}`;
     if (!this.unresolvedTargets.has(id)) {
-      this.unresolvedTargets.set(id, { id, name, reason, file: src.file, src });
+      this.unresolvedTargets.set(id, { id, name, category, reason, file: src.file, src });
     }
     this.#emit({
       kind,
@@ -265,6 +284,7 @@ class Resolver {
           contract.id,
           'inherits',
           baseName,
+          'not-found',
           'base contract not found in file scope or project',
           contract.src,
         );
@@ -375,6 +395,7 @@ class Resolver {
         fn.id,
         'modifiedBy',
         name,
+        'not-found',
         'modifier not found in the inheritance chain',
         fn.src,
       );
@@ -444,6 +465,7 @@ class Resolver {
           fn.id,
           kind,
           ref.name,
+          'not-found',
           `${symbolKind} not found in the inheritance chain or file scope`,
           ref.src,
         );
@@ -495,7 +517,7 @@ class Resolver {
     if (isElementary(call.name) || call.name.includes('[')) return;
     const candidates = this.#scope.contracts(fn.file, baseTypeName(call.name));
     if (candidates.length === 0) {
-      this.#unresolved(fn.id, 'creates', call.name, 'contract type not in scope', call.src);
+      this.#unresolved(fn.id, 'creates', call.name, 'not-found', 'contract type not in scope', call.src);
       return;
     }
     this.#emitCandidates(fn.id, 'creates', candidates, call.src, {
@@ -517,7 +539,15 @@ class Resolver {
       const reason = isFunctionPointerType(local.typeName)
         ? 'call through a function pointer'
         : 'call through a local value';
-      this.#unresolved(fn.id, 'calls', call.name, reason, call.src, 'internal');
+      this.#unresolved(
+        fn.id,
+        'calls',
+        call.name,
+        'function-pointer',
+        reason,
+        call.src,
+        'internal',
+      );
       return;
     }
 
@@ -548,6 +578,7 @@ class Resolver {
         fn.id,
         'calls',
         call.name,
+        'function-pointer',
         'call through a function pointer',
         call.src,
         'internal',
@@ -561,6 +592,7 @@ class Resolver {
       fn.id,
       'calls',
       call.name,
+      'not-found',
       'no function of that name in the contract, its bases, or file scope',
       call.src,
       'internal',
@@ -574,7 +606,7 @@ class Resolver {
    */
   #resolveSuper(fn: FunctionSymbol, contract: ContractSymbol | null, call: ParsedCall): void {
     if (contract === null) {
-      this.#unresolved(fn.id, 'calls', call.name, 'super outside a contract', call.src, 'super');
+      this.#unresolved(fn.id, 'calls', call.name, 'not-found', 'super outside a contract', call.src, 'super');
       return;
     }
 
@@ -599,6 +631,7 @@ class Resolver {
         fn.id,
         'calls',
         call.name,
+        'not-found',
         'no implementation of that name in the base chain',
         call.src,
         'super',
@@ -631,7 +664,7 @@ class Resolver {
   /** `this.m()` — an external call into the contract's own surface. */
   #resolveOnSelf(fn: FunctionSymbol, contract: ContractSymbol | null, call: ParsedCall): void {
     if (contract === null) {
-      this.#unresolved(fn.id, 'calls', call.name, 'this outside a contract', call.src, 'external');
+      this.#unresolved(fn.id, 'calls', call.name, 'not-found', 'this outside a contract', call.src, 'external');
       return;
     }
     const candidates = this.#scope
@@ -642,6 +675,7 @@ class Resolver {
         fn.id,
         'calls',
         call.name,
+        'not-found',
         'no such function on this contract',
         call.src,
         'external',
@@ -666,6 +700,7 @@ class Resolver {
         fn.id,
         'calls',
         call.name,
+        'not-found',
         `cast to unknown type ${typeName}`,
         call.src,
         'external',
@@ -717,6 +752,7 @@ class Resolver {
         fn.id,
         'calls',
         call.name,
+        'dynamic-receiver',
         `receiver ${receiver} has no declared type in scope`,
         call.src,
         'external',
@@ -758,6 +794,7 @@ class Resolver {
       fn.id,
       'calls',
       call.name,
+      'dynamic-receiver',
       'receiver is an expression with no syntactically declared type',
       call.src,
       lowLevel ?? 'external',
@@ -793,6 +830,7 @@ class Resolver {
         fn.id,
         'calls',
         call.name,
+        'low-level',
         `${call.name} on ${type}: the target is determined at runtime`,
         call.src,
         lowLevel,
@@ -804,6 +842,7 @@ class Resolver {
       fn.id,
       'calls',
       call.name,
+      'unattached-member',
       `no function ${call.name} attached to ${type} by a using-for directive`,
       call.src,
       'external',
@@ -867,6 +906,7 @@ class Resolver {
       fn.id,
       'calls',
       call.name,
+      'not-found',
       `no member ${call.name} on ${contracts.map((c) => c.name).join('/')}`,
       call.src,
       defaultSubkind,

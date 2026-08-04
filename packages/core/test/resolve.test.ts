@@ -176,12 +176,12 @@ describe('minimal — every edge kind, once', () => {
 
   it('marks low-level calls unresolved with a reason, not guessed', async () => {
     const { file } = await graphOf('minimal');
-    const lowLevel = edge(file, `${VAULT}.sweep(address payable)`, '?call', 'calls');
+    const lowLevel = edge(file, `${VAULT}.sweep(address payable)`, '?low-level:call', 'calls');
     expect(lowLevel?.resolution).toBe('unresolved');
     expect(lowLevel?.subkind).toBe('lowlevel');
     expect(lowLevel?.reason).toMatch(/determined at runtime/);
 
-    const delegate = edge(file, `${VAULT}.upgrade(bytes)`, '?delegatecall', 'calls');
+    const delegate = edge(file, `${VAULT}.upgrade(bytes)`, '?low-level:delegatecall', 'calls');
     expect(delegate?.subkind).toBe('delegatecall');
     expect(delegate?.resolution).toBe('unresolved');
   });
@@ -189,7 +189,7 @@ describe('minimal — every edge kind, once', () => {
   it('does not turn a struct literal into a call edge', async () => {
     const { file } = await graphOf('minimal');
     expect(file.edges.some((e) => e.to.includes('~Deposit') && e.kind === 'calls')).toBe(false);
-    expect(file.edges.some((e) => e.to === '?Deposit')).toBe(false);
+    expect(file.edges.some((e) => e.to.endsWith(':Deposit'))).toBe(false);
   });
 
   it('does not read a state variable that shares a name with a struct field', async () => {
@@ -363,14 +363,14 @@ describe('defi — cross-contract calls across a trust boundary', () => {
 describe('pathological — the answers that are non-answers', () => {
   it('reports a function pointer call as unresolved, with the reason', async () => {
     const { file } = await graphWithoutModeGating('pathological');
-    const found = edge(file, 'src/Indirect.sol:Indirect.apply_(uint256)', '?transform', 'calls');
+    const found = edge(file, 'src/Indirect.sol:Indirect.apply_(uint256)', '?function-pointer:transform', 'calls');
     expect(found?.resolution).toBe('unresolved');
     expect(found?.reason).toBe('call through a function pointer');
   });
 
   it('reports selector dispatch as an unresolved low-level call', async () => {
     const { file } = await graphWithoutModeGating('pathological');
-    const found = edge(file, 'src/Indirect.sol:Indirect.raw(bytes4,uint256)', '?call', 'calls');
+    const found = edge(file, 'src/Indirect.sol:Indirect.raw(bytes4,uint256)', '?low-level:call', 'calls');
     expect(found?.subkind).toBe('lowlevel');
     expect(found?.resolution).toBe('unresolved');
   });
@@ -378,7 +378,7 @@ describe('pathological — the answers that are non-answers', () => {
   it('reports a call to a function that does not exist as unresolved', async () => {
     const { file } = await graphWithoutModeGating('pathological');
     expect(
-      edge(file, 'src/DoesNotCompile.sol:DoesNotCompile.increment()', '?undeclaredHelper', 'calls')
+      edge(file, 'src/DoesNotCompile.sol:DoesNotCompile.increment()', '?not-found:undeclaredHelper', 'calls')
         ?.resolution,
     ).toBe('unresolved');
   });
@@ -512,6 +512,8 @@ contract Child is Absent {
     const child = file.nodes.find((n) => n.id === 'src/Missing.sol:Child');
     if (child?.kind !== 'Contract') throw new Error('unreachable');
     expect(child.linearizationCertainty).toBe('ambiguous');
-    expect(file.edges.some((e) => e.to === '?Absent' && e.kind === 'inherits')).toBe(true);
+    expect(
+      file.edges.some((e) => e.to === '?not-found:Absent' && e.kind === 'inherits'),
+    ).toBe(true);
   });
 });

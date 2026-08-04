@@ -387,6 +387,57 @@ done; the numbers are recorded so a future regression has a baseline.
 - **Noted on the existing overload/selector entry** that its "instrument why" trigger is
   already satisfied: every ambiguous and unresolved edge carries a `reason`.
 
+### Long-term hardening, after the deviation review
+
+Four changes made at the phase boundary, all in the same class: cheap now, expensive once
+Phase 3 exists. Phase 3's exit criterion is *"the graph is identical in shape to the
+heuristic-only graph"*, so anything that rewrites goldens has to land before that baseline
+is being compared against — otherwise the baseline and the test move in the same step,
+which is the situation §6's rule about goldens exists to prevent.
+
+- **The artifact is 45% smaller.** At 200k SLOC `graph.json` was **78 MB**; it is now
+  **42.8 MB** on disk, with nothing lost. Three parts: `edge.src` is not stored (it is
+  `sites[0]` for every edge ever produced — verified across all 74,512), fields holding
+  their schema default are not stored, and `.axiomap/graph.json` is written compact while
+  goldens stay indented for the diff a human reads. `edge.id` is deliberately still stored:
+  it is identity rather than an alias, and this is a public artifact people script against.
+  A round-trip test asserts `parse(serialize(g))` deep-equals `g` for every fixture, which
+  is what stops the serializer and the schema from drifting apart and losing a field
+  silently.
+- **Serialization no longer depends on object key insertion order.** `build.ts` adds
+  optional fields through conditional spreads, so a node's byte layout depended on which
+  optional fields it happened to have. Keys are now emitted in a fixed order, then
+  alphabetically. Without this a refactor of an object literal reorders every golden, and a
+  golden that reorders itself is one people learn to regenerate without reading.
+- **A bodyless declaration has no `bodyHash`** — an empty string, not the hash of nothing.
+  §8 matches a moved or renamed function by body hash, and every bodyless declaration
+  hashing identically made them all mutual rename candidates: 10 of 39 functions on `defi/`,
+  16 of 277 on `inheritance/`. This was the largest degenerate collision group in both
+  fixtures, and it would have been the diff engine's biggest source of false positives
+  before it was written. Changing it later would mean bumping `HASH_VERSION`, which
+  invalidates every stored review — this phase was the last free window.
+- **Synthetic `Unresolved` ids carry their failure category**: `?low-level:call`,
+  `?function-pointer:transform`, `?not-found:undeclaredHelper`, from a closed five-value
+  set on the node. Keyed on the bare name, an unresolvable `.call` and an ordinary missing
+  function named `call` collapsed onto one node keeping whichever explanation was written
+  first — and `call` is a common enough function name that this was when, not if. The
+  category also turns §16's "instrument *why* edges are unresolved" into a count over
+  categories, and lets §15's CI query fail on a new `?low-level:*` while ignoring churn
+  elsewhere. Kept project-wide rather than per-caller: these nodes have no outgoing edges
+  by construction, so a hop-limited traversal reaches one and stops, and project-wide is
+  what keeps a diff clean — a new low-level call is one new *edge* to an existing node,
+  not an added node and an added edge, and a rename does not churn a synthetic pair
+  alongside the real one.
+- **Params carry `indexed` and `storageLocation`.** Flipping `indexed` on an event
+  parameter changes the ABI and breaks every log consumer, which is a §8 breaking change
+  rather than a re-review trigger. Both hold their default on most parameters, so the
+  serializer drops them and they cost nothing at rest.
+
+The golden regeneration was verified rather than trusted: node and edge counts, every
+edge's `(kind, subkind, from, to, resolution, count)`, and the resolution score are all
+identical across the four fixtures, and the only `bodyHash` changes are exactly the
+bodyless functions.
+
 ### Notes for the next session
 
 - **Phase 3's exit criterion is a shape comparison**, and the heuristic graph it compares
@@ -398,9 +449,6 @@ done; the numbers are recorded so a future regression has a baseline.
   holds: `buildProjectGraph` never touches a compiler.
 - **`selectMode` returns `full` as soon as one semantic edge exists.** That is the seam
   Phase 3 lands in; the mode copy is already written for it.
-- The `?name` synthetic nodes are project-wide, so every unresolved `.call` in a project
-  collapses onto one `?call` node. The call sites stay on the edges, so navigation is
-  unaffected, but a per-file or per-reason split may read better in the Phase 7 views.
 - `pathological/src/Indirect.sol` documents an overload pair whose ambiguity "the resolver
   must emit" — but the fixture never actually calls `pick`. Overload ambiguity is covered by
   `inheritance/` (13 real OpenZeppelin cases) and by an inline temp project in

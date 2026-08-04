@@ -241,7 +241,11 @@ class TreeSitterConverter {
       locals: analysis.locals,
       flags: analysis.flags,
       metrics: analysis.metrics,
-      bodyHash: hashBody(this.#hasher, analysis.tokens),
+      // An empty string, not the hash of nothing: §8 matches a moved or renamed
+      // function by body hash, and every bodyless declaration in a project
+      // hashing identically would make all of them mutual rename candidates.
+      // On `defi/` that is 10 of 39 functions.
+      bodyHash: body === null ? '' : hashBody(this.#hasher, analysis.tokens),
       interfaceHash: hashInterface(this.#hasher, {
         name: name ?? subkind,
         subkind,

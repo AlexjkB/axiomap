@@ -27,12 +27,13 @@ import {
   scoreEdges,
   selectMode,
   serializeGraph,
+  serializeGraphCompact,
   writeGraph,
   type GraphFile,
   type ResolutionScore,
 } from '../src/index.js';
 import { fixture } from './fixtures.js';
-import { graphOf, graphWithoutModeGating } from './graphs.js';
+import { CORRECTNESS_FIXTURES, graphOf, graphWithoutModeGating } from './graphs.js';
 
 const temporaryDirs: string[] = [];
 
@@ -40,6 +41,23 @@ function temporaryDir(): string {
   const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'axiomap-graph-'));
   temporaryDirs.push(dir);
   return dir;
+}
+
+/** A throwaway Foundry project, for cases no committed fixture covers. */
+async function inlineProject(files: Record<string, string>): Promise<GraphFile> {
+  const root = temporaryDir();
+  fs.writeFileSync(path.join(root, 'foundry.toml'), '[profile.default]\nsrc = "src"\n');
+  for (const [name, source] of Object.entries(files)) {
+    const target = path.join(root, name);
+    fs.mkdirSync(path.dirname(target), { recursive: true });
+    fs.writeFileSync(target, source, 'utf8');
+  }
+  const built = await buildProjectGraph(root, {
+    cacheDir: null,
+    workers: 1,
+    callResolutionThreshold: 0,
+  });
+  return built.file;
 }
 
 afterAll(() => {
@@ -53,6 +71,44 @@ describe('serialization', () => {
     expect(parsed.nodes).toHaveLength(file.nodes.length);
     expect(parsed.edges).toHaveLength(file.edges.length);
     expect(parsed.mode).toBe(file.mode);
+  });
+
+  /**
+   * The guard on the compaction in `serialize.ts`. It drops `edge.src` and
+   * every field holding its schema default; if the serializer and the schema
+   * ever disagree about what a default is, this is what catches it — silently
+   * losing a field is otherwise invisible until a later phase reads it back.
+   */
+  it('round-trips without losing a field, for every fixture', async () => {
+    for (const name of CORRECTNESS_FIXTURES) {
+      const { file } = await graphOf(name);
+      const parsed = parseGraph(serializeGraph(file));
+      expect(parsed, `${name} lost data through serialize → parse`).toEqual(file);
+      // And is a fixed point: re-serializing produces the same bytes.
+      expect(serializeGraph(parsed)).toBe(serializeGraph(file));
+    }
+  });
+
+  it('does not store what it can derive', async () => {
+    const { file } = await graphOf('defi');
+    const raw = JSON.parse(serializeGraph(file)) as {
+      edges: Record<string, unknown>[];
+      nodes: Record<string, unknown>[];
+    };
+    // `src` is always `sites[0]`, so it is not written.
+    expect(raw.edges.every((e) => !('src' in e))).toBe(true);
+    // Flags holding their default are not written.
+    const fn = raw.nodes.find((n) => n['kind'] === 'Function' && n['hasBody'] === true);
+    expect(Object.values(fn?.['flags'] as Record<string, boolean>).every((v) => v)).toBe(true);
+  });
+
+  it('writes the on-disk artifact compactly and the goldens readably', async () => {
+    const { file } = await graphOf('defi');
+    const compact = serializeGraphCompact(file);
+    expect(compact).not.toContain('\n  "schemaVersion"');
+    expect(compact.length).toBeLessThan(serializeGraph(file).length);
+    // Same data either way.
+    expect(parseGraph(compact)).toEqual(parseGraph(serializeGraph(file)));
   });
 
   it('is byte-identical across two independent builds', async () => {
@@ -183,6 +239,75 @@ contract H {
     const hasher = await getHasher();
     expect(hashBody(hasher, [])).toBe(hashBody(hasher, []));
     expect(hashBody(hasher, [])).not.toBe(hashBody(hasher, ['{', '}']));
+  });
+
+  /**
+   * §8 matches a moved or renamed function by body hash. If every bodyless
+   * declaration hashed identically they would all be mutual rename candidates —
+   * on `defi/` that is 10 of 39 functions, which would be the largest source of
+   * false positives in the diff engine before it was even written.
+   */
+  it('gives a bodyless declaration no body hash at all', async () => {
+    const { file } = await graphOf('defi');
+    const functions = file.nodes.filter((n) => n.kind === 'Function');
+    const bodyless = functions.filter((n) => n.kind === 'Function' && !n.hasBody);
+    expect(bodyless.length).toBeGreaterThan(5);
+    for (const node of bodyless) {
+      if (node.kind !== 'Function') throw new Error('unreachable');
+      expect(node.bodyHash).toBe('');
+    }
+    for (const node of functions) {
+      if (node.kind !== 'Function') throw new Error('unreachable');
+      if (node.hasBody) expect(node.bodyHash).not.toBe('');
+    }
+  });
+});
+
+describe('unresolved targets', () => {
+  it('keys a placeholder on its failure category, not just the name', async () => {
+    const { file } = await graphWithoutModeGating('pathological');
+    const synthetic = file.nodes.filter((n) => n.kind === 'Unresolved');
+    expect(synthetic.length).toBeGreaterThan(0);
+    for (const node of synthetic) {
+      if (node.kind !== 'Unresolved') throw new Error('unreachable');
+      expect(node.id).toBe(`?${node.category}:${node.name}`);
+      expect(node.reason).not.toBe('');
+    }
+  });
+
+  it('does not merge two different failures that share a callee name', async () => {
+    // A low-level `.call` and an ordinary missing function named `call` are
+    // different failures; keyed on the bare name they would share one node and
+    // one explanation.
+    const file = await inlineProject({
+      'src/Collide.sol': `// SPDX-License-Identifier: MIT
+pragma solidity ^0.8.20;
+
+contract Collide {
+    address public target;
+
+    function lowLevel(bytes memory data) external returns (bool ok) {
+        (ok,) = target.call(data);
+    }
+
+    function missing() external view returns (uint256) {
+        return call();
+    }
+}
+`,
+    });
+
+    const ids = file.nodes.filter((n) => n.kind === 'Unresolved').map((n) => n.id);
+    expect(ids.sort()).toEqual(['?low-level:call', '?not-found:call']);
+  });
+
+  it('has no outgoing edges, so a hop-limited traversal stops there', async () => {
+    const { graph } = await graphWithoutModeGating('pathological');
+    for (const node of graph.nodes()) {
+      if (graph.getNodeAttributes(node).kind !== 'Unresolved') continue;
+      expect(graph.outDegree(node)).toBe(0);
+      expect(graph.inDegree(node)).toBeGreaterThan(0);
+    }
   });
 });
 
