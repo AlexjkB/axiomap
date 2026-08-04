@@ -1,5 +1,11 @@
 export * from './schema.js';
-export { buildGraph, type AxiomapGraph, type BuildGraphOptions, type BuiltGraph } from './build.js';
+export {
+  buildGraph,
+  graphFromFile,
+  type AxiomapGraph,
+  type BuildGraphOptions,
+  type BuiltGraph,
+} from './build.js';
 export {
   DEFAULT_CALL_RESOLUTION_THRESHOLD,
   scoreEdges,

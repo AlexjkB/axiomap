@@ -40,6 +40,7 @@ import {
   type Resolution,
 } from './schema.js';
 import { HASH_VERSION } from './hash.js';
+import { GraphSchemaError } from './serialize.js';
 import { DEFAULT_CALL_RESOLUTION_THRESHOLD, scoreEdges, selectMode } from './score.js';
 import {
   applySemanticNodeAttributes,
@@ -48,6 +49,69 @@ import {
 } from './semantic.js';
 
 export type AxiomapGraph = MultiDirectedGraph<GraphNode, GraphEdge>;
+
+/**
+ * Nodes and edges into a graphology graph.
+ *
+ * Shared by `buildGraph` and `graphFromFile` so there is one definition of what
+ * an `AxiomapGraph` is — self-loops allowed (a recursive function calls
+ * itself), edges keyed by their own id, node and edge attributes held by
+ * reference.
+ */
+function assemble(nodes: readonly GraphNode[], edges: readonly GraphEdge[]): AxiomapGraph {
+  const graph: AxiomapGraph = new MultiDirectedGraph<GraphNode, GraphEdge>({
+    allowSelfLoops: true,
+  });
+  for (const node of nodes) graph.addNode(node.id, node);
+  for (const edge of edges) graph.addDirectedEdgeWithKey(edge.id, edge.from, edge.to, edge);
+  return graph;
+}
+
+/**
+ * A `graph.json` that has been read back, as a graph again.
+ *
+ * `buildGraph` is the only other thing that produces an `AxiomapGraph`, and it
+ * needs a project on disk to do it. Everything downstream of Phase 4 consumes
+ * the graph rather than the sources — the analysis passes, `axiomap query`,
+ * the diff engine reading a stored revision — and asking them to re-ingest a
+ * project they already have the artifact for would be both slow and a lie: the
+ * sources may have moved on since the artifact was written.
+ *
+ * The file is assumed to have come through `parseGraph`, which is what applies
+ * the schema, restores defaulted fields and rebuilds each edge's `src` from
+ * `sites[0]`. The one thing checked here is internal consistency, because an
+ * edge with a missing endpoint is what a hand-filtered or hand-edited artifact
+ * produces and graphology's own error for it names neither the edge nor the
+ * file.
+ */
+export function graphFromFile(file: GraphFile, source = '<memory>'): AxiomapGraph {
+  const known = new Set(file.nodes.map((n) => n.id));
+  const edges: GraphEdge[] = [];
+
+  for (const edge of file.edges) {
+    const missing = !known.has(edge.from) ? edge.from : !known.has(edge.to) ? edge.to : null;
+    if (missing !== null) {
+      throw new GraphSchemaError(
+        `${source} has edge "${edge.id}" pointing at "${missing}", which is not a node in the ` +
+          `same file. Rebuild the graph with "axiomap build".`,
+      );
+    }
+    // Restated rather than asserted: `parseGraph` fills `src` from `sites[0]`,
+    // but the schema's transform types it as optional, and §10 requires every
+    // edge to carry a call site. An edge with neither is a malformed artifact,
+    // not something to paper over with a placeholder location.
+    const src = edge.src ?? edge.sites[0];
+    if (src === undefined) {
+      throw new GraphSchemaError(
+        `${source} has edge "${edge.id}" with no source location. ` +
+          `Rebuild the graph with "axiomap build".`,
+      );
+    }
+    edges.push({ ...edge, src });
+  }
+
+  return assemble(file.nodes, edges);
+}
 
 export interface BuiltGraph {
   graph: AxiomapGraph;
@@ -376,11 +440,7 @@ export function buildGraph(options: BuildGraphOptions): BuiltGraph {
   const keptNodes = nodes.filter((n) => n.kind !== 'Unresolved' || referenced.has(n.id));
 
   // --- graphology -------------------------------------------------------
-  const graph: AxiomapGraph = new MultiDirectedGraph<GraphNode, GraphEdge>({
-    allowSelfLoops: true,
-  });
-  for (const node of keptNodes) graph.addNode(node.id, node);
-  for (const edge of kept) graph.addDirectedEdgeWithKey(edge.id, edge.from, edge.to, edge);
+  const graph = assemble(keptNodes, kept);
 
   // --- Phase 4's analysis passes ----------------------------------------
   // Run against the graph as it will ship, not as it was assembled: in

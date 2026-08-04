@@ -19,6 +19,9 @@ import {
   classifyExternalCalls,
   computeAccessControl,
   computeReachability,
+  graphFromFile,
+  parseGraph,
+  serializeGraph,
   type AccessControl,
 } from '../src/index.js';
 import { graphOf, graphWithoutModeGating } from './graphs.js';
@@ -521,5 +524,48 @@ describe('the analysis on the graph', () => {
       externallyReachable: node.externallyReachable,
       entrypoints: node.entrypoints,
     });
+  });
+});
+
+// ---------------------------------------------------------------------------
+// The graph, read back
+// ---------------------------------------------------------------------------
+
+describe('graphFromFile', () => {
+  it('gives the analysis passes the same answers as the graph they were built on', async () => {
+    const { graph, file } = await graphOf('defi');
+    const loaded = graphFromFile(parseGraph(serializeGraph(file), 'defi.graph.json'));
+
+    expect(loaded.order).toBe(graph.order);
+    expect(loaded.size).toBe(graph.size);
+
+    // This is the property the loader exists for: everything after Phase 4
+    // consumes the artifact rather than the sources, so a pass must not be able
+    // to tell which side of a serialize/parse round trip it is running on.
+    const before = analyseGraph(graph);
+    const after = analyseGraph(loaded);
+
+    const sorted = <T>(map: ReadonlyMap<string, T>): [string, T][] =>
+      [...map].sort(([a], [b]) => (a < b ? -1 : a > b ? 1 : 0));
+
+    expect(before.reachability.entrypoints).toEqual(after.reachability.entrypoints);
+    expect(sorted(before.reachability.byFunction)).toEqual(sorted(after.reachability.byFunction));
+    expect(sorted(before.accessControl)).toEqual(sorted(after.accessControl));
+    expect(sorted(before.externalCalls.byEdge)).toEqual(sorted(after.externalCalls.byEdge));
+    expect(sorted(before.externalCalls.byFunction)).toEqual(sorted(after.externalCalls.byFunction));
+  });
+
+  it('refuses an artifact whose edges have lost an endpoint', async () => {
+    const { file } = await graphOf('minimal');
+    const edge = file.edges.find((e) => e.kind === 'calls');
+    expect(edge).toBeDefined();
+    if (edge === undefined) return;
+
+    // What a hand-filtered artifact produces. graphology's own error for this
+    // names neither the edge nor the file it came from.
+    const broken = { ...file, nodes: file.nodes.filter((n) => n.id !== edge.to) };
+    expect(() => graphFromFile(broken, 'broken.json')).toThrowError(
+      /broken\.json has edge .* pointing at "/,
+    );
   });
 });
