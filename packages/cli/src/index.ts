@@ -1,6 +1,11 @@
 import { AXIOMAP_DIR } from '@axiomap/core';
 
-export { runDiff, type DiffCommandOptions, type DiffCommandResult } from './commands/diff.js';
+export {
+  DIFF_JSON_SCHEMA_VERSION,
+  runDiff,
+  type DiffCommandOptions,
+  type DiffCommandResult,
+} from './commands/diff.js';
 export { resolveRevision, RevisionError, type Revision } from './revisions.js';
 
 /** Placeholder until Phase 6 builds the real command surface (AXIOMAP.md §12). */

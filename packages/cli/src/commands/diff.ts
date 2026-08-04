@@ -11,6 +11,22 @@
  * Both revisions are graphed with the analysis passes on, because three of
  * §8's findings are comparisons of Phase 4 fields. Neither is written to disk —
  * a diff is a question about two revisions, not a build of either.
+ *
+ * ### One config, applied to both sides
+ *
+ * §13's `accessControlModifiers` and `reentrancyGuards` are inputs to the
+ * analysis passes, and `accessControl` is one of the attributes the diff
+ * compares. So a revision that renamed its guard modifier in
+ * `axiomap.config.json` — and nothing else — would otherwise produce an
+ * `access-control-weakened` finding on every function using it.
+ *
+ * Both revisions are therefore analysed with **one** configuration, and
+ * §13 fixes which one: the invoking working tree's. Reading each checkout's own
+ * config would make the tool's own settings part of the changeset, and the
+ * question `axiomap diff` answers is what changed in the *protocol*. Phase 6
+ * owns loading the file; this comment is here so that when it does, the answer
+ * is already decided rather than decided by whichever call site is written
+ * first.
  */
 
 import {
@@ -23,6 +39,20 @@ import {
 } from '@axiomap/core';
 
 import { resolveRevision } from '../revisions.js';
+
+/**
+ * The version of the `--json` shape below.
+ *
+ * §3 gives `graph.json` a `schemaVersion` from day one because it is a public
+ * artifact people script against, and §15's eighth item makes this output
+ * exactly that: `axiomap query unresolved --json` in CI, failing a build on
+ * what changed. The argument is the same and so is the field. Adding it now
+ * costs a line; adding it once people have parsers pointed at this is a
+ * breaking change to somebody's pipeline.
+ *
+ * Bump on any change to the shape that a consumer could notice.
+ */
+export const DIFF_JSON_SCHEMA_VERSION = 1;
 
 export interface DiffCommandOptions {
   /** Machine-readable output for CI (§12). */
@@ -108,6 +138,7 @@ function render(diff: AxiomapDiff, before: string, after: string, target: string
  */
 function toJson(diff: AxiomapDiff, before: string, after: string, target: string): unknown {
   return {
+    schemaVersion: DIFF_JSON_SCHEMA_VERSION,
     before,
     after,
     target,

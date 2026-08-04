@@ -21,7 +21,7 @@ import { fileURLToPath } from 'node:url';
 
 import { beforeAll, describe, expect, it } from 'vitest';
 
-import { runDiff, type DiffCommandResult } from '../src/index.js';
+import { DIFF_JSON_SCHEMA_VERSION, runDiff, type DiffCommandResult } from '../src/index.js';
 
 const REPO = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../../..');
 const TARGET = path.join(REPO, 'fixtures/defi');
@@ -246,9 +246,13 @@ describe('axiomap diff, other shapes', () => {
   it('emits a machine-readable summary for CI', async () => {
     const json = await runDiff('defi-v1', 'defi-v2', { target: TARGET, json: true });
     const parsed = JSON.parse(json.text) as {
+      schemaVersion: number;
       findings: { kind: string }[];
       changes: { id: string; previousId?: string; matchTier?: string }[];
     };
+    // A versioned surface, for the same reason `graph.json` has one (§3):
+    // §15's eighth item points CI at this output.
+    expect(parsed.schemaVersion).toBe(DIFF_JSON_SCHEMA_VERSION);
     expect(parsed.findings).toHaveLength(11);
     const moved = parsed.changes.find((c) => c.id === MOVED_TO);
     expect(moved?.previousId).toBe(MOVED_FROM);
