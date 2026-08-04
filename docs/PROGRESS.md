@@ -722,3 +722,148 @@ answer rather than a fallback.
   rather than guessed at: the seam for the obvious fix (a content-hash cache of the derived
   index, behind `loadSemanticOverlay`) already exists, and an artifact too large to parse
   degrades to the syntactic graph with a diagnostic rather than throwing.
+
+---
+
+## Phase 4 — Analysis passes
+
+**Date:** 2026-08-04
+**Status:** complete. `pnpm check` and `pnpm check:network` both green.
+
+### Exit criteria
+
+| Criterion | Result |
+|---|---|
+| Reachability pass | pass — `analysis/reachability.ts`. Entrypoints, `externallyReachable` and the full `entrypoints` set per function |
+| Access-control heuristics | pass — `analysis/access-control.ts`, §11's three confidence levels against §13's configurable name list |
+| External-call classification | pass — `analysis/external-calls.ts`, per call edge, plus §10's `reentrancy` |
+| All pure functions over the graph | pass — each returns a new map and mutates nothing. `applyAnalysis` is the separate step that writes the results onto the nodes, so the passes stay runnable on a graph read back from disk in Phase 6 |
+| Per-pass fixture tests with hand-verified output | pass — `test/analysis.test.ts`, 20 tests. Every expectation was derived by reading the fixture sources and written down before the pass was run against them |
+| `pathological/` passes | pass — asserted twice, ungated and as it really builds in structural mode. The 29 entrypoints are enumerated in full, with a stated reason for each of the eight functions excluded |
+| Phase 4 consumes rather than recomputes Phase 2's three items | pass — `linearizedBases` decides which contracts are deployable, `writes` edges and `flags.writesState` are the write side of the reentrancy shape, and nothing recomputes C3 or state access |
+
+`pnpm check` is green: 243 tests in `core` (223 from Phase 3, 20 new) and 14 repo-level.
+
+### The one thing the graph could not answer
+
+§11 requires `low` access-control confidence "when the guard is an inline `require` rather
+than a modifier" — and the graph had no way to know. `require` is a language builtin with
+nothing to bind to, so the resolver drops it (correctly) and no edge records that a
+comparison against `msg.sender` ever happened. Without it, §10's three-value confidence
+enum has a dead middle value and `Proxy.upgradeTo` reports as unguarded.
+
+So `flags.checksSender` is recorded at parse — `msg.sender` or `tx.origin` as an operand of
+`==` or `!=` — in the same shape and for the same reason as Phase 2's two `assembly*`
+flags: a syntactic fact the resolver structurally cannot produce. §10 is amended. The
+analysis pass stays a pure function over the graph.
+
+Equality only, and deliberately nothing more. `block.timestamp < deadline` is a comparison
+and not a check; `balances[msg.sender] += x` mentions the sender and checks nothing; and
+`msg.sender == address(0)` is indistinguishable from `msg.sender == owner` without types,
+which is exactly the uncertainty `low` exists to carry. Across all four fixtures it fires
+on five functions and all five are real sender comparisons — verified by reading each.
+
+### What the passes decided, and why
+
+- **A constructor is not an entrypoint.** No actor can call one on a live system, and
+  §15's third item would fill with them. Code a constructor runs is still reached, through
+  the `creates` edge of whoever deploys it: `Pair.constructor` is reachable on `defi/`
+  because `Factory.createPair` does `new Pair{salt: salt}()`, and that is a test.
+- **Reachability follows `possibleTargets`.** An interface call resolves to the interface's
+  function and fans out to every implementation (§10). Following only the static target
+  would report an implementation reached solely through an interface as unreachable — and
+  §11 *dims* unreachable nodes, so that error hides live code. `Pair.mint` is reachable
+  from `Router.addLiquidity` for this reason.
+- **An inherited public function is an entrypoint.** The node for it lives on the base,
+  which may be `abstract`, so a contract qualifies if it is deployable *or* is a base of
+  something deployable. `Base.tag()` on `minimal/` is the case.
+- **Both halves of the reentrancy shape are transitive.** `Pair.swap` transfers out through
+  `SafeTransfer` (which bottoms out in `token.call`) and then writes the reserves inside
+  `_update`. A rule that only looked at this body's own `writes` edges and `external`
+  subkinds finds nothing on `defi/`, or on most real code, since the effects half of
+  checks-effects-interactions is usually a helper. The cost is precision, in the direction
+  §11 already accepts by calling this a highlighter rather than a detector — and it stays
+  bounded: 4 of 39 functions on `defi/`, 0 of 277 on `inheritance/`, 2,611 of 14,446 on
+  `large/`.
+- **`default` visibility is not an entrypoint.** In 0.8 it only comes out of a recovered
+  parse — `SyntaxError.sol`'s truncated function. Guessing `public` for a declaration the
+  parser could not read is the confident-wrong answer §6 rules out.
+
+### Structural mode gets an honest answer, not a blank one
+
+`pathological/` builds in structural mode, so there are no `calls` or `creates` edges and
+nothing propagates: reachability is the 29 entrypoints, plus `Legacy#onlyOwner`, which
+`modifiedBy` still reaches. That is the true reachability of the graph as it exists rather
+than a claim about the code, and `mode` is how a consumer tells the two apart. Both states
+are asserted, because the difference between them is exactly the thing that would be easy
+to report wrongly.
+
+### Deviations from the spec
+
+- **`flags.checksSender` is a tenth flag, not in §10's list.** *(§10 amended.)* Reasoning
+  above.
+- **`GRAPH_SCHEMA_VERSION` is 3 and `PARSE_SCHEMA_VERSION` is 3.** The graph bump carries
+  §10's four Phase 4 fields and the new flag; all are defaulted, so the goldens gain only
+  the lines where the analysis found something. The parse bump matters more than it looks:
+  a cached v2 entry would deserialise with `checksSender` absent and report every inline
+  guard as no guard at all, which is the wrong direction for this overlay to fail in.
+- **The passes take `AxiomapGraph` and `applyAnalysis` mutates the nodes.** The objects
+  mutated are the same ones the graph holds as attributes and the same ones `graph.json`
+  serializes, so the two cannot drift; `analysis.test.ts` asserts that identity rather than
+  assuming it.
+
+### The golden diff
+
+Purely additive, and verified as such rather than eyeballed: stripping the four new fields
+and `checksSender` from the six regenerated goldens reproduces the committed v2 files
+byte for byte, apart from `schemaVersion`. No node, edge, hash, count, resolution or score
+changed. The new content was then read: `minimal/`'s fifteen functions were checked
+one by one against the source, and `defi/`'s and `pathological/`'s findings are the
+hand-derived expectations that `analysis.test.ts` already pins.
+
+### Performance
+
+The three passes cost about 180 ms on the `large/` fixture — 200,129 SLOC, 30,708 nodes,
+74,512 edges, 5,425 entrypoints. §9's warm budget still passes with room:
+
+| Configuration | parse | graph + analysis | total |
+|---|---|---|---|
+| single-cold | 7,619 ms | 1,103 ms | 8,730 ms |
+| parallel-cold | 3,103 ms | 1,093 ms | 4,204 ms |
+| parallel-warm | 999 ms | 984 ms | **1,983 ms** |
+
+The first draft measured 3,217 ms warm, and the cause is worth recording because it is not
+where it looks. Entrypoint sets are bitsets propagated to a fixpoint, which is fast; what
+was slow was reading them back by testing all 5,425 entrypoint bits for each of 14,446
+functions. Iterating only the set bits, word-wise and skipping empty words, is the whole
+difference. The obvious implementation — one BFS per entrypoint — was never written; it is
+O(entrypoints × edges) and would have been far worse than either.
+
+### §16 changes
+
+- **Added Tier 2 — reentrancy guards recognised by shape, not only by name.** `defi/`'s
+  mutex is `lock`, not `nonReentrant`, so three genuinely guarded functions report
+  `guarded: false`. The available syntactic check ("reads and writes the same variable")
+  also matches a nonce, and a false *guard* silently suppresses a true warning — worse than
+  the false alarm it would fix. Needs the `_` placeholder's position recorded at parse.
+- **Added Tier 2 — sender checks through an accessor.** OpenZeppelin compares
+  `_msgSender()`, which is a call rather than a member expression; following it into a base
+  is resolution work, not a syntactic flag.
+
+### Notes for the next session
+
+- **Nothing reads `axiomap.config.json` yet.** §13's `entrypoints`,
+  `accessControlModifiers` and `reentrancyGuards` are plumbed through
+  `buildProjectGraph({ analysis })` and tested, but no phase has owned loading the file.
+  Phase 6 is where it belongs — it is the phase that owns the command line, and the three
+  knobs are useless without one. `renderCap` and `layout` are Phase 7's.
+- **`defi/`'s three `lock`-guarded functions are the demonstration case for that config**,
+  and there is a test that flips them to `guarded: true` with `reentrancyGuards: ['lock']`.
+  If the CLI ends up shipping a starter config, that is the entry to copy.
+- **Phase 5 is the diff engine.** §14 still wants `defi/` committed twice as two git tags
+  with a hand-authored changeset between them; Phase 1 deferred designing the changeset
+  until the engine it exists to test existed. That is now.
+- The four Phase 4 fields are on the Function nodes and round-trip through `parseGraph`,
+  so Phase 5 can diff them: "previously unreachable function became externally reachable"
+  and "access-control modifier removed from a state-mutating function" are two of §8's
+  named findings and both are now a field comparison rather than an analysis.
