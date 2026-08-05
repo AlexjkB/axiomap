@@ -28,6 +28,11 @@ describe('ensureAxiomapDir', () => {
 
     expect(lines).toContain('graph.json');
     expect(lines).toContain('cache/');
+    // Phase 6's addition. A projection of the user's own Slither run is on the
+    // derived side of §5's line: this tool computed it, and re-running
+    // `axiomap import-findings` reproduces it exactly.
+    expect(lines).toContain('findings.json');
+    // …and the one file that is not derived stays tracked.
     expect(lines).not.toContain('review.json');
   });
 

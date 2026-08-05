@@ -10,9 +10,16 @@ export const AXIOMAP_DIR = '.axiomap';
  * `graph.json` is derived, large, and a complete map of whatever code was last
  * analysed, so it stays out of git. `review.json` is deliberately absent from
  * this list: shared audit state is meant to be committed.
+ *
+ * `findings.json` is Phase 6's addition and not in §5's list. It is a
+ * projection of the `slither --json` file the user already has, which puts it
+ * on the derived side of §5's own distinction — the line is between artifacts
+ * this tool computed and audit state a human authored, and an imported finding
+ * is the former. Re-running `axiomap import-findings` reproduces it exactly.
  */
 export const AXIOMAP_GITIGNORE = `graph.json
 cache/
+findings.json
 *.tmp
 `;
 

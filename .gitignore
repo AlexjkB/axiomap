@@ -5,9 +5,17 @@ dist/
 .turbo/
 coverage/
 
-# Axiomap's own output
-.axiomap/graph.json
-.axiomap/cache/
+# Axiomap's own output.
+#
+# Unanchored (`**/`) rather than §5's root-relative form, because Phase 6 gave
+# this repo a working CLI and the first thing anyone does with it is point it at
+# `fixtures/defi`. A pattern containing a slash is anchored to this file's
+# directory, so `.axiomap/cache/` would have covered a `.axiomap/` at the root
+# and nothing under `fixtures/` — where every `axiomap build` in this repo
+# actually writes.
+**/.axiomap/graph.json
+**/.axiomap/cache/
+**/.axiomap/findings.json
 # NOT .axiomap/review.json — that is meant to be shared
 
 # Compiler output in the fixtures, except the build-info that Phase 3's
