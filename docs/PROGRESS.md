@@ -1343,6 +1343,28 @@ note saying why. They hold the graph's own node and edge objects by reference, s
 hanging a layout coordinate on one would be writing into what `graph.json` serializes, and
 the next `axiomap diff` would report a phantom change.
 
+**The coverage sweep found one real defect**, which is the argument for running it: every
+prior phase boundary did, and it caught two bugs in Phase 2 and two in Phase 3. `views.ts`
+was the weakest of the new code at 87% of statements, and it is the module Phase 7 consumes
+most.
+
+- **The inheritance view could not show an overridden member.** §11 asks that view for "C3
+  order, shadowed and overridden members flagged", and it filtered for `inherits`,
+  `overrides` and `implements` over a selection of Contract nodes — but Phase 2 settled
+  that `inherits` is the only contract-level relation and the other two are
+  function-level. `inducedEdges` requires both endpoints to survive the node filter, and a
+  Function never did, so the `overrides`/`implements` half of that filter was dead code.
+  On `defi/` all seven `implements` edges silently vanished; on `inheritance/`, seventeen
+  member relations did. The functions on either end are now kept when both of their
+  contracts are, and they carry `scope`, so a renderer nests each member under its contract
+  without a `declares` edge cluttering a view that is about inheritance. Pinned by a test
+  asserting the count and both endpoints, because the failure mode was silence.
+
+Two smaller gaps closed at the same time, both "do not guess" guards of the kind Phase 2's
+audit flagged as where a bug is worst: `requireNode` throwing on an ambiguous reference
+rather than picking a candidate, and `reachableFrom`, which is part of the query API Phase 7
+will use and which nothing had called.
+
 **Deliberately not done**, because both are cheap later and neither touches a stored format:
 
 - `query/traverse.ts` rebuilds its adjacency index per call. Adding a cache is a parameter

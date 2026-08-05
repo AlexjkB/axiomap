@@ -14,6 +14,7 @@ import {
   callPath,
   externals,
   graphStats,
+  reachableFrom,
   readersOf,
   requireNode,
   resolveNodeRef,
@@ -67,6 +68,19 @@ describe('node references (§8 ids, typed by a human)', () => {
     const node = requireNode(graph, 'reserve0', { kinds: ['StateVariable'] });
     expect(node.kind).toBe('StateVariable');
     expect(node.id).toBe('src/Pair.sol:Pair.reserve0');
+  });
+
+  it('requireNode throws on an ambiguous reference rather than picking one', async () => {
+    // A "do not guess" guard (§6). Phase 2's audit found these are where a bug
+    // is worst, because the wrong answer arrives wearing confidence.
+    const { graph } = await graphOf('defi');
+    expect(() => requireNode(graph, 'mint')).toThrow(NodeRefError);
+    try {
+      requireNode(graph, 'mint');
+    } catch (error) {
+      expect((error as NodeRefError).candidates).toContain(PAIR_MINT);
+      expect((error as Error).message).toContain('Name one of them exactly');
+    }
   });
 
   it('suggests rather than guessing when nothing matches', async () => {
@@ -125,6 +139,11 @@ describe('traversal (§12 callers-of / callees-of / reachable-from / path)', () 
   it('returns null rather than inventing a path that is not there', async () => {
     const { graph } = await graphOf('defi');
     expect(callPath(graph, 'src/Pair.sol:Pair._update(uint256,uint256)', ROUTER_ADD)).toBeNull();
+  });
+
+  it('reachable-from is the unbounded downstream closure', async () => {
+    const { graph } = await graphOf('defi');
+    expect(reachableFrom(graph, ROUTER_ADD)).toEqual(traverse(graph, ROUTER_ADD, 'callees'));
   });
 
   it('terminates on a recursive cycle', async () => {
@@ -315,6 +334,41 @@ describe('views (§11, as selection only)', () => {
     // `Pair is IPair, Shares` — §11 wants inherited members in a distinct tier,
     // which is the renderer's job; the selection has to contain them first.
     expect(ids).toContain('src/Pair.sol:Shares');
+  });
+
+  it('the inheritance tree carries member-level overrides, not just contracts', async () => {
+    // §11: "C3 order, shadowed and overridden members flagged". The members are
+    // the half this view got wrong once already: `overrides` and `implements`
+    // are Function→Function (Phase 2), so a selection of Contract nodes alone
+    // admits neither, and all seven of `defi/`'s `implements` edges silently
+    // vanished. Silent is why this is pinned rather than trusted.
+    const { graph } = await graphOf('defi');
+    const view = selectView(graph, { view: 'inheritance' });
+
+    const kinds = new Set(view.edges.map((edge) => edge.kind));
+    expect(kinds.has('inherits')).toBe(true);
+    expect(kinds.has('implements')).toBe(true);
+
+    const members = view.edges.filter((edge) => edge.kind === 'implements');
+    expect(members).toHaveLength(7);
+    // Both endpoints of a member relation are in the selection, or a renderer
+    // has an edge it cannot draw.
+    const ids = new Set(view.nodes.map((node) => node.id));
+    for (const edge of members) {
+      expect(ids.has(edge.from)).toBe(true);
+      expect(ids.has(edge.to)).toBe(true);
+    }
+    // …and every member carries the contract it belongs to, which is how the
+    // tree nests them without a `declares` edge in an inheritance view.
+    for (const node of view.nodes) {
+      if (node.kind === 'Function') expect(node.scope).not.toBeNull();
+    }
+  });
+
+  it('the inheritance tree shows real `overrides` where a fixture has them', async () => {
+    const { graph } = await graphOf('inheritance');
+    const view = selectView(graph, { view: 'inheritance' });
+    expect(view.edges.some((edge) => edge.kind === 'overrides')).toBe(true);
   });
 
   it('rejects a focus of the wrong kind with a usable message', async () => {

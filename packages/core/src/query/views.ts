@@ -282,26 +282,54 @@ function stateAccessView(
   };
 }
 
-/** §11's inheritance tree. */
+/**
+ * §11's inheritance tree: "C3 order, shadowed and overridden members flagged".
+ *
+ * The members are the half that is easy to get wrong, and it was: `inherits` is
+ * the only contract-level relation, while `overrides` and `implements` are
+ * **function-level** (Phase 2 settled that split deliberately, because it is the
+ * one an auditor asks for). A selection of Contract nodes alone therefore admits
+ * neither — both endpoints have to survive the node filter, and a Function never
+ * does. On `defi/` that silently dropped all seven `implements` edges and left
+ * §11's second clause unachievable from this view's output.
+ *
+ * So the functions on either end of an override relation are kept too, when both
+ * of their contracts are. They carry `scope`, so a renderer can nest each member
+ * under its contract without a `declares` edge cluttering a view that is about
+ * inheritance.
+ */
 function inheritanceView(graph: AxiomapGraph, includeTests: boolean): ViewSelection {
-  const keep = new Set<string>();
+  const contracts = new Set<string>();
   graph.forEachNode((_id, node) => {
     if (node.kind !== 'Contract') return;
     if (!includeTests && scaffolding(graph, node)) return;
-    keep.add(node.id);
+    contracts.add(node.id);
   });
 
-  const edges = inducedEdges(
-    graph,
-    keep,
-    (edge) => edge.kind === 'inherits' || edge.kind === 'overrides' || edge.kind === 'implements',
-  );
+  const keep = new Set<string>(contracts);
+  const memberEdges: GraphEdge[] = [];
+  graph.forEachEdge((_key, edge) => {
+    if (edge.kind !== 'overrides' && edge.kind !== 'implements') return;
+    const from = containerOf(graph, edge.from);
+    const to = containerOf(graph, edge.to);
+    if (from === null || to === null || !contracts.has(from) || !contracts.has(to)) return;
+    keep.add(edge.from);
+    keep.add(edge.to);
+    memberEdges.push(edge);
+  });
+
+  const edges = [
+    ...inducedEdges(graph, contracts, (edge) => edge.kind === 'inherits'),
+    ...memberEdges.sort((a, b) => a.id.localeCompare(b.id)),
+  ];
 
   return {
     view: 'inheritance',
     nodes: nodesOf(graph, keep),
     edges,
-    note: `${keep.size} contracts in C3 order; ${edges.length} inheritance relations`,
+    note:
+      `${contracts.size} contracts in C3 order; ${edges.length} relations ` +
+      `(${String(memberEdges.length)} at member level)`,
   };
 }
 
