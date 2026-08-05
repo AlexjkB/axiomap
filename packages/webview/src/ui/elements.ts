@@ -180,8 +180,13 @@ function displayNode(element: DisplayNode, preset: ViewPreset): CyElements['node
         ? ''
         : `${element.internalEdges.toLocaleString('en-US')} call${element.internalEdges === 1 ? '' : 's'} inside`;
     const members = `${element.members.toLocaleString('en-US')} node${element.members === 1 ? '' : 's'}`;
+    // An expanded cluster is a box the user can see the contents of, and its
+    // own name is on it: repeating the path underneath is a second line that
+    // says nothing and collides with the sibling cluster next to it. A
+    // collapsed one is the opposite case — the whole point of it is the count
+    // of what it is hiding.
     const detail = element.expanded
-      ? element.path
+      ? ''
       : [members, inside].filter((part) => part !== '').join(' · ');
     return {
       data: {

@@ -8,6 +8,9 @@ importers:
 
   .:
     devDependencies:
+      '@axiomap/cli':
+        specifier: workspace:^
+        version: link:packages/cli
       '@axiomap/core':
         specifier: workspace:^
         version: link:packages/core

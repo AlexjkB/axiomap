@@ -28,7 +28,12 @@ import { toElkGraph, toPositions, type ElkNode } from '../src/ui/layout/elk-grap
 import { PRESETS } from '../src/ui/presets.js';
 import { contract, edge } from './support.js';
 
-const LAYOUT_TRIPWIRE_MS = 20_000;
+/*
+ * Measured at ~430 ms. Ten times that: enough headroom for a slower machine,
+ * tight enough to catch the regression this file was written for — flattening
+ * the compound hierarchy, which took the same graph to 6.2 s.
+ */
+const LAYOUT_TRIPWIRE_MS = 5_000;
 
 /** 300 contracts over 12 directories, 5 expanded — Phase 7a's measured shape. */
 function syntheticProtocolView(contracts = 300, dirs = 12, opened = 5): AggregatedView {

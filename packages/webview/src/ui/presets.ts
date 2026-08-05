@@ -51,21 +51,31 @@ const LAYERED: ElkOptions = {
   'elk.layered.spacing.nodeNodeBetweenLayers': '48',
   'elk.spacing.nodeNode': '24',
   /*
-   * Crossing-minimisation effort, measured rather than chosen. On the
+   * Crossing-minimisation effort, measured rather than chosen: on the
    * 300-contract map in `test/scale.test.ts` — a deliberately dense one, every
    * drawn contract calling six others across directories — ELK's default of 7
-   * takes 8.2 s and this takes 5.5 s; on a realistically sparse map of the same
-   * size, 0.76 s against 0.54 s.
+   * takes 525 ms and this takes 272 ms.
    *
-   * The setting that mattered far more was one that is *not* here any more:
-   * `considerModelOrder.strategy: NODES_AND_EDGES` cost **37 s** on the same
-   * graph, 4.5x everything else put together, for a tie-break rule that only
-   * decides the order of otherwise-equal nodes. It was removed.
+   * Both numbers depend entirely on the setting below, and that is the lesson
+   * this line records. Measured first against a *flattened* hierarchy, the same
+   * graph took 6.2 s at this thoroughness and 37 s with
+   * `considerModelOrder.strategy: NODES_AND_EDGES` — so that option was removed
+   * as ruinously expensive when it is nothing of the sort (218 ms here). Tuning
+   * the cheap knobs first is how an hour goes into a 2x while a 23x sits
+   * untouched one line below.
    */
   'elk.layered.thoroughness': '4',
-  // Compound nodes are how a collapsed directory is drawn (§9 rule 3), and
-  // without this ELK lays each cluster out in isolation and overlaps them.
-  'elk.hierarchyHandling': 'INCLUDE_CHILDREN',
+  /*
+   * Each directory is laid out inside its own box, and the boxes are then
+   * placed. This is ELK's default for `layered` and it is the right one here,
+   * which was only obvious once it was on screen: `INCLUDE_CHILDREN` flattens
+   * the hierarchy into one graph, so two contracts in the same directory can
+   * end up at opposite ends of the canvas — and since a compound node's box is
+   * fitted around its children, that directory's box then wraps half the map
+   * and everything unrelated inside it. A cluster has to be a place, or §9
+   * rule 3's drill-down is pointing at nothing.
+   */
+  'elk.hierarchyHandling': 'SEPARATE_CHILDREN',
   'elk.padding': '[top=32,left=16,bottom=16,right=16]',
 };
 

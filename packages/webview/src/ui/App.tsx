@@ -19,7 +19,7 @@ import { useCallback, useEffect, useMemo, useReducer, useRef, useState } from 'r
 import { BridgeError, type HostBridge } from '../bridge.js';
 import { GraphCanvas } from './GraphCanvas.js';
 import { toElements } from './elements.js';
-import { LayoutClient, browserWorker } from './layout/client.js';
+import { LayoutClient, browserEngine } from './layout/client.js';
 import { initialState, reduce, ready, toRequest } from './navigation.js';
 import { PRESETS } from './presets.js';
 import { Toolbar } from './Toolbar.js';
@@ -35,10 +35,10 @@ export function App({ bridge, layoutClient }: AppProps): JSX.Element {
   const [view, setView] = useState<AggregatedView | null>(null);
   const [error, setError] = useState<BridgeError | null>(null);
   const [busy, setBusy] = useState(true);
-  const [layoutMs, setLayoutMs] = useState<number | null>(null);
+  const [layout, setLayout] = useState<number | null | { failed: string }>(null);
   const [state, dispatch] = useReducer(reduce, initialState({ up: 2, down: 3 }));
 
-  const client = useMemo(() => layoutClient ?? new LayoutClient(browserWorker()), [layoutClient]);
+  const client = useMemo(() => layoutClient ?? new LayoutClient(browserEngine()), [layoutClient]);
   useEffect(() => () => { client.dispose(); }, [client]);
 
   // §9 rule 4's hop defaults come from the engine, not from a constant here.
@@ -129,7 +129,7 @@ export function App({ bridge, layoutClient }: AppProps): JSX.Element {
           preset={preset}
           layoutClient={client}
           onPick={onPick}
-          onLayout={setLayoutMs}
+          onLayout={setLayout}
         />
 
         {!ready(state) ? (
@@ -154,7 +154,11 @@ export function App({ bridge, layoutClient }: AppProps): JSX.Element {
         <span className="ax-note">{view === null ? 'loading…' : view.note}</span>
         <span className="ax-metrics">
           {view === null ? '' : `${String(view.elements)} / ${String(view.cap)} elements`}
-          {layoutMs === null ? '' : ` · layout ${String(layoutMs)} ms (worker)`}
+          {layout === null
+            ? ''
+            : typeof layout === 'number'
+              ? ` · layout ${String(layout)} ms (worker)`
+              : ` · layout failed: ${layout.failed}`}
           {busy ? ' · …' : ''}
         </span>
       </footer>

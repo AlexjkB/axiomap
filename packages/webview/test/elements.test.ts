@@ -83,7 +83,10 @@ describe('elements', () => {
 
     expect(nodes[0]?.data.detail).toBe('48 nodes · 291 calls inside');
     expect(nodes[0]?.classes).toContain('collapsed');
-    expect(nodes[1]?.data.detail).toBe('lib');
+    // An expanded cluster shows its contents, so a second line repeating its
+    // path says nothing and collides with the sibling box beside it.
+    expect(nodes[1]?.data.detail).toBe('');
+    expect(nodes[1]?.data.display).toBe('lib');
     expect(nodes[1]?.classes).toContain('expanded');
   });
 

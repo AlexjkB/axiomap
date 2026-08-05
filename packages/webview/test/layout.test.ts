@@ -6,10 +6,9 @@
 import { describe, expect, it, vi } from 'vitest';
 
 import { toElements } from '../src/ui/elements.js';
-import { LayoutClient, type WorkerLike } from '../src/ui/layout/client.js';
-import { toElkGraph, toPositions } from '../src/ui/layout/elk-graph.js';
+import { LayoutClient, type LayoutEngine } from '../src/ui/layout/client.js';
+import { toElkGraph, toPositions, type ElkNode, type ElkRoot } from '../src/ui/layout/elk-graph.js';
 import { PRESETS } from '../src/ui/presets.js';
-import type { LayoutRequest, LayoutResponse } from '../src/ui/layout/worker.js';
 import { contract, edge, fn, stateVariable, view } from './support.js';
 
 const size = (): { width: number; height: number } => ({ width: 100, height: 40 });
@@ -39,8 +38,10 @@ describe('the ELK graph', () => {
     const graph = toElkGraph(elements, PRESETS.protocol, size);
     expect(graph.children?.map((child) => child.id)).toEqual(['dir:src']);
     expect(graph.children?.[0]?.children?.map((child) => child.id)).toEqual([node.id]);
-    // Compound layout needs this or ELK lays each cluster out in isolation.
-    expect(graph.layoutOptions['elk.hierarchyHandling']).toBe('INCLUDE_CHILDREN');
+    // A directory has to lay out as a place. Flattening the hierarchy lets two
+    // contracts in one directory land at opposite ends of the canvas, and the
+    // box fitted around them then swallows everything in between.
+    expect(graph.layoutOptions['elk.hierarchyHandling']).toBe('SEPARATE_CHILDREN');
   });
 
   it('drops an edge whose endpoint is not drawn rather than referring to nothing', () => {
@@ -101,42 +102,55 @@ describe('the ELK graph', () => {
   });
 });
 
-class FakeWorker implements WorkerLike {
-  sent: LayoutRequest[] = [];
-  private handler: ((event: { data: LayoutResponse }) => void) | null = null;
+/** An ELK stand-in whose answers are settled by hand, in order. */
+class FakeEngine implements LayoutEngine {
+  readonly asked: ElkRoot[] = [];
+  private readonly settlers: ((laidOut: ElkNode) => void)[] = [];
+  private readonly failers: ((error: Error) => void)[] = [];
   terminated = false;
 
-  postMessage(message: LayoutRequest): void {
-    this.sent.push(message);
+  layout(graph: ElkRoot): Promise<ElkNode> {
+    this.asked.push(graph);
+    return new Promise<ElkNode>((resolve, reject) => {
+      this.settlers.push(resolve);
+      this.failers.push(reject);
+    });
   }
 
-  addEventListener(_type: 'message', handler: (event: { data: LayoutResponse }) => void): void {
-    this.handler = handler;
-  }
-
-  terminate(): void {
+  terminateWorker(): void {
     this.terminated = true;
   }
 
-  answer(response: LayoutResponse): void {
-    this.handler?.({ data: response });
+  answer(index: number, laidOut: ElkNode): void {
+    this.settlers[index]?.(laidOut);
+  }
+
+  fail(index: number, message: string): void {
+    this.failers[index]?.(new Error(message));
   }
 }
 
-describe('the layout client', () => {
-  const graph = { id: 'root', layoutOptions: {}, children: [], edges: [] };
+/** One node at (10,20), 100×40 — centre (60,40). */
+const oneNode: ElkNode = {
+  id: 'root',
+  children: [{ id: 'a', x: 10, y: 20, width: 100, height: 40 }],
+};
 
-  it('resolves with the positions and the time ELK took', async () => {
-    const worker = new FakeWorker();
-    const client = new LayoutClient(worker);
-    const pending = client.layout(graph);
-    worker.answer({ id: worker.sent[0]?.id ?? 0, ok: true, positions: { a: { x: 1, y: 2 } }, ms: 12 });
-    await expect(pending).resolves.toEqual({ positions: { a: { x: 1, y: 2 } }, ms: 12 });
+describe('the layout client', () => {
+  const graph: ElkRoot = { id: 'root', layoutOptions: {}, children: [], edges: [] };
+
+  it('resolves with positions and how long ELK took', async () => {
+    const engine = new FakeEngine();
+    const pending = new LayoutClient(engine).layout(graph);
+    engine.answer(0, oneNode);
+    const result = await pending;
+    expect(result.positions).toEqual({ a: { x: 60, y: 40 } });
+    expect(result.ms).toBeGreaterThanOrEqual(0);
   });
 
   it('drops the answer to a request the caller has moved on from', async () => {
-    const worker = new FakeWorker();
-    const client = new LayoutClient(worker);
+    const engine = new FakeEngine();
+    const client = new LayoutClient(engine);
 
     const first = client.layout(graph);
     const rejected = vi.fn();
@@ -145,20 +159,21 @@ describe('the layout client', () => {
 
     // The first layout finishes *after* the second was asked for. Applying it
     // would settle the viewport on a view the user is no longer looking at.
-    worker.answer({ id: worker.sent[0]?.id ?? 0, ok: true, positions: { stale: { x: 9, y: 9 } }, ms: 1 });
-    worker.answer({ id: worker.sent[1]?.id ?? 0, ok: true, positions: { fresh: { x: 1, y: 1 } }, ms: 1 });
+    engine.answer(0, { id: 'root', children: [{ id: 'stale', x: 9, y: 9, width: 0, height: 0 }] });
+    engine.answer(1, oneNode);
 
-    await expect(second).resolves.toMatchObject({ positions: { fresh: { x: 1, y: 1 } } });
+    await expect(second).resolves.toMatchObject({ positions: { a: { x: 60, y: 40 } } });
+    await expect(first).rejects.toThrow('superseded');
     expect(rejected).toHaveBeenCalledOnce();
   });
 
   it('reports a failed layout without taking the graph down with it', async () => {
-    const worker = new FakeWorker();
-    const client = new LayoutClient(worker);
+    const engine = new FakeEngine();
+    const client = new LayoutClient(engine);
     const pending = client.layout(graph);
-    worker.answer({ id: worker.sent[0]?.id ?? 0, ok: false, message: 'elk said no' });
+    engine.fail(0, 'elk said no');
     await expect(pending).rejects.toThrow('elk said no');
     client.dispose();
-    expect(worker.terminated).toBe(true);
+    expect(engine.terminated).toBe(true);
   });
 });

@@ -196,11 +196,22 @@ export function stylesheet(palette: Palette, preset: ViewPreset): StylesheetJson
         'background-opacity': 0.4,
         'border-color': palette.cluster,
         'border-width': 1,
+        // Inside its own top-left corner, not centred above the box. Centred,
+        // two sibling directories put their labels in the same place and draw
+        // them through each other.
         'text-valign': 'top',
-        'text-halign': 'center',
+        'text-halign': 'left',
+        'text-margin-x': 10,
+        'text-margin-y': 14,
+        'text-wrap': 'none',
         'font-size': 12,
         color: palette.dim,
-        padding: '14px',
+        // Edges cross a cluster's top-left corner freely, and a directory name
+        // with a call edge drawn through it is not a directory name.
+        'text-background-color': palette.background,
+        'text-background-opacity': 0.85,
+        'text-background-padding': '3px',
+        padding: '18px',
       },
     },
     {
@@ -211,6 +222,10 @@ export function stylesheet(palette: Palette, preset: ViewPreset): StylesheetJson
         'border-width': 2,
         'border-style': 'double',
         'text-valign': 'center',
+        'text-halign': 'center',
+        'text-margin-x': 0,
+        'text-margin-y': 0,
+        'text-wrap': 'wrap',
         color: palette.foreground,
       },
     },

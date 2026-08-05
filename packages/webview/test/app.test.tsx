@@ -70,11 +70,8 @@ function bridgeOf(
   };
 }
 
-const idleWorker = {
-  postMessage: () => {},
-  addEventListener: () => {},
-  terminate: () => {},
-};
+/** An ELK that never answers: the canvas is a probe here, not a renderer. */
+const idleEngine = { layout: () => new Promise<never>(() => {}) };
 
 afterEach(() => {
   // Vitest is not running with globals, so testing-library's automatic cleanup
@@ -95,7 +92,7 @@ describe('App', () => {
       ),
     );
 
-    render(<App bridge={bridge} layoutClient={new LayoutClient(idleWorker)} />);
+    render(<App bridge={bridge} layoutClient={new LayoutClient(idleEngine)} />);
 
     await waitFor(() => {
       expect(screen.getByText('heuristic')).toBeDefined();
@@ -124,7 +121,7 @@ describe('App', () => {
       ),
     );
 
-    render(<App bridge={bridge} layoutClient={new LayoutClient(idleWorker)} />);
+    render(<App bridge={bridge} layoutClient={new LayoutClient(idleEngine)} />);
 
     await waitFor(() => {
       expect(screen.getByText('Too much to draw')).toBeDefined();
@@ -134,7 +131,7 @@ describe('App', () => {
 
   it('will not request a view that needs a focus it does not have (§9 rule 4)', async () => {
     const { bridge, asked } = bridgeOf(() => Promise.resolve(view()));
-    render(<App bridge={bridge} layoutClient={new LayoutClient(idleWorker)} />);
+    render(<App bridge={bridge} layoutClient={new LayoutClient(idleEngine)} />);
 
     await waitFor(() => {
       expect(asked.length).toBeGreaterThan(0);

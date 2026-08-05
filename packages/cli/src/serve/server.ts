@@ -183,6 +183,14 @@ export function createServer(options: ServerOptions): http.Server {
       return;
     }
 
+    // A browser asks for this unprompted, and a 404 in the console of a tool
+    // whose job is to be trustworthy about what it found is a bad first
+    // impression. No icon is a fine answer; an error is not.
+    if (url.pathname === '/favicon.ico') {
+      response.writeHead(204).end();
+      return;
+    }
+
     if (url.pathname === META_ENDPOINT) {
       sendJson(response, 200, metaOf(options));
       return;

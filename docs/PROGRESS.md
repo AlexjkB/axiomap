@@ -1541,7 +1541,7 @@ this session was scoped to.
 |---|---|
 | A renderer | pass — React 18 + cytoscape, `packages/webview`, built by Vite into `dist/web/` and served as static files. `test/app.test.tsx` mounts it; `test/bundle.test.ts` checks the built output |
 | The five views as *rendering* presets | pass — `src/ui/presets.ts`, keyed by core's `ViewName` so a sixth view cannot be added to the engine without one. All five were driven end to end over HTTP against `inheritance/` (38 contracts): protocol 116 elements, inheritance 154, state-access 129, contract 34, call 9 |
-| Layout in a worker (§9 rule 6) | pass — ELK runs in a module worker; the graph renders unlaid-out first and animates into position when the worker answers. Asserted at the bundle level too: the entry chunk contains no ELK, and a separate chunk does |
+| Layout in a worker (§9 rule 6) | pass — elkjs's own worker; the graph renders unlaid-out first and animates into position when the layout lands. Asserted three ways: the entry chunk contains no ELK and a separate asset does, the staleness rule has unit tests, and `test/browser-smoke.test.ts` checks a real browser reports `layout N ms (worker)`. **This criterion was reported as passing once while the layout engine was throwing on every view** — see below |
 | `axiomap serve` | pass — `packages/cli/src/serve/`, 11 tests in `packages/cli/test/serve.test.ts`, run against a copy of `defi/` **with its artifacts deleted** |
 | The webview reaches the graph only through `selectAggregatedView` | pass — one data route, `/api/view`, and it is one call to that function. `serve.test.ts` asserts there is no route that returns the graph; the package cannot import a core *function* at all (§5), so this is structural rather than a convention |
 | No overlays, no inspector, no `html`/`svg` export | pass — none written. §16's export entry records the second deferral with its reason |
@@ -1649,20 +1649,65 @@ worst case and would still catch the 37 s regression it was written for.
   confidential client code and its graph should not reach a coffee-shop LAN because a
   default was convenient. Binding anything else prints what was just published.
 
-### What was *not* verified, and it matters
+### Then it was pointed at a browser, and four things were wrong
 
-**No browser could be run in this environment.** Headless Chrome and headless Firefox both
-hang in this sandbox, so nothing has confirmed with pixels that the graph draws legibly —
-that labels fit their boxes, that the four confidence line styles are distinguishable, that
-a 300-contract map reads as anything. What is verified is everything either side of the
-canvas: the elements cytoscape is handed (`elements.test.ts`), the ELK graph and the
-positions that come back (`layout.test.ts`, `scale.test.ts`), the stylesheet's structure
-(`style.test.ts`), the component's data flow under jsdom with the canvas replaced by a
-probe (`app.test.tsx`), and the whole server end to end (`serve.test.ts`).
+The session first reported that no browser could be run here — headless Chrome and Firefox
+both hung — and that the renderer was therefore verified everywhere except on screen. That
+turned out to be wrong in the cheapest possible way: the hangs came from `--no-sandbox` and
+`--user-data-dir`, not from headless mode. Without those flags it runs.
 
-That gap is the first thing Phase 7c should close, and it is a real one: §11's density
-target — "a function node carries four facts legibly at default zoom" — is a claim about
-appearance that no test here can make.
+Everything below was found in the next twenty minutes, by looking. Every one of them
+passed the entire test suite first.
+
+- **The layout engine was dead.** `new ELK()` threw `o is not a constructor` inside the
+  worker, on every view, from the first commit. The cause is that `elk.bundled.js` spawns
+  *its own* worker and, from inside one, falls back to a path this bundling leaves
+  undefined. Nesting a worker around elkjs was the mistake; it owns that boundary itself,
+  and `layout/client.ts` now wraps `elk-api` with the staleness rule and no worker file of
+  our own. §9 rule 6 still holds — `elk-worker.min.js` is emitted as its own asset and the
+  bundle test still checks the entry chunk is free of ELK.
+- **And nothing said so.** The rejection landed in the `catch` that swallows a superseded
+  request, so a dead layout engine was indistinguishable from a slightly ugly graph — in a
+  tool whose entire argument is honesty about what it knows. The status bar now
+  distinguishes `layout 154 ms (worker)` from `layout failed: …`.
+- **Directories were not places.** `hierarchyHandling: INCLUDE_CHILDREN` flattens the
+  compound hierarchy, so two contracts in one directory could land at opposite ends of the
+  canvas — and since a cluster's box is fitted around its children, that directory's box
+  then wrapped half the map with everything unrelated inside it. §9 rule 3's drill-down was
+  pointing at nothing. It is `SEPARATE_CHILDREN` now, which is also **23x faster** on the
+  dense 300-contract map (6.2 s → 272 ms).
+- **Two fit bugs.** A cluster's box is resized *after* its children move, so the fit that
+  runs with the layout measures stale boxes and crops the result — it cost the right-hand
+  edge of the protocol map. And unbounded fit zooms *in* until the graph fills the
+  viewport, turning nine contracts into nine billboards, which is the opposite of §11's
+  "information density over whitespace". Fit runs again on `layoutstop`, clamped at 1.75.
+
+Two smaller ones, same origin: an expanded cluster drew its own path as a second label line
+that collided with its sibling's, and the server answered `/favicon.ico` with a 404 that
+sat in the console of a tool asking to be trusted.
+
+The measurements recorded earlier in this entry were taken *before* the hierarchy fix and
+are corrected in the preset's comment. The order they were found in is the lesson: an hour
+went into tuning `thoroughness` for a 2x while a 23x sat one line below it, undiagnosed,
+because the layout being applied at all was never checked.
+
+### What keeps it checked
+
+`test/browser-smoke.test.ts`, at the repo root because it needs the CLI and the bundle
+together. It drives Chrome over the DevTools protocol using Node's built-in `WebSocket` —
+no new dependency — loads the served page, and asserts that the status bar reports a
+worker layout, that it does not report a failure, and that the page logged no error. A
+second case taps a contract node and checks the view drills down to it.
+
+It skips when no Chrome is on `PATH`, the way `core`'s worker tests skip without a build,
+so CI without a browser stays green and a developer with one gets the check. **The suite
+that shipped a dead renderer was 39 tests green**; this is the one that would have failed.
+
+### Still not verified
+
+Density at scale. Everything screenshotted here is a 9-contract fixture; nobody has looked
+at a 300-contract map in a viewport, and §9's cap allows 50% more elements than the
+synthetic case `scale.test.ts` measures. That belongs to Phase 7c, with a real protocol.
 
 ### §16 changes
 
@@ -1671,6 +1716,9 @@ appearance that no test here can make.
 - **Noted the second deferral of `export --format html|svg`.** Its trigger has now fired —
   there is a bundle to inline — and it is Phase 7c's, because an export that ships before
   the overlays shows a client less than the tool shows its operator.
+- **Corrected the layout-time entry** after the hierarchy fix: the dense 300-contract map
+  is ~430 ms, not the 6.3 s first recorded, and the entry now names the two settings that
+  decide it.
 - **Answered the open question on aggregate edge weighting with a default, not an answer.**
   The renderer reads `count`, since §9 rule 3 says "weighted by call count" in as many
   words and the weight is logarithmic, so the two candidates would look alike at every size
@@ -1678,8 +1726,13 @@ appearance that no test here can make.
 
 ### Notes for the next session
 
-- **Phase 7c is overlays, the inspector, code preview, search and history** — and a browser
-  in front of the thing before any of it. §11's channel budget is the contract: node fill
+- **Phase 7c is overlays, the inspector, code preview, search and history.** Screenshot
+  every one of them while building it: this session's four worst defects were all invisible
+  to a green suite and obvious in one image.
+- **Members are not nested inside their contract in the inheritance view.** Phase 6 put
+  `scope` on those nodes precisely so a renderer could parent them; 7b draws them as
+  free-floating boxes joined by `implements` edges, which is correct and less legible than
+  it should be. §11's channel budget is the contract: node fill
   is review state, border colour is access control, opacity is reachability, badges are
   danger ops and findings, size is complexity. 7b deliberately claims none of them;
   `style.test.ts` asserts that no node rule but the neutral base touches fill or opacity,
