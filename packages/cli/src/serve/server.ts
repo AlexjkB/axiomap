@@ -29,20 +29,29 @@ import path from 'node:path';
 import type { AddressInfo } from 'node:net';
 
 import {
+  NodeNotFoundError,
   RenderCapError,
   ViewError,
   callDefaults,
+  decodeNodeRequest,
   decodeViewRequest,
+  inspectNode,
+  overlayData,
   selectAggregatedView,
   VIEW_NAMES,
   type AxiomapGraph,
+  type FindingsFile,
   type GraphFile,
+  type OverlayData,
   type ProjectMeta,
   type ProtocolError,
+  type ReviewState,
 } from '@axiomap/core';
 
 const VIEW_ENDPOINT = '/api/view';
 const META_ENDPOINT = '/api/meta';
+const NODE_ENDPOINT = '/api/node';
+const OVERLAY_ENDPOINT = '/api/overlays';
 
 const CONTENT_TYPES: Record<string, string> = {
   '.html': 'text/html; charset=utf-8',
@@ -64,6 +73,14 @@ export interface ServerOptions {
   assets: string;
   /** §13's `renderCap`, already resolved by the caller. */
   renderCap?: number;
+  /**
+   * `.axiomap/review.json` and `.axiomap/findings.json`, already read (§11's
+   * two file-backed overlays). Absent means the file was not there, which the
+   * UI distinguishes from present-and-empty: "nobody has reviewed anything" and
+   * "everything is unreviewed" are the same picture and different sentences.
+   */
+  review?: ReviewState | null;
+  findings?: FindingsFile | null;
   host?: string;
   /** 0 asks the OS for a free port, which is what the tests use. */
   port?: number;
@@ -92,6 +109,9 @@ function toProtocolError(error: unknown): { status: number; body: ProtocolError 
   }
   if (error instanceof ViewError) {
     return { status: 400, body: { name: 'ViewError', message: error.message } };
+  }
+  if (error instanceof NodeNotFoundError) {
+    return { status: 404, body: { name: 'NodeNotFoundError', message: error.message } };
   }
   return {
     status: 500,
@@ -172,7 +192,23 @@ function sendAsset(response: http.ServerResponse, assets: string, pathname: stri
   response.end(body);
 }
 
+/**
+ * The two audit-state files, projected onto node ids.
+ *
+ * Computed once: both are read at startup like the graph, and `overlayData` is
+ * a pure function of them, so recomputing per request would spend the staleness
+ * pass over every entry to produce the same bytes.
+ */
+function overlaysOf(options: ServerOptions): OverlayData {
+  return overlayData(options.graph, {
+    review: options.review ?? null,
+    findings: options.findings ?? null,
+  });
+}
+
 export function createServer(options: ServerOptions): http.Server {
+  const overlays = overlaysOf(options);
+
   return http.createServer((request, response) => {
     const url = new URL(request.url ?? '/', 'http://localhost');
 
@@ -208,6 +244,24 @@ export function createServer(options: ServerOptions): http.Server {
             : {}),
         });
         sendJson(response, 200, view);
+      } catch (error) {
+        const { status, body } = toProtocolError(error);
+        sendJson(response, status, { error: body });
+      }
+      return;
+    }
+
+    if (url.pathname === OVERLAY_ENDPOINT) {
+      sendJson(response, 200, overlays);
+      return;
+    }
+
+    if (url.pathname === NODE_ENDPOINT) {
+      const params: Record<string, string> = {};
+      for (const [key, value] of url.searchParams) params[key] = value;
+      try {
+        const { id } = decodeNodeRequest(params);
+        sendJson(response, 200, inspectNode(options.graph, id));
       } catch (error) {
         const { status, body } = toProtocolError(error);
         sendJson(response, status, { error: body });

@@ -17,13 +17,17 @@
  *
  * ### Channels are allocated, not chosen per rule
  *
- * §11's channel budget is a contract, and Phase 7b holds to the part of it the
- * views themselves need: **edge colour is edge kind**, **edge style is
- * resolution confidence**, **edge weight is call-site count**, **node border
- * style is resolution confidence**. The channels the overlays own — node fill
- * (review state), border colour (access control), opacity (reachability),
- * badges, size — are deliberately left neutral here. An overlay that arrives
- * later finds its channel free, which is the entire point of the table.
+ * §11's channel budget is a contract. The view-level half is **edge colour is
+ * edge kind**, **edge style is resolution confidence**, **edge weight is
+ * call-site count**; Phase 7b left the overlay channels neutral so that an
+ * overlay arriving later would find its channel free, and Phase 7c is that
+ * arrival. The rules below are grouped by channel rather than by overlay, and
+ * every class in them is produced by exactly one overlay in `overlays.ts`,
+ * which is where the allocation is written down.
+ *
+ * A node carries at most one class per channel, so these rules do not race:
+ * `decorate` decides the border colour once, including the precedence between
+ * §11's two tenants on it, rather than leaving the answer to paint order.
  *
  * The one exception is §11's own words for the state-access map: "reads blue /
  * writes orange". That is the view, not an overlay, and it is spelled out in
@@ -55,6 +59,7 @@ export interface Palette {
   writes: string;
   other: string;
   warning: string;
+  error: string;
   selection: string;
   fontFamily: string;
 }
@@ -83,6 +88,7 @@ export const PALETTE_VARIABLES: Record<keyof Palette, readonly [string, string]>
   writes: ['--vscode-charts-orange', '#d19a4c'],
   other: ['--vscode-descriptionForeground', '#6f7c8b'],
   warning: ['--vscode-editorWarning-foreground', '#c9a227'],
+  error: ['--vscode-editorError-foreground', '#d16969'],
   selection: ['--vscode-focusBorder', '#3f8fd0'],
   fontFamily: ['--vscode-editor-font-family', 'ui-monospace, SFMono-Regular, Menlo, monospace'],
 };
@@ -98,6 +104,13 @@ export const FALLBACK_PALETTE: Palette = readPaletteFrom(() => '');
  */
 export function readPalette(read: (variable: string) => string): Palette {
   return readPaletteFrom(read);
+}
+
+/** The palette this document resolves to. One place, so the canvas and the badges agree. */
+export function readDocumentPalette(): Palette {
+  return readPalette((variable) =>
+    getComputedStyle(document.documentElement).getPropertyValue(variable),
+  );
 }
 
 function readPaletteFrom(read: (variable: string) => string): Palette {
@@ -125,6 +138,7 @@ function readPaletteFrom(read: (variable: string) => string): Palette {
     writes: resolve('writes'),
     other: resolve('other'),
     warning: resolve('warning'),
+    error: resolve('error'),
     selection: resolve('selection'),
     fontFamily: resolve('fontFamily'),
   };
@@ -163,7 +177,10 @@ export function stylesheet(palette: Palette, preset: ViewPreset): StylesheetJson
         'border-color': palette.border,
         width: 'label',
         height: 'label',
-        padding: '8px',
+        // §11's size channel is the complexity heatmap's, and a node's size is
+        // its label plus its padding — so padding is where that overlay lands.
+        // `BASE_PADDING` with the overlay off.
+        padding: 'data(pad)',
         // `display` is the two lines already joined (see `elements.ts`): one
         // cytoscape label holds them both, because there is no rich text.
         label: 'data(display)',
@@ -230,6 +247,53 @@ export function stylesheet(palette: Palette, preset: ViewPreset): StylesheetJson
       },
     },
     { selector: 'node.focusable', style: { 'font-weight': 'bold' } },
+
+    // --- §11 channel: node fill — review state ---------------------------
+    // Low saturation, as §11 asks: the tone at low opacity over the canvas,
+    // rather than a solid block that would fight the label on top of it.
+    { selector: 'node.rv-reviewed', style: { 'background-color': palette.library, 'background-opacity': 0.22 } },
+    { selector: 'node.rv-flagged', style: { 'background-color': palette.error, 'background-opacity': 0.24 } },
+    { selector: 'node.rv-follow-up', style: { 'background-color': palette.contract, 'background-opacity': 0.22 } },
+    { selector: 'node.rv-ignored', style: { 'background-color': palette.dim, 'background-opacity': 0.18 } },
+    // §8: a stale review is `needs-re-review`, and it overrides what the entry
+    // claimed — a green "reviewed" node whose body has since changed is the one
+    // picture this feature exists to prevent.
+    { selector: 'node.rv-stale', style: { 'background-color': palette.warning, 'background-opacity': 0.3 } },
+
+    // --- §11 channel: node border colour — access control, attack surface --
+    { selector: 'node.surf-entry', style: { 'border-color': palette.selection, 'border-width': 3 } },
+    { selector: 'node.ac-high', style: { 'border-color': palette.library, 'border-width': 3 } },
+    { selector: 'node.ac-low', style: { 'border-color': palette.warning, 'border-width': 3 } },
+    { selector: 'node.ac-none', style: { 'border-color': palette.error, 'border-width': 3 } },
+
+    // --- §11 channel: node opacity — reachability dimming -----------------
+    { selector: 'node.surf-unreachable', style: { opacity: 0.35 } },
+
+    // --- §11 channel: node border style — resolution confidence -----------
+    { selector: 'node.res-node-ambiguous', style: { 'border-style': 'dashed' } },
+    { selector: 'node.res-node-unresolved', style: { 'border-style': 'dotted' } },
+
+    // --- §11 channel: node badges — danger ops, findings, reentrancy ------
+    // One strip image per node (see `badges.ts`), pinned to the top-right
+    // corner and allowed outside the box, so a badge never covers the label
+    // §11's density target is about.
+    {
+      selector: 'node[badges]',
+      style: {
+        'background-image': 'data(badges)',
+        'background-image-containment': 'over',
+        'background-clip': 'none',
+        'background-fit': 'none',
+        'background-width': 'data(badgeWidth)',
+        'background-height': 'data(badgeHeight)',
+        'background-position-x': '100%',
+        'background-position-y': '0%',
+        'background-offset-x': 8,
+        'background-offset-y': -8,
+        'background-image-opacity': 1,
+      },
+    },
+
     {
       selector: 'node:selected',
       style: { 'border-color': palette.selection, 'border-width': 3 },

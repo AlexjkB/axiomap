@@ -96,7 +96,9 @@ export async function runImportFindings(
           },
           { header: 'confidence', get: (row) => row.confidence },
           { header: 'check', get: (row) => row.check },
-          { header: 'nodes', get: (row) => row.nodes.join(', ') },
+          // `nodes` is a list of { id, bodyHash } (§8's staleness mechanism),
+          // not of ids — joining it printed "[object Object]" for every row.
+          { header: 'nodes', get: (row) => row.nodes.map((node) => node.id).join(', ') },
         ]),
     );
   }

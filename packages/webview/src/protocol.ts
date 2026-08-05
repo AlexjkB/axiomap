@@ -20,6 +20,8 @@ import type { AggregatedViewOptions } from '@axiomap/core';
 /** Where `axiomap serve` listens. Pinned against core's constants by the same test. */
 export const VIEW_ENDPOINT = '/api/view';
 export const META_ENDPOINT = '/api/meta';
+export const NODE_ENDPOINT = '/api/node';
+export const OVERLAY_ENDPOINT = '/api/overlays';
 
 const EXPAND_SEPARATOR = ',';
 
@@ -44,4 +46,9 @@ export function encodeViewRequest(request: AggregatedViewOptions): Record<string
     params['expand'] = request.expand.join(EXPAND_SEPARATOR);
   }
   return params;
+}
+
+/** §11's inspector request: one node id, encoded the same way. */
+export function encodeNodeRequest(id: string): Record<string, string> {
+  return { id };
 }

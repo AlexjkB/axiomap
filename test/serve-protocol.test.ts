@@ -19,14 +19,20 @@ import { fileURLToPath } from 'node:url';
 import { describe, expect, it } from 'vitest';
 
 import {
+  decodeNodeRequest,
   decodeViewRequest,
   META_ENDPOINT,
+  NODE_ENDPOINT,
+  OVERLAY_ENDPOINT,
   VIEW_ENDPOINT,
   type AggregatedViewOptions,
 } from '@axiomap/core';
 import {
+  encodeNodeRequest,
   encodeViewRequest,
   META_ENDPOINT as WEBVIEW_META,
+  NODE_ENDPOINT as WEBVIEW_NODE,
+  OVERLAY_ENDPOINT as WEBVIEW_OVERLAY,
   VIEW_ENDPOINT as WEBVIEW_VIEW,
   WEB_DIST,
 } from '@axiomap/webview';
@@ -50,9 +56,25 @@ describe('the serve protocol', () => {
     }
   });
 
+  it('round-trips an inspector request', () => {
+    // §11's inspector is a second request shape, and it drifts the same way the
+    // first one would: a UI sending `node=` to a host reading `id=` shows an
+    // empty panel rather than raising anything.
+    for (const id of [
+      'src/Vault.sol:Vault',
+      'src/Vault.sol:Vault.deposit(uint256)',
+      'src/Vault.sol:Vault#onlyOwner',
+      '?low-level:call',
+    ]) {
+      expect(decodeNodeRequest(encodeNodeRequest(id))).toEqual({ id });
+    }
+  });
+
   it('agrees on where the endpoints are', () => {
     expect(WEBVIEW_VIEW).toBe(VIEW_ENDPOINT);
     expect(WEBVIEW_META).toBe(META_ENDPOINT);
+    expect(WEBVIEW_NODE).toBe(NODE_ENDPOINT);
+    expect(WEBVIEW_OVERLAY).toBe(OVERLAY_ENDPOINT);
   });
 
   it('agrees on where the bundle is', () => {

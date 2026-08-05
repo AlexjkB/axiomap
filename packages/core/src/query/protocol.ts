@@ -21,9 +21,13 @@ import type { GraphFile } from '../graph/schema.js';
 import type { AggregatedViewOptions } from './aggregate.js';
 import { DEFAULT_CALL_DOWN, DEFAULT_CALL_UP, ViewError, VIEW_NAMES, type ViewName } from './views.js';
 
-/** Where a host serves the two endpoints. Shared so neither end guesses. */
+/** Where a host serves the endpoints. Shared so neither end guesses. */
 export const VIEW_ENDPOINT = '/api/view';
 export const META_ENDPOINT = '/api/meta';
+/** §11's inspector: one node, its attributes and its relations. */
+export const NODE_ENDPOINT = '/api/node';
+/** §11's review-state and imported-findings overlays, the two files the host reads. */
+export const OVERLAY_ENDPOINT = '/api/overlays';
 
 /**
  * What the UI shows above the graph before it has drawn anything: §4's mode and
@@ -127,6 +131,21 @@ export function decodeViewRequest(
     ...(autoExpand === undefined ? {} : { autoExpand }),
     ...(expand === undefined ? {} : { expand }),
   };
+}
+
+/**
+ * Query parameters → a node id, refusing an empty one.
+ *
+ * The same shape as `decodeViewRequest` and for the same reason: a host is
+ * reading input a user could have typed, and the honest failure is a stated
+ * refusal rather than a panel about whichever node sorted first.
+ */
+export function decodeNodeRequest(params: Record<string, string | undefined>): { id: string } {
+  const id = params['id'];
+  if (id === undefined || id.trim() === '') {
+    throw new ViewError('"id" is required: which node should be inspected?');
+  }
+  return { id };
 }
 
 /** §9 rule 4's defaults, in the shape {@link ProjectMeta} carries them. */

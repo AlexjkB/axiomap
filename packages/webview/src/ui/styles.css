@@ -198,12 +198,176 @@ body {
   white-space: nowrap;
 }
 
+/* --- overlays ------------------------------------------------------------ */
+
+.ax-overlays {
+  flex: 0 0 auto;
+  border-bottom: 1px solid var(--ax-border);
+  background: var(--ax-panel);
+}
+
+.ax-overlay-row {
+  flex-wrap: wrap;
+  gap: 4px;
+  padding: 4px 10px;
+  min-height: 0;
+}
+
+.ax-overlay-row .ax-label {
+  margin-right: 4px;
+}
+
+.ax-chip-on {
+  color: var(--ax-fg);
+  border-color: var(--ax-accent);
+  background: color-mix(in srgb, var(--ax-accent) 20%, transparent);
+}
+
+.ax-chip-clear {
+  margin-left: auto;
+}
+
+/* The legend is not decoration: eight combinable overlays are only legible
+   because each owns a channel, and a glyph nobody can decode is no glyph. */
+.ax-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 18px;
+  border-top: 1px solid var(--ax-border);
+  padding: 4px 10px;
+  color: var(--ax-dim);
+  font-size: 11px;
+}
+
+.ax-legend-group {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.ax-legend-title {
+  color: var(--ax-fg);
+  text-transform: uppercase;
+  font-size: 10px;
+  letter-spacing: 0.06em;
+}
+
+.ax-legend-entry {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.ax-legend-note {
+  font-family: var(--ax-mono);
+}
+
+.ax-legend-silent {
+  color: var(--ax-warning);
+}
+
+.ax-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 13px;
+  height: 13px;
+  border: 1px solid currentcolor;
+  border-radius: 2px;
+  font-family: var(--ax-mono);
+  font-size: 9px;
+  font-weight: 700;
+}
+
+.ax-tone-danger {
+  color: var(--ax-error);
+}
+.ax-tone-warn {
+  color: var(--ax-warning);
+}
+.ax-tone-info {
+  color: var(--vscode-charts-blue, #4a9cd6);
+}
+.ax-tone-ok {
+  color: var(--vscode-charts-green, #4fae6a);
+}
+.ax-tone-dim {
+  color: var(--ax-dim);
+}
+
+/* Swatches mirror the cytoscape rules in `style.ts`; both read the same
+   variables, so a theme change moves them together. */
+.ax-swatch {
+  display: inline-block;
+  width: 16px;
+  height: 11px;
+  border: 2px solid var(--ax-border);
+  border-radius: 2px;
+}
+
+.sw-entry {
+  border-color: var(--ax-accent);
+}
+.sw-dim {
+  border-color: var(--ax-border);
+  opacity: 0.35;
+  background: var(--ax-fg);
+}
+.sw-ac-none {
+  border-color: var(--ax-error);
+}
+.sw-ac-low {
+  border-color: var(--ax-warning);
+}
+.sw-ac-high {
+  border-color: var(--vscode-charts-green, #4fae6a);
+}
+.sw-res-solid {
+  border-style: solid;
+}
+.sw-res-dashed {
+  border-style: dashed;
+}
+.sw-res-dotted {
+  border-style: dotted;
+}
+.sw-cx-low {
+  height: 7px;
+}
+.sw-cx-mid {
+  height: 11px;
+}
+.sw-cx-high {
+  height: 15px;
+}
+.sw-rv-reviewed {
+  background: color-mix(in srgb, var(--vscode-charts-green, #4fae6a) 22%, transparent);
+}
+.sw-rv-flagged {
+  background: color-mix(in srgb, var(--ax-error) 24%, transparent);
+}
+.sw-rv-follow-up {
+  background: color-mix(in srgb, var(--vscode-charts-blue, #4a9cd6) 22%, transparent);
+}
+.sw-rv-stale {
+  background: color-mix(in srgb, var(--ax-warning) 30%, transparent);
+}
+.sw-rv-ignored {
+  background: color-mix(in srgb, var(--ax-dim) 18%, transparent);
+}
+
 /* --- canvas -------------------------------------------------------------- */
 
 .ax-main {
-  position: relative;
+  display: flex;
   flex: 1 1 auto;
   min-height: 0;
+}
+
+.ax-stage {
+  position: relative;
+  flex: 1 1 auto;
+  min-width: 0;
 }
 
 .ax-canvas {
@@ -234,6 +398,198 @@ body {
 
 .ax-notice-error {
   border-left-color: var(--ax-error);
+}
+
+/* --- inspector ----------------------------------------------------------- */
+
+.ax-inspector {
+  flex: 0 0 30rem;
+  max-width: 42vw;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  border-left: 1px solid var(--ax-border);
+  background: var(--ax-panel);
+}
+
+.ax-inspect-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 6px 10px;
+  border-bottom: 1px solid var(--ax-border);
+}
+
+.ax-inspect-title {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  min-width: 0;
+}
+
+.ax-inspect-name {
+  font-family: var(--ax-mono);
+  font-size: 13px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.ax-inspect-kind {
+  color: var(--ax-dim);
+  text-transform: uppercase;
+  font-size: 10px;
+  letter-spacing: 0.06em;
+}
+
+.ax-inspect-body {
+  overflow-y: auto;
+  min-height: 0;
+}
+
+.ax-inspect-section {
+  border-bottom: 1px solid var(--ax-border);
+  padding: 6px 10px 8px;
+}
+
+.ax-inspect-section h3 {
+  margin: 0 0 4px;
+  font-size: 10px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--ax-dim);
+}
+
+.ax-count {
+  font-family: var(--ax-mono);
+  color: var(--ax-fg);
+}
+
+.ax-attr {
+  display: flex;
+  gap: 8px;
+  padding: 1px 0;
+  align-items: baseline;
+}
+
+.ax-attr-key {
+  flex: 0 0 7.5rem;
+  color: var(--ax-dim);
+}
+
+.ax-attr-value {
+  flex: 1 1 auto;
+  min-width: 0;
+  font-family: var(--ax-mono);
+  word-break: break-word;
+}
+
+.ax-wrap {
+  word-break: break-all;
+}
+
+.ax-relations {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.ax-relations li {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  border-bottom: 1px solid color-mix(in srgb, var(--ax-border) 55%, transparent);
+}
+
+.ax-relation {
+  flex: 1 1 auto;
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  min-width: 0;
+  font: inherit;
+  text-align: left;
+  color: var(--ax-fg);
+  background: transparent;
+  border: 0;
+  padding: 3px 0;
+  cursor: pointer;
+}
+
+.ax-relation:hover {
+  color: var(--ax-accent);
+}
+
+.ax-relation-name {
+  font-family: var(--ax-mono);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.ax-relation-meta {
+  color: var(--ax-dim);
+  white-space: nowrap;
+}
+
+.ax-link {
+  font: inherit;
+  font-family: var(--ax-mono);
+  color: var(--ax-accent);
+  background: transparent;
+  border: 0;
+  padding: 0;
+  cursor: pointer;
+}
+
+.ax-empty,
+.ax-inspect-error {
+  margin: 4px 0;
+  color: var(--ax-dim);
+}
+
+.ax-inspect-error {
+  color: var(--ax-error);
+}
+
+.ax-findings {
+  list-style: none;
+  margin: 4px 0 0;
+  padding: 0;
+}
+
+.ax-findings li {
+  border-top: 1px solid color-mix(in srgb, var(--ax-border) 55%, transparent);
+  padding: 3px 0;
+}
+
+.ax-findings p {
+  margin: 2px 0 0;
+  color: var(--ax-dim);
+}
+
+.ax-impact {
+  font-family: var(--ax-mono);
+  text-transform: uppercase;
+  font-size: 10px;
+}
+
+.ax-impact-high {
+  color: var(--ax-error);
+}
+.ax-impact-medium {
+  color: var(--ax-warning);
+}
+.ax-impact-low,
+.ax-impact-informational,
+.ax-impact-optimization {
+  color: var(--vscode-charts-blue, #4a9cd6);
+}
+
+.ax-stale {
+  color: var(--ax-warning);
 }
 
 /* --- status bar ---------------------------------------------------------- */

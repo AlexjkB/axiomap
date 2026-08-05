@@ -16,17 +16,39 @@
 import type {
   AggregatedView,
   AggregatedViewOptions,
+  NodeInspection,
+  OverlayData,
   ProjectMeta,
   ProtocolError,
 } from '@axiomap/core';
 
-import { META_ENDPOINT, VIEW_ENDPOINT, encodeViewRequest } from './protocol.js';
+import {
+  META_ENDPOINT,
+  NODE_ENDPOINT,
+  OVERLAY_ENDPOINT,
+  VIEW_ENDPOINT,
+  encodeNodeRequest,
+  encodeViewRequest,
+} from './protocol.js';
 
 export interface HostBridge {
   /** §4's mode, its copy, and the resolution score. Header, not graph content. */
   meta(): Promise<ProjectMeta>;
   /** One view + filter + focus request. The only door into the graph. */
   view(request: AggregatedViewOptions): Promise<AggregatedView>;
+  /**
+   * §11's inspector: one node's attributes and relations.
+   *
+   * It is a *bridge* method rather than something the panel derives from the
+   * view it is already holding, because a view carries only what it draws — a
+   * caller outside the current hop limit, or in a collapsed directory, is not
+   * in it. Deriving the panel from the drawn subgraph would make the inspector
+   * quietly answer "callers I happen to be showing you", which is not the
+   * question §11 asks it.
+   */
+  inspect(id: string): Promise<NodeInspection>;
+  /** §11's review-state and imported-findings overlays. Two files, not the graph. */
+  overlays(): Promise<OverlayData>;
 }
 
 /**
@@ -127,5 +149,13 @@ export class HttpBridge implements HostBridge {
     return (await this.fetchJson(
       this.url(VIEW_ENDPOINT, encodeViewRequest(request)),
     )) as AggregatedView;
+  }
+
+  async inspect(id: string): Promise<NodeInspection> {
+    return (await this.fetchJson(this.url(NODE_ENDPOINT, encodeNodeRequest(id)))) as NodeInspection;
+  }
+
+  async overlays(): Promise<OverlayData> {
+    return (await this.fetchJson(this.url(OVERLAY_ENDPOINT))) as OverlayData;
   }
 }

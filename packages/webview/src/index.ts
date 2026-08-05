@@ -15,7 +15,14 @@ export {
   type HostBridge,
   type HttpBridgeOptions,
 } from './bridge.js';
-export { META_ENDPOINT, VIEW_ENDPOINT, encodeViewRequest } from './protocol.js';
+export {
+  META_ENDPOINT,
+  NODE_ENDPOINT,
+  OVERLAY_ENDPOINT,
+  VIEW_ENDPOINT,
+  encodeNodeRequest,
+  encodeViewRequest,
+} from './protocol.js';
 
 /** Where `vite build` puts the bundle, relative to the package root. */
 export const WEB_DIST = 'dist/web';

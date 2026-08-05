@@ -11,8 +11,18 @@
  */
 
 import { spawn } from 'node:child_process';
+import fs from 'node:fs';
 
-import { describeScore, DEFAULT_RENDER_CAP } from '@axiomap/core';
+import {
+  describeScore,
+  DEFAULT_RENDER_CAP,
+  findingsPath,
+  readFindings,
+  readReview,
+  reviewPath,
+  type FindingsFile,
+  type ReviewState,
+} from '@axiomap/core';
 
 import { loadGraph, openProject, type CommonOptions } from '../context.js';
 import { colour, definitions, paintMode } from '../output.js';
@@ -54,18 +64,59 @@ function openBrowser(url: string): void {
   }
 }
 
+/**
+ * §11's two file-backed overlays, read the way every other consumer reads them.
+ *
+ * A malformed file is a warning and an absent overlay, not a dead server: the
+ * graph is the thing the user asked for, and refusing to serve it because
+ * somebody hand-edited `review.json` into invalid JSON would lose them the tool
+ * over a file the tool can rewrite.
+ */
+function readOverlaySources(root: string): {
+  review: ReviewState | null;
+  findings: FindingsFile | null;
+  warnings: string[];
+} {
+  const warnings: string[] = [];
+  const reviewFile = reviewPath(root);
+  const findingsFile = findingsPath(root);
+
+  let review: ReviewState | null = null;
+  try {
+    review = fs.existsSync(reviewFile) ? readReview(reviewFile) : null;
+  } catch (error) {
+    warnings.push(
+      `Review state not loaded: ${error instanceof Error ? error.message : String(error)}`,
+    );
+  }
+
+  let findings: FindingsFile | null = null;
+  try {
+    findings = readFindings(findingsFile);
+  } catch (error) {
+    warnings.push(
+      `Imported findings not loaded: ${error instanceof Error ? error.message : String(error)}`,
+    );
+  }
+
+  return { review, findings, warnings };
+}
+
 export async function startServe(options: ServeOptions = {}): Promise<ServeSession> {
   const assets = webviewAssets();
   const context = openProject(options);
   const { file, graph, origin, reason } = await loadGraph(context, options);
 
   const renderCap = context.config.renderCap ?? DEFAULT_RENDER_CAP;
+  const overlays = readOverlaySources(context.root);
   const handle = await startServer({
     graph,
     file,
     root: context.root,
     assets,
     renderCap,
+    review: overlays.review,
+    findings: overlays.findings,
     ...(options.host === undefined ? {} : { host: options.host }),
     ...(options.port === undefined ? {} : { port: options.port }),
   });
@@ -79,11 +130,24 @@ export async function startServe(options: ServeOptions = {}): Promise<ServeSessi
       ['', colour.dim(file.modeReason)],
       ['resolution', describeScore(file)],
       ['render cap', `${renderCap.toLocaleString('en-US')} elements (AXIOMAP.md §9)`],
+      [
+        'overlays',
+        [
+          overlays.review === null
+            ? 'no review state'
+            : `${Object.keys(overlays.review).length.toLocaleString('en-US')} reviewed nodes`,
+          overlays.findings === null
+            ? 'no imported findings'
+            : `${overlays.findings.findings.length.toLocaleString('en-US')} imported findings`,
+        ].join(', '),
+      ],
     ]),
   ];
 
   if (reason !== null) lines.push(colour.dim(`rebuilt: ${reason}`));
-  for (const warning of context.warnings) lines.push(colour.yellow(warning));
+  for (const warning of [...context.warnings, ...overlays.warnings]) {
+    lines.push(colour.yellow(warning));
+  }
   if (handle.host !== '127.0.0.1' && handle.host !== 'localhost') {
     lines.push(
       colour.yellow(

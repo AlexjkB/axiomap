@@ -27,7 +27,7 @@ import type { CyElements } from './elements.js';
 import { toElkGraph } from './layout/elk-graph.js';
 import type { LayoutClient } from './layout/client.js';
 import type { ViewPreset } from './presets.js';
-import { readPalette, stylesheet } from './style.js';
+import { readDocumentPalette, stylesheet } from './style.js';
 
 /**
  * How far `fit` may zoom in on a graph too small to fill the viewport.
@@ -38,6 +38,22 @@ import { readPalette, stylesheet } from './style.js';
  * screen. This is the middle, chosen by looking at both.
  */
 const MAX_FIT_ZOOM = 1.75;
+
+/**
+ * How far `fit` may zoom *out* before the graph stops being readable.
+ *
+ * The other end of the same argument. A contract with twenty members lays out
+ * several thousand pixels wide, and fitting all of it into the canvas puts the
+ * whole view at about a quarter zoom — labels three pixels tall, and every
+ * overlay in §11 reduced to a coloured smudge. §11's density target is what is
+ * legible "at default zoom", so the honest default is a legible part of the
+ * graph rather than an illegible whole of it: below this the view is clamped
+ * and anchored at the graph's top-left corner, and panning reaches the rest.
+ */
+const MIN_FIT_ZOOM = 0.6;
+
+/** Padding used by every fit here, so the clamp and the fit agree. */
+const FIT_PADDING = 24;
 
 export interface GraphCanvasProps {
   elements: CyElements;
@@ -69,7 +85,7 @@ export function GraphCanvas({
       container: element,
       elements: [],
       style: stylesheet(
-        readPalette((variable) => getComputedStyle(document.documentElement).getPropertyValue(variable)),
+        readDocumentPalette(),
         preset,
       ),
       wheelSensitivity: 0.2,
@@ -105,14 +121,7 @@ export function GraphCanvas({
 
     instance.batch(() => {
       instance.elements().remove();
-      instance.style(
-        stylesheet(
-          readPalette((variable) =>
-            getComputedStyle(document.documentElement).getPropertyValue(variable),
-          ),
-          preset,
-        ),
-      );
+      instance.style(stylesheet(readDocumentPalette(), preset));
       instance.add([
         ...elements.nodes.map((node) => ({ group: 'nodes' as const, data: node.data, classes: node.classes })),
         ...elements.edges.map((edge) => ({ group: 'edges' as const, data: edge.data, classes: edge.classes })),
@@ -129,7 +138,20 @@ export function GraphCanvas({
     const graph = toElkGraph(elements, preset, (id) => {
       const node = instance.getElementById(id);
       if (node.empty()) return { width: 120, height: 40 };
-      return { width: Math.max(40, node.width()), height: Math.max(24, node.height()) };
+      /*
+       * Padded, not bare. `width()`/`height()` are the label box and exclude
+       * the padding cytoscape draws around it — which is where §11's complexity
+       * heatmap lives, so a laid-out graph would have spaced the nodes for a
+       * size they are not drawn at and the biggest, most complex functions
+       * would be the ones overlapping their neighbours.
+       */
+      // `paddedWidth()` is the same sum and is missing from cytoscape's own
+      // type declarations, so the padding is read and added here instead.
+      const padding = Number(node.numericStyle('padding')) || 0;
+      return {
+        width: Math.max(40, node.width() + 2 * padding),
+        height: Math.max(24, node.height() + 2 * padding),
+      };
     });
 
     void layoutClient
@@ -153,7 +175,7 @@ export function GraphCanvas({
          * much the boxes grew. It cost the right-hand edge of the protocol map.
          */
         applied.on('layoutstop', () => {
-          instance.fit(undefined, 24);
+          instance.fit(undefined, FIT_PADDING);
           /*
            * Fit zooms *in* on a small graph until it fills the viewport, which
            * turns nine contracts into nine billboards — the opposite of §11's
@@ -167,6 +189,16 @@ export function GraphCanvas({
               position: { x: instance.width() / 2, y: instance.height() / 2 },
             });
             instance.center();
+          } else if (instance.zoom() < MIN_FIT_ZOOM) {
+            // Anchored top-left rather than centred: the middle of a graph too
+            // big to fit is an arbitrary place to be put down, and the corner
+            // is where reading starts.
+            instance.zoom(MIN_FIT_ZOOM);
+            const box = instance.elements().boundingBox();
+            instance.pan({
+              x: FIT_PADDING - box.x1 * MIN_FIT_ZOOM,
+              y: FIT_PADDING - box.y1 * MIN_FIT_ZOOM,
+            });
           }
         });
         applied.run();

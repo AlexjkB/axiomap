@@ -19,6 +19,7 @@ import type {
   FunctionNode,
   GraphEdge,
   GraphFile,
+  GraphNode,
   NodeKind,
   SourceRefRecord,
   UnresolvedCategory,
@@ -338,3 +339,170 @@ export function graphStats(graph: AxiomapGraph, file: GraphFile): GraphStats {
 
 /** Node kinds a `writers-of`/`readers-of` reference may name. */
 export const STATE_VARIABLE_KINDS: readonly NodeKind[] = ['StateVariable'];
+
+/**
+ * One relation, from the point of view of the node being inspected.
+ *
+ * §11's inspector is "full attributes, callers, callees, all clickable", and
+ * "click edge → reveal the **call site**" — so every relation carries the other
+ * node's id (what a click navigates to) *and* the site (where in this body the
+ * relation is written). Both, because they are different places: the caller's
+ * call site is inside the caller, and the callee's definition is elsewhere.
+ */
+export interface NodeRelation {
+  /** The node at the other end. */
+  id: string;
+  /** Its display name, so a panel need not fetch it to render a row. */
+  name: string;
+  kind: NodeKind;
+  edgeKind: GraphEdge['kind'];
+  subkind: GraphEdge['subkind'];
+  resolution: GraphEdge['resolution'];
+  count: number;
+  /** The site (§10: an edge's `src` is where the relation is written). */
+  src: SourceRefRecord;
+  /**
+   * Reached through `possibleTargets` rather than the static edge (§10's
+   * virtual dispatch). "`Pair.mint` is called by `Router.addLiquidity`" and
+   * "`Pair.mint` is one of four things that interface call could reach" are
+   * different claims, and the panel says which one it is showing.
+   */
+  virtual: boolean;
+  crossTrustBoundary: boolean;
+}
+
+/** A member of the contract being inspected, or a sibling in its file. */
+export interface NodeSummary {
+  id: string;
+  name: string;
+  kind: NodeKind;
+}
+
+/**
+ * Everything §11's inspector shows about one node, as data.
+ *
+ * The panel is a React component wrapped around this call — `query/index.ts`
+ * said so before there was a panel — and it is the *only* way the webview
+ * reaches node detail. There is no second implementation of the query API on
+ * the other side of the bridge, because §5 leaves that package unable to hold a
+ * graph at all.
+ */
+export interface NodeInspection {
+  id: string;
+  /** The graph's own node object. Every §10 attribute, unabridged. */
+  node: GraphNode;
+  /** The containing contract, when this node is a member of one. */
+  scope: NodeSummary | null;
+  /** Members, when this node is a contract (`declares` out-edges). */
+  members: NodeSummary[];
+  /** Relations pointing at this node. Callers, overriders, readers, writers. */
+  incoming: NodeRelation[];
+  /** Relations leaving it. Callees, bases, reads, writes, emits, reverts. */
+  outgoing: NodeRelation[];
+}
+
+export class NodeNotFoundError extends Error {
+  constructor(id: string) {
+    super(`No node with id "${id}" is in this graph.`);
+    this.name = 'NodeNotFoundError';
+  }
+}
+
+function summarize(graph: AxiomapGraph, id: string): NodeSummary | null {
+  if (!graph.hasNode(id)) return null;
+  const node = graph.getNodeAttributes(id);
+  return { id: node.id, name: node.name, kind: node.kind };
+}
+
+function relation(
+  graph: AxiomapGraph,
+  edge: GraphEdge,
+  other: string,
+  virtual: boolean,
+): NodeRelation | null {
+  const node = summarize(graph, other);
+  if (node === null) return null;
+  return {
+    id: node.id,
+    name: node.name,
+    kind: node.kind,
+    edgeKind: edge.kind,
+    subkind: edge.subkind,
+    // A virtual arm is a *possible* target, never a certain one, whatever the
+    // static edge's own resolution says. Reporting the edge's `semantic` on a
+    // fan-out arm would be the flattery §4 refuses.
+    resolution: virtual ? 'ambiguous' : edge.resolution,
+    count: edge.count,
+    src: edge.src,
+    virtual,
+    crossTrustBoundary: edge.crossTrustBoundary === true,
+  };
+}
+
+function sortRelations(relations: NodeRelation[]): NodeRelation[] {
+  return relations.sort(
+    (a, b) =>
+      a.edgeKind.localeCompare(b.edgeKind) ||
+      Number(a.virtual) - Number(b.virtual) ||
+      a.id.localeCompare(b.id),
+  );
+}
+
+/**
+ * §11's inspector, as one query.
+ *
+ * `declares` is containment rather than a relation an auditor traverses, so it
+ * comes back as `members`/`scope` instead of as edges — a contract with forty
+ * members would otherwise bury its own call graph in its outgoing list.
+ */
+export function inspectNode(graph: AxiomapGraph, id: string): NodeInspection {
+  if (!graph.hasNode(id)) throw new NodeNotFoundError(id);
+  const node = graph.getNodeAttributes(id);
+
+  const members: NodeSummary[] = [];
+  const incoming: NodeRelation[] = [];
+  const outgoing: NodeRelation[] = [];
+
+  graph.forEachOutEdge(id, (_key, edge) => {
+    if (edge.kind === 'declares') {
+      const member = summarize(graph, edge.to);
+      if (member !== null) members.push(member);
+      return;
+    }
+    const direct = relation(graph, edge, edge.to, false);
+    if (direct !== null) outgoing.push(direct);
+    for (const target of edge.possibleTargets) {
+      if (target === edge.to) continue;
+      const fanned = relation(graph, edge, target, true);
+      if (fanned !== null) outgoing.push(fanned);
+    }
+  });
+
+  graph.forEachInEdge(id, (_key, edge) => {
+    // The containing declaration arrives as `scope`, below.
+    if (edge.kind === 'declares') return;
+    const direct = relation(graph, edge, edge.from, false);
+    if (direct !== null) incoming.push(direct);
+  });
+
+  /*
+   * A node reached only as somebody's `possibleTarget` has no in-edge to find,
+   * so the virtual arms of the incoming side cost a pass over every edge. That
+   * is the same reason `traverse.ts` builds an index rather than asking per
+   * node — and here it is one node, once, per inspector click.
+   */
+  graph.forEachEdge((_key, edge) => {
+    if (edge.to === id || !edge.possibleTargets.includes(id)) return;
+    const fanned = relation(graph, edge, edge.from, true);
+    if (fanned !== null) incoming.push(fanned);
+  });
+
+  return {
+    id,
+    node,
+    scope: node.scope === null ? null : summarize(graph, node.scope),
+    members: members.sort((a, b) => a.kind.localeCompare(b.kind) || a.id.localeCompare(b.id)),
+    incoming: sortRelations(incoming),
+    outgoing: sortRelations(outgoing),
+  };
+}

@@ -160,6 +160,48 @@ describe('axiomap serve', () => {
     expect([403, 404]).toContain(encoded.status);
   });
 
+  it('answers /api/node with one node’s attributes and relations (§11)', async () => {
+    const { status, body } = await get(
+      '/api/node?id=src%2FPair.sol%3APair.swap(uint256,uint256,address)',
+    );
+    expect(status).toBe(200);
+    const inspection = body as {
+      node: { kind: string; name: string };
+      scope: { id: string } | null;
+      incoming: unknown[];
+      outgoing: { id: string; edgeKind: string }[];
+    };
+    expect(inspection.node.kind).toBe('Function');
+    expect(inspection.scope?.id).toBe('src/Pair.sol:Pair');
+    // The inspector's whole point: relations the drawn view does not contain.
+    expect(inspection.outgoing.some((relation) => relation.edgeKind === 'reads')).toBe(true);
+  });
+
+  it('refuses an unknown node and a missing id, rather than answering vaguely', async () => {
+    const missing = await get('/api/node?id=src%2FNope.sol%3ANope');
+    expect(missing.status).toBe(404);
+    expect((missing.body as { error: { name: string } }).error.name).toBe('NodeNotFoundError');
+
+    const blank = await get('/api/node');
+    expect(blank.status).toBe(400);
+    expect(String((blank.body as { error: { message: string } }).error.message)).toContain('id');
+  });
+
+  it('answers /api/overlays with the audit-state files, empty when there are none', async () => {
+    const { status, body } = await get('/api/overlays');
+    expect(status).toBe(200);
+    const overlays = body as {
+      review: Record<string, unknown>;
+      findings: Record<string, unknown>;
+      sources: { review: boolean; findings: boolean };
+    };
+    // This fixture copy has neither file, and "absent" and "present but empty"
+    // are the same picture and different sentences.
+    expect(overlays.review).toEqual({});
+    expect(overlays.findings).toEqual({});
+    expect(overlays.sources).toEqual({ review: false, findings: false });
+  });
+
   it('answers GET only', async () => {
     const response = await fetch(`${base}/api/meta`, { method: 'POST' });
     expect(response.status).toBe(405);

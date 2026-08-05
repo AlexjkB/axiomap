@@ -31,11 +31,21 @@ import type {
   DisplayNode,
   FunctionNode,
   GraphNode,
+  OverlayData,
   Resolution,
   StateVariableNode,
 } from '@axiomap/core';
 
+import { badgeStrip } from './badges.js';
+import {
+  BASE_PADDING,
+  cappedBadges,
+  decorate,
+  nodeUncertainty,
+  type OverlayName,
+} from './overlays.js';
 import type { ViewPreset } from './presets.js';
+import { FALLBACK_PALETTE, type Palette } from './style.js';
 
 export interface CyNodeData {
   id: string;
@@ -53,6 +63,21 @@ export interface CyNodeData {
   partition?: number;
   /** True when clicking this node re-focuses the current view. */
   focusable: boolean;
+  /**
+   * §11's size channel: node size is label plus this (see `overlays.ts`).
+   *
+   * A CSS length string with explicit units, which is how cytoscape documents
+   * this property. Node *size* here means the padded box: `height()` is the
+   * label alone and excludes it, which is why `GraphCanvas` measures
+   * `paddedHeight()` before handing sizes to ELK.
+   */
+  pad: string;
+  /** §11's badge channel: the glyph strip as a data URI, absent when empty. */
+  badges?: string;
+  badgeWidth?: number;
+  badgeHeight?: number;
+  /** What the badges say, for the inspector and for a test to read. */
+  badgeTitles?: string;
 }
 
 export interface CyEdgeData {
@@ -173,6 +198,21 @@ function join(label: string, detail: string): string {
   return detail === '' ? label : `${label}\n${detail}`;
 }
 
+/**
+ * The overlay state a view is drawn under.
+ *
+ * `data` is the host's two audit-state files and is null until they arrive;
+ * `palette` is what the badge strip is coloured from, and defaults to the
+ * browser fallback so this function stays callable without a DOM.
+ */
+export interface ElementOverlays {
+  active: ReadonlySet<OverlayName>;
+  data: OverlayData | null;
+  palette?: Palette;
+}
+
+const NO_OVERLAYS: ElementOverlays = { active: new Set<OverlayName>(), data: null };
+
 function displayNode(element: DisplayNode, preset: ViewPreset): CyElements['nodes'][number] {
   if (element.type === 'cluster') {
     const inside =
@@ -199,6 +239,9 @@ function displayNode(element: DisplayNode, preset: ViewPreset): CyElements['node
         expanded: element.expanded,
         path: element.path,
         focusable: false,
+        // A cluster's own padding is set by the stylesheet; this is here so the
+        // base rule's `data(pad)` resolves for every element.
+        pad: `${String(BASE_PADDING)}px`,
       },
       classes: ['cluster', element.expanded ? 'expanded' : 'collapsed'].join(' '),
     };
@@ -215,8 +258,53 @@ function displayNode(element: DisplayNode, preset: ViewPreset): CyElements['node
       kind: element.node.kind,
       ...(preset.partitioned ? { partition: partitionOf(element.node) } : {}),
       focusable: preset.focusKinds.includes(element.node.kind),
+      pad: `${String(BASE_PADDING)}px`,
     },
     classes: nodeClasses(element.node, preset).join(' '),
+  };
+}
+
+/**
+ * The overlays' half of a node, kept separate from the view's half.
+ *
+ * A view decides what a node *is* — its kind, its label, whether clicking it
+ * focuses — and the overlays decide what is currently being *asked* about it.
+ * Keeping the two apart is what makes it checkable that turning every overlay
+ * off returns the element a view alone would have produced.
+ */
+function applyOverlays(
+  drawn: CyElements['nodes'][number],
+  element: DisplayNode,
+  overlays: ElementOverlays,
+  uncertainty: ReadonlyMap<string, Resolution>,
+): CyElements['nodes'][number] {
+  // A cluster stands for nodes that are not drawn, and the aggregation layer
+  // does not send their attributes — so an overlay has nothing to say about one
+  // and says nothing, rather than implying the box is clean.
+  if (element.type === 'cluster' || overlays.active.size === 0) return drawn;
+
+  const decoration = decorate(element.node, {
+    active: overlays.active,
+    data: overlays.data,
+    uncertainty,
+  });
+  const badges = cappedBadges(decoration.badges);
+  const strip = badgeStrip(badges, overlays.palette ?? FALLBACK_PALETTE);
+
+  return {
+    data: {
+      ...drawn.data,
+      pad: `${String(decoration.padding)}px`,
+      ...(strip === null
+        ? {}
+        : {
+            badges: strip.image,
+            badgeWidth: strip.width,
+            badgeHeight: strip.height,
+            badgeTitles: badges.map((badge) => `${badge.glyph} ${badge.title}`).join(' · '),
+          }),
+    },
+    classes: [drawn.classes, ...decoration.classes].filter((part) => part !== '').join(' '),
   };
 }
 
@@ -257,9 +345,27 @@ function displayEdge(element: DisplayEdge): CyElements['edges'][number] {
   };
 }
 
-export function toElements(view: AggregatedView, preset: ViewPreset): CyElements {
+export function toElements(
+  view: AggregatedView,
+  preset: ViewPreset,
+  overlays: ElementOverlays = NO_OVERLAYS,
+): CyElements {
+  // §11 gives resolution confidence the node border style, and a node has no
+  // resolution of its own — only the edges of the view being drawn do.
+  const uncertainty = overlays.active.has('resolution')
+    ? nodeUncertainty(
+        view.edges.map((edge) => ({
+          from: edge.from,
+          to: edge.to,
+          resolution: edge.type === 'aggregate' ? edge.resolution : edge.edge.resolution,
+        })),
+      )
+    : new Map<string, Resolution>();
+
   return {
-    nodes: view.nodes.map((node) => displayNode(node, preset)),
+    nodes: view.nodes.map((node) =>
+      applyOverlays(displayNode(node, preset), node, overlays, uncertainty),
+    ),
     edges: view.edges.map(displayEdge),
   };
 }

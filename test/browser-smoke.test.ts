@@ -143,6 +143,34 @@ class Page {
 
 const METRICS = "document.querySelector('.ax-metrics')?.textContent ?? ''";
 const CURRENT_VIEW = "document.querySelector('.ax-view-current')?.textContent ?? ''";
+const INSPECTOR = "document.querySelector('.ax-inspector')?.textContent ?? ''";
+const LEGEND = "document.querySelector('.ax-legend')?.textContent ?? ''";
+
+/** Click a node the way a mouse would — cytoscape draws to a canvas. */
+function tap(selector: string): string {
+  return `
+    (() => {
+      const cy = document.querySelector('.ax-canvas')._cyreg.cy;
+      const node = cy.nodes(${JSON.stringify(selector)}).first();
+      if (node.empty()) return '';
+      node.emit('tap');
+      return node.id();
+    })()
+  `;
+}
+
+/** Toggle an overlay by its label, as the toolbar spells it. */
+function toggleOverlay(label: string): string {
+  return `
+    (() => {
+      const chip = [...document.querySelectorAll('.ax-overlay-row .ax-chip')]
+        .find((button) => button.textContent.trim() === ${JSON.stringify(label)});
+      if (!chip) return 'missing';
+      chip.click();
+      return 'ok';
+    })()
+  `;
+}
 
 let session: ServeSession;
 let page: Page;
@@ -174,20 +202,67 @@ describe.skipIf(CHROME === undefined)('the graph in a browser', () => {
     await page.goto(session.handle.url);
     await page.until(METRICS, (value) => /layout/.test(value));
 
-    // Cytoscape draws to a canvas, so there is no DOM node to click: reach the
-    // graph through the same tap handler a mouse would.
-    await page.evaluate(`
-      (() => {
-        const app = document.querySelector('.ax-canvas');
-        const cy = app && app._cyreg && app._cyreg.cy;
-        const node = cy.nodes('[kind = "Contract"]').first();
-        node.emit('tap');
-        return node.id();
-      })()
-    `);
+    await page.evaluate(tap('[kind = "Contract"]'));
 
     const view = await page.until(CURRENT_VIEW, (value) => value === 'Contract detail');
     expect(view).toBe('Contract detail');
     expect(await page.until(METRICS, (value) => /layout/.test(value))).toMatch(/layout \d+ ms/);
+  }, 120_000);
+
+  /**
+   * §11's inspector, in a browser, because what is worth checking is that the
+   * panel was filled from the host rather than from the drawn view — and the
+   * drawn view lives on a canvas no unit test has.
+   */
+  it('fills the inspector from the host when a node is clicked', async () => {
+    await page.goto(session.handle.url);
+    await page.until(METRICS, (value) => /layout/.test(value));
+
+    const id = await page.evaluate(tap('[kind = "Contract"]'));
+    expect(id).not.toBe('');
+
+    // `textContent`, so this is the markup's casing rather than the CSS's.
+    const panel = await page.until(INSPECTOR, (value) => /Members\s*\d+/.test(value));
+    expect(panel).toMatch(/Members\s*\d+/);
+    // `linearization` is a §10 attribute of the node and not part of the
+    // element the canvas was handed: it can only have come from /api/node.
+    expect(panel).toMatch(/linearization/);
+    expect(page.consoleErrors.join('\n')).toBe('');
+  }, 120_000);
+
+  /**
+   * An overlay that draws nothing looks exactly like an overlay with nothing to
+   * report, which is the failure this project cares about most. Both halves are
+   * here: a badge really reaches a node's computed style, and an overlay with
+   * nothing to mark says so instead of looking like a clean result.
+   */
+  it('draws badges where an overlay marks something, and says when it marks nothing', async () => {
+    await page.goto(session.handle.url);
+    await page.until(METRICS, (value) => /layout/.test(value));
+
+    // On the protocol map, danger ops is about functions and there are none.
+    expect(await page.evaluate(toggleOverlay('Danger ops'))).toBe('ok');
+    expect(await page.until(LEGEND, (value) => value.includes('nothing in this view'))).toContain(
+      'nothing in this view',
+    );
+
+    // Inside a contract there are, and the strip reaches cytoscape's style.
+    await page.evaluate(tap('[kind = "Contract"]'));
+    await page.until(CURRENT_VIEW, (value) => value === 'Contract detail');
+    await page.until(METRICS, (value) => /layout \d+ ms/.test(value));
+
+    const badged = await page.until(
+      `
+        (() => {
+          const cy = document.querySelector('.ax-canvas')._cyreg.cy;
+          const marked = cy.nodes().filter((node) => node.data('badges') !== undefined);
+          if (marked.length === 0) return '0';
+          return marked.length + ':' + String(marked.first().style('background-image')).slice(0, 24);
+        })()
+      `,
+      (value) => value !== '0',
+    );
+    expect(badged).toMatch(/^\d+:data:image\/svg\+xml/);
+    expect(page.consoleErrors.join('\n')).toBe('');
   }, 120_000);
 });

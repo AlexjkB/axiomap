@@ -1751,3 +1751,161 @@ synthetic case `scale.test.ts` measures. That belongs to Phase 7c, with a real p
   table.
 - **`serve` re-reads nothing.** If Phase 8's artifact watch wants a live graph, the seam is
   `ServerOptions.graph`: it is held once and read per request.
+
+---
+
+## Phase 7c — The eight overlays and the inspector
+
+**Date:** 2026-08-05
+**Status:** partial phase, deliberately — the third of four. `pnpm check` and
+`pnpm check:network` both green. **Phase 7d is the remainder: shiki code preview, the
+`/` search palette, breadcrumb + back/forward history, and the `html`/`svg` exports.**
+
+### Exit criteria
+
+Phase 7's own criteria belong to the whole phase. These are 7c's, taken from what this
+session was scoped to.
+
+| Criterion | Result |
+|---|---|
+| §11's eight overlays, all of them | pass — `packages/webview/src/ui/overlays.ts`, all eight toggleable and combinable. Every one was screenshotted in Chrome in the view where it applies, and each was seen to change what is on screen |
+| They hold to §11's channel budget | pass — the allocation is data in `overlays.ts` and a test asserts no class is produced by two overlays; `style.test.ts` pins each channel's rule list. §11's table is amended for the one overlay it left without a channel, below |
+| The inspector | pass — `Inspector.tsx`: §10's attributes in full, members, incoming and outgoing relations with their call sites, all clickable, plus this node's review entry and imported findings |
+| The inspector reaches the graph only through `HostBridge` | pass — `HostBridge.inspect` → `/api/node` → `inspectNode`. There is no second implementation and cannot be: §5 leaves this package unable to hold an `AxiomapGraph`. `test/inspect-node.test.ts` asserts the answer covers relations the drawn view does not contain |
+| No code preview, no search palette, no history, no `html`/`svg` export | pass — none written; they are 7d's |
+| Screenshot every overlay in a real browser | pass — 14 screenshots across the protocol map, contract detail, the call graph and the state-access map. Four defects came out of them, below |
+
+`pnpm check` is green: 381 tests in `core` (373 from 7b, 8 new), 68 in `webview` (39 +
+29), 82 in `cli` (79 + 3), and 23 repo-level (18 + 5, two of them in a browser).
+
+### What was built
+
+- **`core/src/query/overlays.ts`** — the projection of the two audit-state files onto
+  node ids. Six of §11's overlays read attributes the graph already carries; review
+  state (`.axiomap/review.json`, §8) and imported findings (`.axiomap/findings.json`,
+  decision #4) are files the host reads, and 7b's notes had already put them here.
+  Staleness travels beside status rather than folded into it, because §8's flagship
+  feature is precisely the difference between the two.
+- **`core/src/query/inspect.ts`** — `inspectNode`. `declares` comes back as
+  `members`/`scope` rather than as edges, and virtual dispatch arms are marked and
+  down-graded to `ambiguous` whatever the static edge claims.
+- **`packages/webview/src/ui/overlays.ts`** — the channel allocation as data, the
+  per-node decoration, and the legend. **`badges.ts`** draws the badge channel as one
+  SVG strip per node, since cytoscape gives a node one label and one background image.
+- **`Inspector.tsx`, `OverlayBar.tsx`** and their CSS.
+- **Two more routes on `axiomap serve`** — `/api/node` and `/api/overlays` — and the
+  `serve` command now reads the two audit-state files and says on the banner what it
+  found.
+
+### §11's table had a channel for seven of the eight
+
+The budget allocates node fill, border colour, border style, opacity, badges and size
+— and names seven overlays across them. The **reentrancy surface** has no row, and
+§11's own rule is that an overlay which cannot be given a free channel does not ship.
+
+It went on badges, and §11 is amended to say so. Badges are the one channel that is
+explicitly *stackable* and already had two tenants, each owning a glyph rather than a
+visual property; a third glyph is what that channel is for, and it is the only
+allocation that evicts nothing. `R`, red unguarded and green guarded.
+
+The other shared row, **border colour — "access control & attack surface"**, is §11's
+own doing and needed a precedence rather than a coin toss: where access control has a
+verdict about a function, it takes the border, because "externally callable with no
+recognised guard" is strictly more specific than "externally callable". Attack surface
+keeps opacity outright and colours the entrypoints access control says nothing about.
+That is decided once in `decorate`, not by which cytoscape rule happens to come last.
+
+### Then it was pointed at a browser, again
+
+7b's lesson was taken literally: every overlay was screenshotted as it was built, on a
+scratch copy of `defi/` with four reviews recorded (one deliberately made stale by an
+edit), four imported findings (one stale for the same reason), and its artifacts intact.
+Four things came out of it that the suite was green through.
+
+- **Six of the eight overlays decorated nothing on the protocol map, and said nothing
+  about it.** The map draws contracts; access control, danger ops, reentrancy,
+  complexity, review and findings are all about functions. Turning one on produced a
+  legend, no change on screen, and a picture indistinguishable from a clean result —
+  the exact silence §4 refuses everywhere else in this tool. `overlayCoverage` now
+  counts what each active overlay actually marked, and an overlay that marked nothing
+  says so, in the terms of what it would have marked. The rollup that would make them
+  mean something at contract level is a §16 entry.
+- **The contract-detail view was illegible at fit zoom.** Twenty members lay out in one
+  band thousands of pixels wide, so `fit` put the whole view at about quarter zoom:
+  three-pixel labels, and every overlay a coloured smudge — in the view where the
+  overlays matter most. `fit` is now clamped at a minimum zoom of 0.6 and anchored at
+  the graph's top-left corner, which is the symmetric half of 7b's `MAX_FIT_ZOOM` and
+  the same argument: §11's density target is about what is legible at default zoom, so
+  a legible part of a graph beats an illegible whole of one. The cause — a member-heavy
+  view has too few edges for layered layout to stack — is a §16 entry.
+- **ELK was measuring nodes without their padding.** §11's size channel is the
+  complexity heatmap and node size is label plus padding, but `width()`/`height()` are
+  the label box alone. The layout was therefore spacing nodes for a size they are not
+  drawn at, and the biggest, most complex functions would have been the ones overlapping
+  their neighbours. Caught by measuring in the browser rather than by looking.
+- **`axiomap import-findings` printed `[object Object]`** for every row's nodes column.
+  A finding's `nodes` are `{ id, bodyHash }` — §8's staleness mechanism — and the table
+  joined the objects. Phase 6 code, found while building this phase's fixture.
+
+One measurement mistake is worth recording alongside them, because it nearly became a
+fifth "defect": the complexity overlay looked dead when probed with `node.height()`,
+which excludes padding by design. It was working. The lesson from 7b holds in both
+directions — look at the screen, and check what the number you are reading means.
+
+### Badges are one image, not eight glyphs
+
+Cytoscape gives a node one label and one set of background images, so §11's "corner
+glyphs, stackable" is a single SVG strip per node, anchored outside the top-right
+corner so it never covers the label. The alternative — a third label line — would have
+been one colour for every glyph, and colour is what distinguishes a `delegatecall` from
+a stale informational finding. The strip is `encodeURIComponent`-encoded because a raw
+`#` from a themed colour would truncate the data URI at the fragment and the badge
+would silently not draw; there is a test for exactly that.
+
+Chip size was set by looking: 13 graph units was a smudge at the 0.6 zoom a contract is
+actually read at, so it is 16.
+
+### Deviations from the spec
+
+- **§11's badge row gained the reentrancy surface** *(§11 amended)*, for the reason
+  above.
+- **`/api/overlays` sends the two audit-state files whole**, which is a payload leaving
+  the host that §9 rule 1 does not describe. It is not the graph: no source, no bodies,
+  no edges, no attributes — a map from node id to a status a human recorded, and two
+  empty objects on a project where nobody has reviewed anything. Asking per drawn node
+  instead would put a round trip behind every repaint to answer a question whose entire
+  input is a hand-written file.
+- **A malformed `review.json` or `findings.json` is a warning and an absent overlay**,
+  not a dead server. The graph is what the user asked for, and refusing to serve it over
+  a file the tool can rewrite would lose them the tool.
+- **An empty view now gets a notice.** §9 rule 2 gives "too much to draw" a notice and
+  says nothing about "nothing to draw", but a blank canvas is the one state a user
+  cannot tell from a broken one — `state-access` focused on an interface function is a
+  real way to reach it.
+- **A click both navigates and selects.** 7b's drill-down is unchanged; the inspector
+  opens on whatever was clicked. Clicking a state variable, event or error — which did
+  nothing in 7b, correctly, since none of them has a view — now opens the inspector,
+  which is the first thing in this project that can say something about them.
+
+### §16 changes
+
+- **Added Tier 2 — overlay rollup onto contracts and collapsed clusters**, with the
+  reason the webview cannot compute it and the note that the legend states the gap
+  rather than hiding it.
+- **Added Tier 2 — a view too wide to read at fit zoom**, recording the zoom clamp as a
+  symptom fix and naming the two real ones.
+
+### Notes for the next session
+
+- **Phase 7d is code preview, search, history and the `html`/`svg` exports**, and then
+  the Phase 7 boundary audit — which belongs to whichever session closes the phase, and
+  should cover 7a, 7b and 7c together the way Phase 2's and Phase 3's audits did.
+- **Screenshot everything, again.** Four of this session's findings and four of 7b's
+  were invisible to a green suite and obvious in one image. `test/browser-smoke.test.ts`
+  now has four cases; the scratch harness that took the screenshots is not committed,
+  and it is about forty lines of CDP on top of that file's `Page` class.
+- **The inspector is where NatSpec would land.** §16's entry names the Phase 7 inspector
+  as its trigger, and this is now the panel it meant; the field is still not collected
+  by the parser.
+- **`ProjectMeta` gained nothing this phase**, and the two new endpoints are why: audit
+  state is per node and belongs beside the nodes, not in the header.
