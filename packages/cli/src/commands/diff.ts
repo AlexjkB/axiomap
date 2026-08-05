@@ -23,21 +23,28 @@
  * Both revisions are therefore analysed with **one** configuration, and
  * §13 fixes which one: the invoking working tree's. Reading each checkout's own
  * config would make the tool's own settings part of the changeset, and the
- * question `axiomap diff` answers is what changed in the *protocol*. Phase 6
- * owns loading the file; this comment is here so that when it does, the answer
- * is already decided rather than decided by whichever call site is written
- * first.
+ * question `axiomap diff` answers is what changed in the *protocol*.
+ *
+ * Phase 6 implements it: `openProject` loads the config from the target
+ * directory as it stands now, and the same `buildOptions` object is handed to
+ * both `buildProjectGraph` calls below. The checked-out revisions have their
+ * own `axiomap.config.json` on disk and it is deliberately never read.
  */
 
 import {
   buildProjectGraph,
   diffGraphs,
+  migrateReview,
+  readReview,
+  reviewPath,
+  writeReview,
   type AxiomapDiff,
   type ChangeStatus,
   type DiffFinding,
   type NodeChange,
 } from '@axiomap/core';
 
+import { buildOptions, openProject, type CommonOptions } from '../context.js';
 import { resolveRevision } from '../revisions.js';
 
 /**
@@ -54,11 +61,17 @@ import { resolveRevision } from '../revisions.js';
  */
 export const DIFF_JSON_SCHEMA_VERSION = 1;
 
-export interface DiffCommandOptions {
-  /** Machine-readable output for CI (§12). */
-  json?: boolean;
-  /** Project to diff. Default: the current directory. */
+export interface DiffCommandOptions extends CommonOptions {
+  /**
+   * Project to diff. Default: the current directory.
+   *
+   * Kept alongside `CommonOptions.path`, which means the same thing, because
+   * Phase 5 shipped this name and `packages/cli/test/diff.test.ts` — the Phase
+   * 5 exit criterion — is written against it. `path` wins when both are given.
+   */
   target?: string;
+  /** Update `.axiomap/review.json` to follow renames and moves (§8). */
+  updateReview?: boolean;
 }
 
 export interface DiffCommandResult {
@@ -162,27 +175,61 @@ function toJson(diff: AxiomapDiff, before: string, after: string, target: string
   };
 }
 
+/**
+ * §8's review migration, wired to the command that produces a matching.
+ *
+ * A renamed or moved function has not been un-reviewed, so its review follows
+ * it; a body that changed on the way comes out remapped *and* stale, which puts
+ * it on the re-review list for the right reason. `migrateReview` keeps an entry
+ * it could not match under its old id rather than deleting it — the note is the
+ * auditor's, not the matcher's.
+ */
+function migrate(root: string, diff: AxiomapDiff): string {
+  const file = reviewPath(root);
+  const state = readReview(file);
+  if (Object.keys(state).length === 0) {
+    return 'review  no review state to migrate';
+  }
+
+  const migration = migrateReview(state, diff.matching);
+  writeReview(file, migration.state);
+  return (
+    `review  ${String(migration.remapped.length)} entries followed a rename or move, ` +
+    `${String(migration.dropped.length)} kept under an unmatched id → ${file}`
+  );
+}
+
 export async function runDiff(
   refA: string,
   refB: string,
   options: DiffCommandOptions = {},
 ): Promise<DiffCommandResult> {
-  const target = options.target ?? process.cwd();
+  const target = options.path ?? options.target ?? process.cwd();
+
+  // §13: one config governs both revisions, and it is this working tree's.
+  const context = openProject({ ...options, path: target });
+  const shared = buildOptions(context, options);
+
   const before = resolveRevision(refA, target);
   try {
     const after = resolveRevision(refB, target);
     try {
       const [a, b] = await Promise.all([
-        buildProjectGraph(before.root, { cacheDir: null }),
-        buildProjectGraph(after.root, { cacheDir: null }),
+        buildProjectGraph(before.root, { ...shared, cacheDir: null }),
+        buildProjectGraph(after.root, { ...shared, cacheDir: null }),
       ]);
       const diff = diffGraphs(a.graph, b.graph);
       const changed =
         diff.nodes.some((node) => node.status !== 'unchanged') ||
         diff.edges.some((edge) => edge.status !== 'unchanged');
-      const text = options.json === true
-        ? `${JSON.stringify(toJson(diff, before.label, after.label, target), null, 2)}\n`
-        : render(diff, before.label, after.label, target);
+
+      const migrated = options.updateReview === true ? migrate(context.root, diff) : null;
+
+      const text =
+        options.json === true
+          ? `${JSON.stringify(toJson(diff, before.label, after.label, target), null, 2)}\n`
+          : render(diff, before.label, after.label, target) +
+            (migrated === null ? '' : `\n${migrated}\n`);
       return { text, exitCode: changed ? 1 : 0, diff };
     } finally {
       after.dispose();
