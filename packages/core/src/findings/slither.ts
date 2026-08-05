@@ -38,6 +38,26 @@ import type { GraphNode, SourceRefRecord } from '../graph/schema.js';
 /** Slither's own severity words, kept verbatim — they are its claim, not ours. */
 export type SlitherImpact = 'High' | 'Medium' | 'Low' | 'Informational' | 'Optimization';
 
+/**
+ * A node a finding landed on, **and the body it landed on**.
+ *
+ * The hash is what makes a stored finding falsifiable. `review.json` records a
+ * `bodyHash` so a review goes stale the moment the body differs (§8), and an
+ * imported finding needs exactly the same thing for exactly the same reason: it
+ * is a claim about a specific piece of code, made by a tool that ran at a
+ * specific moment. Without it, §11's overlay draws a High-severity reentrancy
+ * badge on a function that was rewritten after Slither last saw it — which is
+ * the same failure §8 exists to prevent, wearing a different hat.
+ *
+ * A node with no body (an interface declaration) hashes to the empty string,
+ * per Phase 2's deliberate choice, and therefore cannot go stale. That is
+ * correct: there is no body to change.
+ */
+export interface FindingNode {
+  id: string;
+  bodyHash: string;
+}
+
 export interface ImportedFinding {
   /** Stable across re-imports of the same finding: check + location. */
   id: string;
@@ -46,8 +66,8 @@ export interface ImportedFinding {
   impact: string;
   confidence: string;
   description: string;
-  /** Graph node ids this finding lands on, sorted. */
-  nodes: string[];
+  /** Graph nodes this finding lands on, sorted by id. */
+  nodes: FindingNode[];
   /** Where Slither pointed, whether or not it mapped to a node. */
   locations: SourceRefRecord[];
 }
@@ -133,9 +153,16 @@ function detectorsOf(raw: unknown, source: string): RawDetector[] {
   );
 }
 
+/** A Function's `bodyHash`; the empty string for anything else (Phase 2). */
+function bodyHashOf(graph: AxiomapGraph, id: string): string {
+  if (!graph.hasNode(id)) return '';
+  const node = graph.getNodeAttributes(id);
+  return node.kind === 'Function' ? node.bodyHash : '';
+}
+
 /**
- * An index from file to that file's nodes, sorted by source range, so a
- * containment lookup is a scan of one file's nodes rather than the project's.
+ * An index from file to that file's nodes, so a containment lookup is a scan of
+ * one file's nodes rather than the project's.
  */
 function nodesByFile(graph: AxiomapGraph): Map<string, GraphNode[]> {
   const byFile = new Map<string, GraphNode[]>();
@@ -262,7 +289,9 @@ export function importSlitherFindings(
       impact: str(detector.impact, 'Unknown'),
       confidence: str(detector.confidence, 'Unknown'),
       description,
-      nodes: [...nodes].sort(),
+      nodes: [...nodes]
+        .sort()
+        .map((id) => ({ id, bodyHash: bodyHashOf(graph, id) })),
       locations,
     });
   }

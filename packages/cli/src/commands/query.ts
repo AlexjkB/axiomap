@@ -17,6 +17,7 @@
 import {
   callPath,
   externals,
+  findingStaleness,
   readersOf,
   readFindings,
   findingsPath,
@@ -41,6 +42,7 @@ import {
   location,
   paintConfidence,
   paintResolution,
+  paintSeverity,
   table,
 } from '../output.js';
 
@@ -396,7 +398,14 @@ export async function runQuery(
       const stored = readFindings(findingsPath(context.root));
       const rows = stored?.findings ?? [];
       if (wantJson) {
-        return { text: json(stored ?? { findings: [] }), exitCode: rows.length > 0 ? FOUND : EMPTY };
+        return {
+          text: json(
+            stored === null
+              ? { findings: [] }
+              : { ...stored, staleness: findingStaleness(stored, graph) },
+          ),
+          exitCode: rows.length > 0 ? FOUND : EMPTY,
+        };
       }
       if (stored === null) {
         return {
@@ -406,6 +415,10 @@ export async function runQuery(
           exitCode: EMPTY,
         };
       }
+      // Staleness, for the same reason reviews carry it: a finding is a claim
+      // about a body at a moment, and one whose body has moved on is no longer
+      // evidence for itself.
+      const reports = findingStaleness(stored, graph);
       return {
         text:
           definitions([
@@ -413,11 +426,28 @@ export async function runQuery(
             ['imported', stored.source.at],
           ]) +
           '\n' +
-          table(rows, [
-            { header: 'impact', get: (row) => row.impact },
-            { header: 'check', get: (row) => row.check },
-            { header: 'nodes', get: (row) => row.nodes.join(', ') },
-          ]),
+          table(reports, [
+            {
+              header: 'impact',
+              get: (row) => row.finding.impact,
+              paint: (value, row) => paintSeverity(value, row.finding.impact),
+            },
+            {
+              header: 'state',
+              get: (row) => row.staleness,
+              paint: (value, row) =>
+                row.staleness === 'current'
+                  ? colour.green(value)
+                  : row.staleness === 'stale'
+                    ? colour.yellow(value)
+                    : colour.red(value),
+            },
+            { header: 'check', get: (row) => row.finding.check },
+            { header: 'nodes', get: (row) => row.finding.nodes.map((n) => n.id).join(', ') },
+          ]) +
+          colour.dim(
+            '\nstale = a body changed after the scan; re-run Slither and re-import.\n',
+          ),
         exitCode: rows.length > 0 ? FOUND : EMPTY,
       };
     }

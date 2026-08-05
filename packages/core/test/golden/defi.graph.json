@@ -1,9 +1,12 @@
 {
-  "schemaVersion": 3,
+  "schemaVersion": 4,
   "generator": {
     "name": "axiomap",
     "parser": "treesitter",
-    "hashVersion": 1
+    "hashVersion": 1,
+    "settings": {
+      "enrich": false
+    }
   },
   "project": {
     "kind": "foundry",

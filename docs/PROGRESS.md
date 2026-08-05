@@ -1298,6 +1298,59 @@ would have done anyway, and it replaces a full rebuild on every query.
 - **Added Tier 1 — `export --format html` and `--format svg`**, with the layout-engine
   reasoning, the `dot | dot -Tsvg` workaround, and Phase 7 as the trigger.
 
+### Pre-Phase-7 hardening
+
+Phase 6 was audited at the boundary the same way Phases 2–5 were, asking one question:
+what would be cheap to fix now and expensive once Phase 7 is reading it. Two things
+qualified, and both are **persisted formats**, which is the category where "later" means a
+schema bump plus everyone's stored state.
+
+- **An imported finding did not know what body it was found on.** `review.json` has gone
+  stale by `bodyHash` since Phase 5 and `findings.json` stored node ids and nothing else —
+  so §11's overlay would have drawn a High-severity reentrancy badge on a function
+  rewritten after Slither last ran. Worse than the gap: `store.ts`'s own header *claimed*
+  the file "goes stale in the same way and for the same reasons", which was simply false.
+  Each mapped node now carries its `bodyHash`, `findingStaleness` reports
+  `current | stale | orphaned` — deliberately the same three words `review/state.ts` uses,
+  since an auditor should not learn two vocabularies for one idea — and `axiomap query
+  findings` shows the column. A finding spanning a caller and a deleted callee reports
+  `stale`, not `orphaned`: it is still about live code, and calling it gone would lose it.
+- **`graph.json` did not record the settings that produced it.** The mtime check catches an
+  edited config at the default path; it cannot catch `--config elsewhere.json`, a config
+  outside the project, or `--no-enrich`. In each of those the stored artifact is a
+  confident answer to a *different question*, and `axiomap query externals --unprotected -c
+  strict.json` would have answered from a graph built with the default guard list.
+  `generator.settings` now records the §13 fields that decide content — `renderCap` and
+  `layout` deliberately excluded, since changing a layout preference should not invalidate
+  an artifact — and `loadGraph` rebuilds on a mismatch. Checked even under `--stale`: that
+  flag means "the sources moved on and I know it", not "answer a different question than
+  the one I asked".
+
+Verified end to end afterwards: `-c strict.json` reports 11 unguarded externals where the
+default list reports 14, instead of silently reusing the artifact; and an imported finding
+goes `current` → `stale` when its function is edited.
+
+**`GRAPH_SCHEMA_VERSION` is 4.** The golden diff was read before it was accepted, per §6:
+`schemaVersion` on all six, plus `"settings": { "enrich": false }` on the five built with
+the tier declined — which is the field doing its job, since those goldens *are* built that
+way and previously said nothing about it. Zero node, edge, hash, count, resolution or score
+changes. Two tests were comparing a `enrich: false` build against an enrichment-ran-and-
+found-nothing build and now set `generator.settings` aside; both really were configured
+differently, and the artifact being able to say so is the point.
+
+One smaller thing, cheap either way: **`ViewSelection`'s arrays are `readonly`**, with a
+note saying why. They hold the graph's own node and edge objects by reference, so a webview
+hanging a layout coordinate on one would be writing into what `graph.json` serializes, and
+the next `axiomap diff` would report a phantom change.
+
+**Deliberately not done**, because both are cheap later and neither touches a stored format:
+
+- `query/traverse.ts` rebuilds its adjacency index per call. Adding a cache is a parameter
+  with a default; Phase 7 should do it with a profile in hand rather than a guess.
+- §9's render cap. §7 assigns it to Phase 7, its message is UI copy, and `ViewSelection`
+  already carries the counts the check needs — it is a call-site check, not an interface
+  change.
+
 ### Notes for the next session
 
 - **Phase 7 is the webview, and §9 rule 1 is the thing to build first.** `core/src/query/`

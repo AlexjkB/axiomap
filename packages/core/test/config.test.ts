@@ -14,6 +14,7 @@ import path from 'node:path';
 import { afterAll, describe, expect, it } from 'vitest';
 
 import { ConfigError, globToRegExp, loadConfig, parseConfig, pathFilter } from '../src/index.js';
+import { buildTempProject, cleanUpTempProjects } from './temp-project.js';
 
 const temporary: string[] = [];
 
@@ -25,6 +26,7 @@ function tempDir(): string {
 
 afterAll(() => {
   for (const dir of temporary) fs.rmSync(dir, { recursive: true, force: true });
+  cleanUpTempProjects();
 });
 
 describe('globs', () => {
@@ -145,5 +147,51 @@ describe('axiomap.config.json', () => {
     const loaded = loadConfig(root);
     expect(loaded.file).toBe(path.join(root, 'axiomap.config.json'));
     expect(loaded.config.reentrancyGuards).toEqual(['lock']);
+  });
+});
+
+describe('the artifact records the settings that produced it', () => {
+  /**
+   * Without this, `.axiomap/graph.json` built with `exclude` or `--no-enrich`
+   * is indistinguishable from one built without, and `axiomap query` answers
+   * confidently from a graph that was built to answer a different question.
+   * Phase 7 reads this artifact too, which is why the schema bump happened
+   * before it existed rather than after.
+   */
+  it('is absent entirely for a default build, so no golden moves', async () => {
+    const built = await buildTempProject({
+      'src/A.sol': 'pragma solidity ^0.8.20;\ncontract A { function f() public {} }\n',
+    });
+    expect(built.file.generator.settings).toBeUndefined();
+  });
+
+  it('records exclude, the guard lists, and a deliberate --no-enrich', async () => {
+    const built = await buildTempProject(
+      { 'src/A.sol': 'pragma solidity ^0.8.20;\ncontract A { function f() public {} }\n' },
+      {
+        exclude: ['test/**'],
+        analysis: { accessControlModifiers: ['gated'], reentrancyGuards: ['lock'] },
+        trustBoundaries: { external: ['lib/**'] },
+        enrich: false,
+      },
+    );
+    expect(built.file.generator.settings).toEqual({
+      exclude: ['test/**'],
+      accessControlModifiers: ['gated'],
+      reentrancyGuards: ['lock'],
+      trustBoundaries: ['lib/**'],
+      enrich: false,
+    });
+  });
+
+  it('survives the serialize/parse round trip', async () => {
+    const built = await buildTempProject(
+      { 'src/A.sol': 'pragma solidity ^0.8.20;\ncontract A { function f() public {} }\n' },
+      { analysis: { reentrancyGuards: ['lock'] } },
+    );
+    const { parseGraph, serializeGraph } = await import('../src/index.js');
+    expect(parseGraph(serializeGraph(built.file)).generator.settings).toEqual({
+      reentrancyGuards: ['lock'],
+    });
   });
 });

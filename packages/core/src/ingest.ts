@@ -17,6 +17,7 @@ import path from 'node:path';
 import type { AnalysisOptions } from './analysis/index.js';
 import { loadSemanticOverlay, type SemanticOverlayLoad } from './enrich/index.js';
 import { buildGraph, type BuiltGraph } from './graph/build.js';
+import type { GraphSettings } from './graph/schema.js';
 import { parseFiles, type ParseRunStats } from './parse/workers.js';
 import { DEFAULT_PARSER_ID } from './parse/index.js';
 import type { ParserId } from './parse/interface.js';
@@ -96,6 +97,37 @@ export interface BuildProjectGraphOptions extends IngestOptions {
   trustBoundaries?: { external?: readonly string[] };
 }
 
+/**
+ * The settings that decided this graph's content, in the shape the artifact
+ * stores.
+ *
+ * Built from the same options object the pipeline just ran on, so the record
+ * cannot disagree with what actually happened — the failure this whole field
+ * exists to prevent is a graph that does not say what it is.
+ *
+ * `callResolutionThreshold` is deliberately absent: it is a test knob, not a
+ * §13 setting, and it changes the *mode* rather than the content, which `mode`
+ * already reports.
+ */
+export function effectiveSettings(options: BuildProjectGraphOptions): GraphSettings {
+  const analysis = options.analysis ?? {};
+  return {
+    ...(options.include === undefined ? {} : { include: [...options.include] }),
+    ...(options.exclude === undefined ? {} : { exclude: [...options.exclude] }),
+    ...(analysis.entrypoints === undefined ? {} : { entrypoints: [...analysis.entrypoints] }),
+    ...(analysis.accessControlModifiers === undefined
+      ? {}
+      : { accessControlModifiers: [...analysis.accessControlModifiers] }),
+    ...(analysis.reentrancyGuards === undefined
+      ? {}
+      : { reentrancyGuards: [...analysis.reentrancyGuards] }),
+    ...(options.trustBoundaries?.external === undefined
+      ? {}
+      : { trustBoundaries: [...options.trustBoundaries.external] }),
+    ...(options.enrich === false ? { enrich: false as const } : {}),
+  };
+}
+
 export interface ProjectGraphResult extends IngestResult, BuiltGraph {
   /** What the semantic tier found, or null when it did not run or found nothing. */
   semantic: SemanticOverlayLoad | null;
@@ -158,6 +190,7 @@ export async function buildProjectGraph(
     ...(options.trustBoundaries === undefined
       ? {}
       : { trustBoundaries: options.trustBoundaries }),
+    settings: effectiveSettings(options),
   });
   return { ...ingested, ...built, semantic };
 }

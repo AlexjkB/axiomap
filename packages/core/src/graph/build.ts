@@ -38,6 +38,7 @@ import {
   type GraphFile,
   type GraphNode,
   type Param,
+  type GraphSettings,
   type Resolution,
 } from './schema.js';
 import { HASH_VERSION } from './hash.js';
@@ -145,6 +146,13 @@ export interface BuildGraphOptions {
    * user for a directory.
    */
   trustBoundaries?: { external?: readonly string[] };
+  /**
+   * The §13 settings to record in the artifact, so a later reader can tell
+   * whether this graph answers the question being asked of it. Recorded rather
+   * than re-derived: `include`/`exclude` are applied during ingest and are not
+   * recoverable from the graph they produced.
+   */
+  settings?: GraphSettings;
 }
 
 /** Confidence order, weakest last. Merging two edges keeps the weakest. */
@@ -481,6 +489,11 @@ export function buildGraph(options: BuildGraphOptions): BuiltGraph {
       parser: options.parserId ?? 'treesitter',
       hashVersion: HASH_VERSION,
       compilers: [...(options.semantic?.compilers ?? [])],
+      // Omitted entirely when nothing was configured, which is what keeps a
+      // default build's artifact byte-identical to its v3 form.
+      ...(options.settings === undefined || Object.keys(options.settings).length === 0
+        ? {}
+        : { settings: options.settings }),
     },
     project: {
       kind: project.kind,

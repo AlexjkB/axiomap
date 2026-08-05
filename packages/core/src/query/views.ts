@@ -48,10 +48,23 @@ export interface ViewOptions {
   includeTests?: boolean;
 }
 
+/**
+ * A subgraph, for a renderer or an exporter.
+ *
+ * The arrays are `readonly`, and the reason is worth stating because Phase 7 is
+ * the consumer that will be tempted: **these are the graph's own node and edge
+ * objects, by reference.** graphology holds attributes by reference, so a
+ * webview that hung a layout coordinate or a selection flag on a node here
+ * would be writing into the graph `graph.json` serializes — and the next
+ * `axiomap diff` would report a phantom change. Copy before decorating.
+ *
+ * The one exception is the protocol map's rolled-up edges, which are synthesised
+ * here and owned by the caller. They are identifiable by their `rollup:` id.
+ */
 export interface ViewSelection {
   view: ViewName;
-  nodes: GraphNode[];
-  edges: GraphEdge[];
+  nodes: readonly GraphNode[];
+  edges: readonly GraphEdge[];
   /** What was filtered and why, for the CLI to print above the output. */
   note: string;
 }

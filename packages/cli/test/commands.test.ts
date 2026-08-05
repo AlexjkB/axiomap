@@ -264,12 +264,14 @@ describe('axiomap import-findings (§12, decision #4)', () => {
     const result = await runImportFindings(file, { path: root, json: true });
     const parsed = JSON.parse(result.text) as {
       mapped: number;
-      findings: { nodes: string[] }[];
+      findings: { nodes: { id: string; bodyHash: string }[] }[];
     };
     expect(parsed.mapped).toBe(1);
-    expect(parsed.findings[0]?.nodes).toEqual([
+    expect(parsed.findings[0]?.nodes.map((n) => n.id)).toEqual([
       'src/Pair.sol:Pair.swap(uint256,uint256,address)',
     ]);
+    // The body it was found on, so the finding can go stale (§8's mechanism).
+    expect(parsed.findings[0]?.nodes[0]?.bodyHash).not.toBe('');
     expect(fs.existsSync(path.join(root, '.axiomap/findings.json'))).toBe(true);
 
     const listed = await runQuery('findings', [], { path: root });
@@ -347,4 +349,54 @@ describe('the stored artifact is used only while it is still true', () => {
     // …unless the user says they know better.
     expect((await loadGraph(context, { stale: true })).origin).toBe('artifact');
   }, 120_000);
+});
+
+describe('an artifact only answers the question it was built for', () => {
+  /**
+   * The mtime check catches an edited config at the default path. It cannot
+   * catch `--config elsewhere.json` or a graph built with `--no-enrich`, and in
+   * both of those cases the stored graph is a confident answer to a *different*
+   * question. `graph.json` records its settings so this is detectable at all.
+   */
+  it('rebuilds when the stored graph was built with a different guard list', async () => {
+    const root = copyFixture('defi');
+    const elsewhere = path.join(root, 'strict.json');
+    fs.writeFileSync(elsewhere, JSON.stringify({ accessControlModifiers: ['lock'] }));
+
+    await runBuild({ path: root });
+    const { loadGraph, openProject } = await import('../src/context.js');
+
+    // Same project, same sources, same mtimes — only the config differs, and
+    // the config lives outside the project so no mtime could have caught it.
+    const strict = openProject({ path: root, config: elsewhere });
+    const reloaded = await loadGraph(strict, { config: elsewhere });
+    expect(reloaded.origin).toBe('built');
+    expect(reloaded.reason).toContain('different settings');
+
+    // And the answer actually differs, which is why it mattered.
+    const guarded = await runQuery('externals', [], {
+      path: root,
+      config: elsewhere,
+      unprotected: true,
+      json: true,
+    });
+    const plain_ = await runQuery('externals', [], { path: root, unprotected: true, json: true });
+    const count = (text: string): number =>
+      (JSON.parse(text) as { externals: unknown[] }).externals.length;
+    expect(count(guarded.text)).toBeLessThan(count(plain_.text));
+  }, 180_000);
+
+  it('a settings mismatch is not staleness, so --stale does not suppress it', async () => {
+    const root = copyFixture('defi');
+    await runBuild({ path: root });
+    const { loadGraph, openProject } = await import('../src/context.js');
+
+    const context = openProject({ path: root });
+    expect((await loadGraph(context, { stale: true })).origin).toBe('artifact');
+    // `--stale` means "the sources moved on and I know it", not "answer a
+    // different question than the one I asked".
+    const other = await loadGraph(context, { stale: true, noEnrich: true });
+    expect(other.origin).toBe('built');
+    expect(other.reason).toContain('different settings');
+  }, 180_000);
 });

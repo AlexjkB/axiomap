@@ -105,15 +105,23 @@ describe('the pipeline with enrich/ stubbed out', () => {
       workers: 1,
       enrich: false,
     });
-    // Identical but for the diagnostic saying the tier was skipped.
-    const withoutNotice = (file: typeof stubbed.file): string =>
+    // Two things legitimately differ and neither is graph *content*:
+    //
+    // - the diagnostic saying the tier was skipped, and
+    // - `generator.settings.enrich`, because these builds really were
+    //   configured differently. One declined the semantic tier; the other asked
+    //   for it and got a module that throws. That the artifact can tell them
+    //   apart is the point of recording settings at all — what this test is
+    //   about is that the nodes and edges come out the same either way.
+    const content = (file: typeof stubbed.file): string =>
       serializeGraph({
         ...file,
+        generator: { ...file.generator, settings: undefined },
         diagnostics: file.diagnostics.filter(
           (d) => !d.message.startsWith('Semantic enrichment failed'),
         ),
       });
-    expect(withoutNotice(stubbed.file)).toBe(withoutNotice(heuristic.file));
+    expect(content(stubbed.file)).toBe(content(heuristic.file));
   });
 
   it('is imported by exactly one module outside itself', () => {

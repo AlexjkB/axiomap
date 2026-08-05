@@ -75,6 +75,7 @@ export {
 
 export {
   buildProjectGraph,
+  effectiveSettings,
   ingestProject,
   type BuildProjectGraphOptions,
   type IngestOptions,

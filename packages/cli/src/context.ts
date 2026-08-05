@@ -26,6 +26,7 @@ import path from 'node:path';
 import {
   buildProjectGraph,
   CONFIG_FILE,
+  effectiveSettings,
   detectProject,
   ensureAxiomapDir,
   graphFromFile,
@@ -38,6 +39,7 @@ import {
   type AxiomapGraph,
   type BuildProjectGraphOptions,
   type GraphFile,
+  type GraphSettings,
   type LoadedConfig,
 } from '@axiomap/core';
 
@@ -126,6 +128,27 @@ export interface LoadedGraph {
   reason: string | null;
 }
 
+/**
+ * Do the settings this artifact was built with match the ones in force now?
+ *
+ * The mtime check below catches an edited config at the default path. It cannot
+ * catch `--config elsewhere.json`, a config outside the project, or a graph
+ * built with `--no-enrich` — and in every one of those cases the artifact is a
+ * confident answer to a different question. `axiomap query externals
+ * --unprotected -c strict.json` reading a graph built with the default guard
+ * list is the kind of wrong this tool exists not to be.
+ *
+ * Compared as canonical JSON rather than field by field, so a §13 field added
+ * later is covered without anyone remembering to add it here.
+ */
+function settingsMatch(stored: GraphSettings | undefined, wanted: GraphSettings): boolean {
+  const canonical = (value: GraphSettings | undefined): string =>
+    JSON.stringify(
+      Object.fromEntries(Object.entries(value ?? {}).sort(([a], [b]) => a.localeCompare(b))),
+    );
+  return canonical(stored) === canonical(wanted);
+}
+
 /** The newest mtime among the things a graph is derived from, or null. */
 function newestInput(root: string, config: AxiomapConfig): number | null {
   const project = detectProject(root);
@@ -158,6 +181,8 @@ export async function loadGraph(
   const artifact = path.join(context.root, GRAPH_FILE);
   const quiet = options.json === true;
 
+  const wanted = effectiveSettings(buildOptions(context, options));
+
   if (options.rebuild !== true && fs.existsSync(artifact)) {
     let reason: string | null = null;
     if (options.stale !== true) {
@@ -171,7 +196,14 @@ export async function loadGraph(
     if (reason === null) {
       try {
         const file = readGraph(artifact);
-        return { graph: graphFromFile(file, artifact), file, origin: 'artifact', reason: null };
+        // Checked even under `--stale`: that flag means "the sources moved on
+        // and I know it", not "answer a different question than the one I
+        // asked". A settings mismatch is not staleness, it is a category error.
+        if (!settingsMatch(file.generator.settings, wanted)) {
+          reason = '.axiomap/graph.json was built with different settings (AXIOMAP.md §13)';
+        } else {
+          return { graph: graphFromFile(file, artifact), file, origin: 'artifact', reason: null };
+        }
       } catch (error) {
         // A schema mismatch or a hand-edited artifact is a reason to rebuild,
         // not a reason to stop: the sources are still there and they are the

@@ -49,6 +49,17 @@ function orderKeys(value: Record<string, unknown>, preferred: readonly string[])
   return out;
 }
 
+/** §13's order, so a settings block diffs on content rather than on spread order. */
+const SETTINGS_KEYS = [
+  'include',
+  'exclude',
+  'entrypoints',
+  'accessControlModifiers',
+  'reentrancyGuards',
+  'trustBoundaries',
+  'enrich',
+] as const;
+
 const NODE_KEYS = ['id', 'kind', 'name', 'file', 'scope', 'src'] as const;
 const EDGE_KEYS = [
   'id',
@@ -130,6 +141,9 @@ function orderedGraph(file: GraphFile): unknown {
       ...(file.generator.compilers.length === 0
         ? {}
         : { compilers: file.generator.compilers }),
+      ...(file.generator.settings === undefined
+        ? {}
+        : { settings: orderKeys(file.generator.settings, SETTINGS_KEYS) }),
     },
     project: {
       kind: file.project.kind,

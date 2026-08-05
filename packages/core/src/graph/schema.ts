@@ -44,8 +44,15 @@ import { z } from 'zod';
  *   only the lines where the analysis found something — but a v2 reader would
  *   drop them silently, and the whole point of the attack-surface and
  *   access-control overlays is that they are there.
+ * - **4** — Phase 6. `generator.settings`: the §13 configuration that decided
+ *   what is *in* this graph. Absent for a project with no config, so an
+ *   uncompiled project's graph gains one number and nothing else — but without
+ *   it, a stored artifact built with `exclude` or `--no-enrich` is
+ *   indistinguishable from one built without, and `axiomap query` will happily
+ *   answer a question about a guard list it was not built with. The version
+ *   exists to refuse exactly that kind of silent mismatch.
  */
-export const GRAPH_SCHEMA_VERSION = 3;
+export const GRAPH_SCHEMA_VERSION = 4;
 
 export const sourceRefSchema = z.object({
   file: z.string(),
@@ -381,6 +388,35 @@ export const graphDiagnosticSchema = z.object({
   severity: z.enum(['error', 'warning', 'info']),
 });
 
+/**
+ * The §13 settings that decided what is in this graph.
+ *
+ * Only the fields that change the graph's *content* — `renderCap` and `layout`
+ * are the renderer's and are deliberately absent, so changing your layout
+ * preference does not invalidate a stored artifact.
+ *
+ * Every field is optional and omitted when unset, so a project with no config
+ * writes no `settings` block at all. That is what keeps the four uncompiled
+ * goldens identical to their v3 form apart from `schemaVersion`.
+ */
+export const graphSettingsSchema = z.object({
+  include: z.array(z.string()).optional(),
+  exclude: z.array(z.string()).optional(),
+  entrypoints: z.array(z.string()).optional(),
+  accessControlModifiers: z.array(z.string()).optional(),
+  reentrancyGuards: z.array(z.string()).optional(),
+  trustBoundaries: z.array(z.string()).optional(),
+  /**
+   * Recorded only when the semantic tier was disabled deliberately
+   * (`--no-enrich`). `generator.compilers` says whether artifacts were *read*;
+   * it cannot say whether they were declined, and the difference decides
+   * whether a stored graph answers the question being asked of it.
+   */
+  enrich: z.literal(false).optional(),
+});
+
+export type GraphSettings = z.infer<typeof graphSettingsSchema>;
+
 export const graphFileSchema = z.object({
   schemaVersion: z.literal(GRAPH_SCHEMA_VERSION),
   generator: z.object({
@@ -394,6 +430,8 @@ export const graphFileSchema = z.object({
      * also the honest answer to "how much of this graph did a compiler see".
      */
     compilers: z.array(z.string()).default([]),
+    /** §13's graph-affecting settings; absent when the project has no config. */
+    settings: graphSettingsSchema.optional(),
   }),
   project: z.object({
     kind: z.string(),

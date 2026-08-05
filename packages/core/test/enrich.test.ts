@@ -210,7 +210,15 @@ describe('semantic enrichment', () => {
         });
         expect(enriched.semantic).toBeNull();
         const heuristic = await graphOf(name);
-        expect(enriched.file).toEqual(heuristic.file);
+        // `generator.settings` is set aside: `graphOf` builds with the tier
+        // declined and this build ran it and found nothing, which really are
+        // different settings and the artifact is right to record that. The
+        // claim being tested is that the *graph* is the same either way.
+        expect({ ...enriched.file, generator: { ...enriched.file.generator, settings: undefined } })
+          .toEqual({
+            ...heuristic.file,
+            generator: { ...heuristic.file.generator, settings: undefined },
+          });
       }
     });
 
