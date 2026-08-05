@@ -34,6 +34,16 @@ export {
 } from './project/remappings.js';
 export { readFoundryConfig, type FoundryConfig } from './project/foundry.js';
 export { readHardhatConfig, type HardhatConfig } from './project/hardhat.js';
+export {
+  axiomapConfigSchema,
+  CONFIG_FILE,
+  ConfigError,
+  loadConfig,
+  parseConfig,
+  type AxiomapConfig,
+  type LoadedConfig,
+} from './project/config.js';
+export { globToRegExp, matchesAny, pathFilter, type PathFilter } from './project/globs.js';
 
 export * from './symbols/index.js';
 
@@ -50,6 +60,8 @@ export {
 
 export * from './diff/index.js';
 export * from './review/index.js';
+export * from './query/index.js';
+export * from './findings/index.js';
 
 export {
   buildInfoDirectories,

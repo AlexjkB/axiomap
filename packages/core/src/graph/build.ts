@@ -26,6 +26,7 @@ import { analyseGraph, applyAnalysis, type AnalysisOptions } from '../analysis/i
 import type { ParsedParam } from '../parse/interface.js';
 import type { SourceRef } from '../parse/positions.js';
 import type { DetectedProject } from '../project/detect.js';
+import { matchesAny } from '../project/globs.js';
 import { resolveProject, type EdgeDraft, type ProjectScope } from '../resolve/index.js';
 import type { NodeId } from '../symbols/ids.js';
 import type { AnySymbol, ContractSymbol, SymbolTable } from '../symbols/table.js';
@@ -136,6 +137,14 @@ export interface BuildGraphOptions {
   semanticDiagnostics?: readonly GraphDiagnostic[];
   /** §13's `entrypoints`, `accessControlModifiers` and `reentrancyGuards`. */
   analysis?: AnalysisOptions;
+  /**
+   * §13's `trustBoundaries`. A call whose target lives under one of these
+   * globs leaves the code under audit, which is exactly what §10's
+   * `crossTrustBoundary` marks — the resolver already sets it for interface
+   * calls, where the boundary is inferred; this is the same fact stated by the
+   * user for a directory.
+   */
+  trustBoundaries?: { external?: readonly string[] };
 }
 
 /** Confidence order, weakest last. Merging two edges keeps the weakest. */
@@ -398,6 +407,21 @@ export function buildGraph(options: BuildGraphOptions): BuiltGraph {
 
   const known = new Set(nodes.map((n) => n.id));
   const edges = collapse(drafts, known);
+
+  // §13's declared trust boundaries. Additive only: the resolver already marks
+  // interface calls, and a user saying "lib/** is external" is more evidence
+  // rather than a correction, so a marked edge is never unmarked here.
+  const external = options.trustBoundaries?.external;
+  if (external !== undefined && external.length > 0) {
+    const byIdForBoundaries = new Map(nodes.map((n) => [n.id, n]));
+    for (const edge of edges) {
+      if (edge.crossTrustBoundary === true || !CALL_EDGE_KINDS.has(edge.kind)) continue;
+      const target = byIdForBoundaries.get(edge.to);
+      if (target !== undefined && matchesAny(target.file, external)) {
+        edge.crossTrustBoundary = true;
+      }
+    }
+  }
 
   // Selectors and storage slots (§10), which have no syntactic equivalent.
   if (options.semantic !== undefined) applySemanticNodeAttributes(nodes, options.semantic);

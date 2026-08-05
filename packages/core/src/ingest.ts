@@ -21,6 +21,7 @@ import { parseFiles, type ParseRunStats } from './parse/workers.js';
 import { DEFAULT_PARSER_ID } from './parse/index.js';
 import type { ParserId } from './parse/interface.js';
 import { detectProject, listSolidityFiles, type DetectedProject } from './project/detect.js';
+import { pathFilter } from './project/globs.js';
 import { buildSymbolTable } from './symbols/build.js';
 import type { SymbolTable } from './symbols/table.js';
 
@@ -33,6 +34,15 @@ export interface IngestOptions {
    */
   cacheDir?: string | null;
   workerEntry?: URL;
+  /**
+   * §13's `include` / `exclude`, as project-relative globs. Applied to the file
+   * list before anything is parsed, so an excluded file costs nothing and
+   * appears nowhere — not in the graph, not in the score, not in the diff.
+   *
+   * Absent means §13's default: everything `listSolidityFiles` found.
+   */
+  include?: readonly string[];
+  exclude?: readonly string[];
 }
 
 export interface IngestResult {
@@ -47,7 +57,8 @@ export async function ingestProject(
   options: IngestOptions = {},
 ): Promise<IngestResult> {
   const project = detectProject(root);
-  const files = listSolidityFiles(project);
+  const keep = pathFilter(options.include, options.exclude);
+  const files = listSolidityFiles(project).filter(keep);
   const parserId = options.parserId ?? DEFAULT_PARSER_ID;
 
   const cacheDir =
@@ -81,6 +92,8 @@ export interface BuildProjectGraphOptions extends IngestOptions {
   buildInfo?: readonly string[];
   /** §13's `entrypoints`, `accessControlModifiers` and `reentrancyGuards`. */
   analysis?: AnalysisOptions;
+  /** §13's `trustBoundaries`. */
+  trustBoundaries?: { external?: readonly string[] };
 }
 
 export interface ProjectGraphResult extends IngestResult, BuiltGraph {
@@ -142,6 +155,9 @@ export async function buildProjectGraph(
     ...(semantic === null ? {} : { semanticDiagnostics: semantic.diagnostics }),
     ...(semantic?.overlay == null ? {} : { semantic: semantic.overlay }),
     ...(options.analysis === undefined ? {} : { analysis: options.analysis }),
+    ...(options.trustBoundaries === undefined
+      ? {}
+      : { trustBoundaries: options.trustBoundaries }),
   });
   return { ...ingested, ...built, semantic };
 }
