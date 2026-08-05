@@ -1521,3 +1521,180 @@ measure yet.
   calls inside" and tell the user where drilling in is worth it.
 - **`axiomap serve` is still registered and still refuses.** It is where §9 rule 1's
   browser-mode HTTP endpoint goes, and the endpoint's payload is an `AggregatedView`.
+
+---
+
+## Phase 7b — The renderer, the five views, layout in a worker, `axiomap serve`
+
+**Date:** 2026-08-05
+**Status:** partial phase, deliberately — the second of three. `pnpm check` and
+`pnpm check:network` both green. **Phase 7c is the remainder: overlays, the inspector,
+shiki code preview, search, history, and the `html`/`svg` exports.**
+
+### Exit criteria
+
+Phase 7's own criteria are "usable on a 300-contract project; interaction stays
+responsive", which belong to the whole phase. These are 7b's, taken from the four things
+this session was scoped to.
+
+| Criterion | Result |
+|---|---|
+| A renderer | pass — React 18 + cytoscape, `packages/webview`, built by Vite into `dist/web/` and served as static files. `test/app.test.tsx` mounts it; `test/bundle.test.ts` checks the built output |
+| The five views as *rendering* presets | pass — `src/ui/presets.ts`, keyed by core's `ViewName` so a sixth view cannot be added to the engine without one. All five were driven end to end over HTTP against `inheritance/` (38 contracts): protocol 116 elements, inheritance 154, state-access 129, contract 34, call 9 |
+| Layout in a worker (§9 rule 6) | pass — ELK runs in a module worker; the graph renders unlaid-out first and animates into position when the worker answers. Asserted at the bundle level too: the entry chunk contains no ELK, and a separate chunk does |
+| `axiomap serve` | pass — `packages/cli/src/serve/`, 11 tests in `packages/cli/test/serve.test.ts`, run against a copy of `defi/` **with its artifacts deleted** |
+| The webview reaches the graph only through `selectAggregatedView` | pass — one data route, `/api/view`, and it is one call to that function. `serve.test.ts` asserts there is no route that returns the graph; the package cannot import a core *function* at all (§5), so this is structural rather than a convention |
+| No overlays, no inspector, no `html`/`svg` export | pass — none written. §16's export entry records the second deferral with its reason |
+
+`pnpm check` is green: 373 tests in `core` (365 from Phase 7a, 8 new), 79 in `cli` (68
+from Phase 7a, 11 new), 39 in `webview` (0 before), and 18 repo-level (14 + 4 new).
+
+### What was built
+
+- **`core/src/query/protocol.ts`** — the host's half of §9 rule 1's wire format:
+  `ProjectMeta`, `ProtocolError`, and `decodeViewRequest`. The webview owns the encode
+  (`packages/webview/src/protocol.ts`), because §5 lets it import core's types and not its
+  functions. Two implementations of one format drift silently — a UI spelling the hop
+  limit `depth` against a host reading `down` draws a graph that is *wrong* rather than
+  raising an error that is loud — so `test/serve-protocol.test.ts` at the repo root, which
+  belongs to neither package, asserts that decoding what the UI encodes returns the
+  request it started from.
+- **`packages/webview`** — `bridge.ts` (the `HostBridge` interface both hosts implement,
+  plus browser mode's `HttpBridge`), and `src/ui/`: the five presets, the
+  `AggregatedView` → cytoscape translation, the stylesheet, the ELK worker and its client,
+  the navigation reducer, the toolbar and the canvas.
+- **`packages/cli/src/serve/`** — the local HTTP endpoint (`/api/meta`, `/api/view`, and
+  the bundle as static files) and the resolver that finds the built bundle.
+
+### Everything the UI knows, it asked for
+
+§9 rule 1 is the reason this phase exists in this order, and it ended up enforced by the
+package boundary rather than by discipline: `@axiomap/webview` may import core's *types*
+only (§5), so there is no expression it could write that produces an `AxiomapGraph`. The
+one door is `HostBridge.view`, the host answers it with `selectAggregatedView`, and
+`/api/meta` carries the `graph.json` header — §4's mode, its copy, the resolution score —
+with the nodes and edges removed. That header is built from an explicit field list rather
+than a rest-destructure, so a field added to `GraphFile` later is not published by
+accident.
+
+Navigation is drill-down and only drill-down: a directory opens, a contract opens into its
+members, a function opens into the call graph rooted on it. That is not a placeholder for
+the search palette — §9 rule 4 requires the call graph to have a focus node, and every
+other way of choosing one (a search palette, an inspector, a list of every function) is
+either later in §11 or is the full graph wearing a different hat.
+
+### The layout finding, which was worth the measurement
+
+§9 rule 6's whole argument is that layout is slow enough to need a worker, and it turns out
+to be slower than expected. On a deliberately dense synthetic 300-contract map — 125 drawn
+contracts, 875 cross-directory call edges, 1,012 elements, the shape Phase 7a measured —
+ELK layered took **37 seconds**.
+
+Four fifths of that was one option this session had added for tie-break stability:
+
+| ELK options | dense map | realistic density |
+|---|---|---|
+| `considerModelOrder: NODES_AND_EDGES` (as first written) | 37,108 ms | |
+| default (option removed) | 8,206 ms | 761 ms |
+| `thoroughness: 4` | 5,504 ms | 537 ms |
+| `thoroughness: 1` | 3,763 ms | 416 ms |
+| `mrtree` / `stress` instead of layered | 116 / 136 ms | |
+
+`considerModelOrder` was removed and `thoroughness` set to 4 — measured, not chosen, and
+the numbers are in the comment beside them. The remaining ~6 s on the adversarial case is
+a §16 entry rather than a fix: the two settings that mattered are already taken, what is
+left is layered layout's own cost on a graph that may not exist outside a generator, and
+rule 6 bounds the damage — the elements are on screen and interactive throughout, and the
+layout animates in when it lands. The alternatives are 50x faster and a worse *reading* of
+a call graph, which is why neither was taken blind.
+
+`packages/webview/test/scale.test.ts` keeps the number honest, as a **tripwire rather than
+a budget** (§9 sets none for layout): it fails above 20 s, which is a 3x headroom on a
+worst case and would still catch the 37 s regression it was written for.
+
+### Deviations from the spec
+
+- **`cytoscape-elk` is not used; `elkjs` is driven directly.** *(§3's rendering row
+  amended.)* The adapter constructs its own `ELK` and runs it on the main thread, which is
+  precisely what §9 rule 6 forbids — "layout in a web worker … never block on layout".
+  Doing it by hand is about forty lines: post the ELK graph to a worker, apply the
+  positions with cytoscape's `preset` layout. Rule 6 is then true rather than
+  approximated, and there is a bundle-level test that says so.
+- **The CLI depends on `@axiomap/webview` for its built files, and imports none of its
+  code.** §5's permitted graph is `cli → core`, and this does not change it: `serve` needs
+  an `index.html` and its assets to hand a browser, which is a file-serving relationship.
+  The ESLint rule still forbids every import of that package from the CLI and
+  `dependency-direction.test.ts` still proves the rule bites; `test/serve-protocol.test.ts`
+  adds the other half, asserting that no import statement anywhere in `packages/cli/src`
+  names the package whatever the linter is currently configured to catch. The dependency
+  entry exists so pnpm links it and Turborepo builds it first.
+- **`packages/webview` has two tsconfigs.** `tsconfig.json` emits the node-side surface
+  (the bridge, the encoding) into `dist/`; `tsconfig.ui.json` typechecks the bundled half
+  with `moduleResolution: Bundler`, JSX and the DOM, and emits nothing. The UI resolves
+  modules the way Vite will resolve them — a CSS import, a `.tsx` entry and
+  `elkjs/lib/elk.bundled.js` are all things `NodeNext` reads differently from the bundler
+  that will actually build them.
+- **React is pinned to 18**, which is what §3 names. `pnpm add react` installs 19; the spec
+  says 18 and nothing here needs 19.
+- **The root `package.json` gained two workspace devDependencies.** `test/` holds
+  invariants that span packages, and the new one has to import both sides of the protocol
+  to compare them.
+- **`serve` does not go through `program.ts`'s `emit`.** It is §12's one long-running
+  command: it prints its banner, then the action waits for the server to close.
+- **The graph is built once, at startup.** §12 defines `serve` as "build + open the UI in a
+  browser"; re-graphing per request would put a multi-second parse behind a click, and
+  watching for edits is Phase 8's artifact watch. The banner says so.
+- **`--host` exists and defaults to loopback.** Decision #2 is about outbound connections
+  and a local server is not one, but the spirit is the same: this tool is pointed at
+  confidential client code and its graph should not reach a coffee-shop LAN because a
+  default was convenient. Binding anything else prints what was just published.
+
+### What was *not* verified, and it matters
+
+**No browser could be run in this environment.** Headless Chrome and headless Firefox both
+hang in this sandbox, so nothing has confirmed with pixels that the graph draws legibly —
+that labels fit their boxes, that the four confidence line styles are distinguishable, that
+a 300-contract map reads as anything. What is verified is everything either side of the
+canvas: the elements cytoscape is handed (`elements.test.ts`), the ELK graph and the
+positions that come back (`layout.test.ts`, `scale.test.ts`), the stylesheet's structure
+(`style.test.ts`), the component's data flow under jsdom with the canvas replaced by a
+probe (`app.test.tsx`), and the whole server end to end (`serve.test.ts`).
+
+That gap is the first thing Phase 7c should close, and it is a real one: §11's density
+target — "a function node carries four facts legibly at default zoom" — is a claim about
+appearance that no test here can make.
+
+### §16 changes
+
+- **Added Tier 2 — layout time on a dense protocol map**, with the measured table, what
+  was already fixed, and what the remaining options would cost in legibility.
+- **Noted the second deferral of `export --format html|svg`.** Its trigger has now fired —
+  there is a bundle to inline — and it is Phase 7c's, because an export that ships before
+  the overlays shows a client less than the tool shows its operator.
+- **Answered the open question on aggregate edge weighting with a default, not an answer.**
+  The renderer reads `count`, since §9 rule 3 says "weighted by call count" in as many
+  words and the weight is logarithmic, so the two candidates would look alike at every size
+  the cap allows. Comparing them properly wants a real protocol on screen.
+
+### Notes for the next session
+
+- **Phase 7c is overlays, the inspector, code preview, search and history** — and a browser
+  in front of the thing before any of it. §11's channel budget is the contract: node fill
+  is review state, border colour is access control, opacity is reachability, badges are
+  danger ops and findings, size is complexity. 7b deliberately claims none of them;
+  `style.test.ts` asserts that no node rule but the neutral base touches fill or opacity,
+  so an overlay arriving later finds its channel free.
+- **The inspector must not get a second implementation of the query API.** Phase 6's note
+  still stands, and now has a second half: everything it wants to show — callers, callees,
+  attributes — has to arrive through `HostBridge`, because the package cannot reach a
+  graph.
+- **`ProjectMeta` is the place to add whatever the UI needs that is not a subgraph**, and
+  it is an explicit field list on the server for that reason. Review state and imported
+  findings are both files the host reads, not graph content, and both are 7c's.
+- **Phase 8 implements `HostBridge` over `postMessage`** and renders the same `App`. The
+  bundle already uses relative asset paths, and every colour already comes from a
+  `--vscode-*` variable with a browser fallback — setting the variables is the whole of the
+  theme work, and `style.test.ts` pins that there is no hard-coded hex outside the fallback
+  table.
+- **`serve` re-reads nothing.** If Phase 8's artifact watch wants a live graph, the seam is
+  `ServerOptions.graph`: it is held once and read per request.

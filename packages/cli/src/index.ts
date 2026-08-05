@@ -25,6 +25,15 @@ export {
   type ReviewResult,
 } from './commands/review.js';
 export { runImportFindings, type ImportFindingsResult } from './commands/import-findings.js';
+export {
+  runServe,
+  startServe,
+  type ServeOptions,
+  type ServeResult,
+  type ServeSession,
+} from './commands/serve.js';
+export { createServer, startServer, type ServeHandle, type ServerOptions } from './serve/server.js';
+export { webviewAssets, AssetsMissingError } from './serve/assets.js';
 
 export { resolveRevision, RevisionError, type Revision } from './revisions.js';
 export {

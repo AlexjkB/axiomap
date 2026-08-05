@@ -4,9 +4,9 @@
     "rootDir": "src",
     "outDir": "dist",
     "lib": ["ES2022", "DOM"],
-    "jsx": "react-jsx",
     "types": []
   },
-  "include": ["src/**/*.ts", "src/**/*.tsx"],
+  "//": "The node-side surface only — the bridge a host implements and the request encoding. The UI is bundled by Vite and typechecked by tsconfig.ui.json, which needs bundler resolution, JSX and the DOM.",
+  "include": ["src/index.ts", "src/bridge.ts", "src/protocol.ts"],
   "references": [{ "path": "../core" }]
 }

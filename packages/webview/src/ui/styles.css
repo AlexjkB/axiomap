@@ -1,0 +1,262 @@
+/*
+ * §11's visual direction: "dense and technical. Bloomberg terminal, Datadog,
+ * htop — information density over whitespace, every pixel earning its place."
+ * Borders and rules rather than shadows, panels rather than floating cards, no
+ * animation except the functional layout transition §9 rule 6 asks for.
+ *
+ * Every colour is a `--vscode-*` variable with a browser fallback, which is
+ * §7's Phase 8 instruction taken now: "Design the browser-mode palette in Phase
+ * 7 as a fallback that maps onto these variables, not as a separate design."
+ * Set the variables and this file is a VS Code theme; the graph itself reads
+ * the same variables through `style.ts`.
+ */
+
+@import 'tailwindcss';
+
+:root {
+  --ax-bg: var(--vscode-editor-background, #0f1319);
+  --ax-fg: var(--vscode-editor-foreground, #d7dde5);
+  --ax-dim: var(--vscode-descriptionForeground, #8b98a8);
+  --ax-border: var(--vscode-panel-border, #2b333d);
+  --ax-panel: var(--vscode-editorWidget-background, #161b22);
+  --ax-accent: var(--vscode-focusBorder, #3f8fd0);
+  --ax-warning: var(--vscode-editorWarning-foreground, #c9a227);
+  --ax-error: var(--vscode-editorError-foreground, #d16969);
+  --ax-mono: var(--vscode-editor-font-family, ui-monospace, SFMono-Regular, Menlo, monospace);
+  --ax-ui: var(--vscode-font-family, system-ui, -apple-system, Segoe UI, sans-serif);
+}
+
+html,
+body,
+#root {
+  height: 100%;
+  margin: 0;
+}
+
+body {
+  background: var(--ax-bg);
+  color: var(--ax-fg);
+  font-family: var(--ax-ui);
+  font-size: 12px;
+  overflow: hidden;
+}
+
+.ax-app {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+/* --- toolbar ------------------------------------------------------------- */
+
+.ax-toolbar {
+  border-bottom: 1px solid var(--ax-border);
+  background: var(--ax-panel);
+  flex: 0 0 auto;
+}
+
+.ax-toolbar-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 6px 10px;
+  min-height: 28px;
+}
+
+.ax-subrow {
+  border-top: 1px solid var(--ax-border);
+  padding: 3px 10px;
+  color: var(--ax-dim);
+  justify-content: space-between;
+  font-size: 11px;
+}
+
+.ax-brand {
+  font-family: var(--ax-mono);
+  letter-spacing: 0.08em;
+  color: var(--ax-dim);
+  text-transform: uppercase;
+}
+
+.ax-views {
+  display: flex;
+  gap: 0;
+}
+
+.ax-view {
+  font: inherit;
+  color: var(--ax-dim);
+  background: transparent;
+  border: 1px solid var(--ax-border);
+  border-right-width: 0;
+  padding: 3px 10px;
+  cursor: pointer;
+}
+
+.ax-view:first-child {
+  border-radius: 2px 0 0 2px;
+}
+
+.ax-view:last-child {
+  border-right-width: 1px;
+  border-radius: 0 2px 2px 0;
+}
+
+.ax-view:hover:not(:disabled) {
+  color: var(--ax-fg);
+}
+
+.ax-view-current {
+  color: var(--ax-fg);
+  border-color: var(--ax-accent);
+  background: color-mix(in srgb, var(--ax-accent) 18%, transparent);
+}
+
+.ax-view:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.ax-focus,
+.ax-hops {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+}
+
+.ax-focus code {
+  font-family: var(--ax-mono);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  max-width: 44ch;
+}
+
+.ax-label {
+  color: var(--ax-dim);
+  text-transform: uppercase;
+  font-size: 10px;
+  letter-spacing: 0.06em;
+}
+
+.ax-chip {
+  font: inherit;
+  color: var(--ax-dim);
+  background: transparent;
+  border: 1px solid var(--ax-border);
+  border-radius: 2px;
+  padding: 0 5px;
+  cursor: pointer;
+}
+
+.ax-hops input {
+  width: 3.5em;
+  margin-left: 4px;
+  font: inherit;
+  font-family: var(--ax-mono);
+  color: var(--ax-fg);
+  background: var(--ax-bg);
+  border: 1px solid var(--ax-border);
+  padding: 1px 3px;
+}
+
+.ax-hops label {
+  color: var(--ax-dim);
+}
+
+.ax-mode {
+  margin-left: auto;
+  font-family: var(--ax-mono);
+  border: 1px solid currentcolor;
+  border-radius: 2px;
+  padding: 1px 6px;
+  text-transform: uppercase;
+  font-size: 10px;
+  letter-spacing: 0.06em;
+}
+
+/* §4's three modes are designed states, and each says which one it is. */
+.ax-mode-full {
+  color: var(--vscode-charts-green, #4fae6a);
+}
+.ax-mode-heuristic {
+  color: var(--vscode-charts-blue, #4a9cd6);
+}
+.ax-mode-structural {
+  color: var(--ax-warning);
+}
+
+.ax-hint {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.ax-score {
+  font-family: var(--ax-mono);
+  white-space: nowrap;
+}
+
+/* --- canvas -------------------------------------------------------------- */
+
+.ax-main {
+  position: relative;
+  flex: 1 1 auto;
+  min-height: 0;
+}
+
+.ax-canvas {
+  position: absolute;
+  inset: 0;
+}
+
+.ax-notice {
+  position: absolute;
+  left: 50%;
+  top: 24px;
+  transform: translateX(-50%);
+  max-width: 60ch;
+  background: var(--ax-panel);
+  border: 1px solid var(--ax-border);
+  border-left-width: 3px;
+  padding: 10px 14px;
+}
+
+.ax-notice p {
+  margin: 6px 0 0;
+  color: var(--ax-dim);
+}
+
+.ax-notice-cap {
+  border-left-color: var(--ax-warning);
+}
+
+.ax-notice-error {
+  border-left-color: var(--ax-error);
+}
+
+/* --- status bar ---------------------------------------------------------- */
+
+.ax-status {
+  flex: 0 0 auto;
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  border-top: 1px solid var(--ax-border);
+  background: var(--ax-panel);
+  color: var(--ax-dim);
+  padding: 3px 10px;
+  font-family: var(--ax-mono);
+  font-size: 11px;
+}
+
+.ax-note {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.ax-metrics {
+  white-space: nowrap;
+}

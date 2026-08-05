@@ -20,6 +20,7 @@
   },
   "dependencies": {
     "@axiomap/core": "workspace:*",
+    "@axiomap/webview": "workspace:^",
     "commander": "^15.0.0",
     "ora": "^9.4.1",
     "picocolors": "^1.1.1"

@@ -1,1 +1,21 @@
-export type { HostBridge, WorkspaceInfo } from './bridge.js';
+/**
+ * The node-side surface of this package: what a *host* needs, not what the
+ * browser bundle contains.
+ *
+ * The UI itself is reached as built files (`dist/web/`), never as an import —
+ * `axiomap serve` serves that directory and Phase 8's webview loads it. What is
+ * exported here is the contract between the two: the bridge a host implements
+ * (§9 rule 1) and the request encoding it will be asked to decode.
+ */
+
+export {
+  BridgeError,
+  HttpBridge,
+  type FetchLike,
+  type HostBridge,
+  type HttpBridgeOptions,
+} from './bridge.js';
+export { META_ENDPOINT, VIEW_ENDPOINT, encodeViewRequest } from './protocol.js';
+
+/** Where `vite build` puts the bundle, relative to the package root. */
+export const WEB_DIST = 'dist/web';

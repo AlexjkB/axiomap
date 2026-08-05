@@ -1,15 +1,131 @@
-import type { EnsureAxiomapDirResult } from '@axiomap/core';
-
 /**
- * The webview never receives the full graph (AXIOMAP.md §9 rule 1). It requests
- * subgraphs over a transport that differs by host: `postMessage` in VS Code, a
- * local HTTP endpoint under `axiomap serve`.
+ * How the UI reaches the graph — and the only way it does.
  *
- * Phase 7 fills this in. The type-only import above is deliberate: webview may
- * depend on core's types and nothing else.
+ * §9 rule 1: "The webview never receives the full graph. Core exposes a query
+ * API; the webview requests subgraphs by view + filter + focus. In VS Code this
+ * is `postMessage`; in browser mode it is a local HTTP endpoint from `axiomap
+ * serve`." Two hosts, one interface, and behind both of them exactly one core
+ * call: `selectAggregatedView`. Nothing in this package holds an
+ * `AxiomapGraph`, and there is no code path by which it could — the type-only
+ * import below is the whole of its relationship with core (§5).
+ *
+ * `HttpBridge` is the browser-mode half. Phase 8's VS Code host implements the
+ * same interface over `postMessage`, and the UI does not learn which one it got.
  */
+
+import type {
+  AggregatedView,
+  AggregatedViewOptions,
+  ProjectMeta,
+  ProtocolError,
+} from '@axiomap/core';
+
+import { META_ENDPOINT, VIEW_ENDPOINT, encodeViewRequest } from './protocol.js';
+
 export interface HostBridge {
-  request(view: string, params: Record<string, unknown>): Promise<unknown>;
+  /** §4's mode, its copy, and the resolution score. Header, not graph content. */
+  meta(): Promise<ProjectMeta>;
+  /** One view + filter + focus request. The only door into the graph. */
+  view(request: AggregatedViewOptions): Promise<AggregatedView>;
 }
 
-export type WorkspaceInfo = Pick<EnsureAxiomapDirResult, 'dir'>;
+/**
+ * An error the host refused a request with, carrying its numbers.
+ *
+ * §9 rule 2 makes exceeding the render cap "an error with an actionable
+ * message, never a silent hairball", and actionable means the UI can offer the
+ * way out rather than only reprint the sentence — so `elements` and `cap`
+ * survive the wire as fields.
+ */
+export class BridgeError extends Error {
+  readonly detail: ProtocolError;
+
+  constructor(detail: ProtocolError) {
+    super(detail.message);
+    this.name = detail.name === '' ? 'BridgeError' : detail.name;
+    this.detail = detail;
+  }
+
+  /** True when the host refused because the result was too big to draw. */
+  get isRenderCap(): boolean {
+    return this.detail.name === 'RenderCapError';
+  }
+}
+
+/** The part of `fetch` this file uses, so a test can supply one without a DOM. */
+export type FetchLike = (url: string) => Promise<{
+  ok: boolean;
+  status: number;
+  json(): Promise<unknown>;
+}>;
+
+export interface HttpBridgeOptions {
+  /** Where `axiomap serve` is listening. Defaults to the page's own origin. */
+  base?: string;
+  fetch?: FetchLike;
+}
+
+function isErrorEnvelope(value: unknown): value is { error: ProtocolError } {
+  if (typeof value !== 'object' || value === null) return false;
+  const error = (value as { error?: unknown }).error;
+  return typeof error === 'object' && error !== null && 'message' in error;
+}
+
+/** Browser mode: one local HTTP endpoint, on the origin that served the page. */
+export class HttpBridge implements HostBridge {
+  private readonly base: string;
+  private readonly get: FetchLike;
+
+  constructor(options: HttpBridgeOptions = {}) {
+    this.base = (options.base ?? '').replace(/\/$/, '');
+    // Bound, because an unbound `fetch` throws "Illegal invocation".
+    this.get = options.fetch ?? ((url: string) => globalThis.fetch(url));
+  }
+
+  url(endpoint: string, params: Record<string, string> = {}): string {
+    const query = Object.entries(params)
+      .map(([key, value]) => `${encodeURIComponent(key)}=${encodeURIComponent(value)}`)
+      .join('&');
+    return `${this.base}${endpoint}${query === '' ? '' : `?${query}`}`;
+  }
+
+  private async fetchJson(url: string): Promise<unknown> {
+    let response: Awaited<ReturnType<FetchLike>>;
+    try {
+      response = await this.get(url);
+    } catch {
+      throw new BridgeError({
+        name: 'HostUnreachable',
+        message:
+          `Could not reach axiomap serve at ${this.base === '' ? "this page's origin" : this.base}. ` +
+          'Is it still running?',
+      });
+    }
+
+    let body: unknown;
+    try {
+      body = await response.json();
+    } catch {
+      body = undefined;
+    }
+
+    if (!response.ok) {
+      if (isErrorEnvelope(body)) throw new BridgeError(body.error);
+      throw new BridgeError({
+        name: 'HostError',
+        message: `The host answered ${String(response.status)} with no explanation.`,
+      });
+    }
+    return body;
+  }
+
+  async meta(): Promise<ProjectMeta> {
+    return (await this.fetchJson(this.url(META_ENDPOINT))) as ProjectMeta;
+  }
+
+  async view(request: AggregatedViewOptions): Promise<AggregatedView> {
+    return (await this.fetchJson(
+      this.url(VIEW_ENDPOINT, encodeViewRequest(request)),
+    )) as AggregatedView;
+  }
+}

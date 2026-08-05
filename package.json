@@ -20,6 +20,8 @@
     "test:coverage": "pnpm --filter @axiomap/core exec vitest run --coverage.enabled --coverage.provider=v8"
   },
   "devDependencies": {
+    "@axiomap/core": "workspace:^",
+    "@axiomap/webview": "workspace:^",
     "@eslint/js": "^9.18.0",
     "@openzeppelin/contracts": "^5.6.1",
     "@types/node": "^22.10.5",

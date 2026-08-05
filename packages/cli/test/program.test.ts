@@ -14,7 +14,7 @@ import { fileURLToPath } from 'node:url';
 
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 
-import { run, type Io } from '../src/program.js';
+import { buildProgram, run, type Io } from '../src/program.js';
 import { plain } from './plain.js';
 
 const REPO = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../../..');
@@ -74,12 +74,23 @@ describe('help and discovery', () => {
     expect(err).toContain('unknown command');
   });
 
-  it('serve says which phase it arrives in rather than "unknown command"', async () => {
-    const { code, err } = await cli('serve');
-    expect(code).toBe(2);
-    expect(err).toContain('Phase 7');
-    // …and points at the thing that does work today.
-    expect(err).toContain('export --format dot');
+  it('serve takes its own options as well as the common ones', () => {
+    // Phase 7b turned this command from a refusal into a server, so it can no
+    // longer be run to completion here — `serve.test.ts` starts a real one.
+    // What this checks is the wiring: the options exist, including §13's
+    // `--config`, which is what carries `renderCap` into the UI.
+    const program = buildProgram({ out: () => {}, err: () => {} }, { code: 0 });
+    const serve = program.commands.find((command) => command.name() === 'serve');
+    const flags = (serve?.options ?? []).map((option) => option.flags);
+    expect(flags).toEqual(
+      expect.arrayContaining([
+        '--port <n>',
+        '--host <host>',
+        '--no-open',
+        '-c, --config <file>',
+        '--rebuild',
+      ]),
+    );
   });
 });
 

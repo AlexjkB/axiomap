@@ -34,6 +34,7 @@ import {
   runImportFindings,
   runQuery,
   runReview,
+  runServe,
   runStats,
   REVIEW_STATUSES,
 } from './index.js';
@@ -192,20 +193,25 @@ export function buildProgram(io: Io, sink: Sink): Command {
     emit(await runImportFindings(file, options));
   });
 
-  // §7 assigns `serve` to Phase 7, which is where the webview it serves gets
-  // built. Registered anyway so that it says so, rather than reporting an
-  // unknown command for something §12 documents.
-  program
-    .command('serve')
-    .argument('[path]', 'project directory')
-    .description('(Phase 7) build and open the UI in a browser')
-    .action(() => {
-      io.err(
-        'axiomap serve arrives with the webview in Phase 7 (AXIOMAP.md §7).\n' +
-          'Until then: axiomap export --format dot | dot -Tsvg > graph.svg\n',
-      );
-      sink.code = 2;
-    });
+  // §12's one long-running command. It prints its banner and then stays up
+  // until the server closes, which is why it does not go through `emit`.
+  common(
+    program
+      .command('serve')
+      .argument('[path]', 'project directory')
+      .description('build the graph and open the UI in a browser')
+      .option('--port <n>', 'port to listen on (default: any free port)', integer('--port'))
+      .option(
+        '--host <host>',
+        'address to bind (default: 127.0.0.1 — anything else exposes the graph to your network)',
+      )
+      .option('--no-open', 'do not launch a browser'),
+  ).action(async (path: string | undefined, options: Record<string, unknown>) => {
+    const result = await runServe({ ...options, ...(path === undefined ? {} : { path }) });
+    io.out(result.text);
+    await result.closed;
+    sink.code = result.exitCode;
+  });
 
   return program;
 }

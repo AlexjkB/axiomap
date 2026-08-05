@@ -1,0 +1,17 @@
+{
+  "extends": "../../tsconfig.base.json",
+  "//": "Typechecking for the bundled half. Vite resolves modules, so this does too — `moduleResolution: Bundler` is what makes `elkjs/lib/elk.bundled.js`, a CSS import and a `.tsx` entry all resolve the way the bundler will resolve them. It emits nothing: the bundle is Vite's output, and `tsc -b` owns `dist/`.",
+  "compilerOptions": {
+    "noEmit": true,
+    "composite": false,
+    "declaration": false,
+    "declarationMap": false,
+    "module": "ESNext",
+    "moduleResolution": "Bundler",
+    "esModuleInterop": true,
+    "jsx": "react-jsx",
+    "lib": ["ES2022", "DOM", "DOM.Iterable"],
+    "types": []
+  },
+  "include": ["src/**/*.ts", "src/**/*.tsx"]
+}

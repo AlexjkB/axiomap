@@ -1,0 +1,18 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <!--
+      No remote anything. Decision #2 is zero network access, and a font or a
+      CDN script here would be an outbound request from a tool pointed at
+      confidential client code. The bundle is self-contained and served from
+      localhost by `axiomap serve`.
+    -->
+    <title>Axiomap</title>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/ui/main.tsx"></script>
+  </body>
+</html>

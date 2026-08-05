@@ -17,3 +17,4 @@ export * from './traverse.js';
 export * from './inspect.js';
 export * from './views.js';
 export * from './aggregate.js';
+export * from './protocol.js';

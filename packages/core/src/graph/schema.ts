@@ -455,6 +455,9 @@ export type Resolution = z.infer<typeof resolutionSchema>;
 export type GraphNode = z.infer<typeof graphNodeSchema>;
 export type ContractNode = z.infer<typeof contractNodeSchema>;
 export type FunctionNode = z.infer<typeof functionNodeSchema>;
+/** Named for the same reason as the two above: a consumer narrowing on `kind`. */
+export type StateVariableNode = z.infer<typeof stateVariableNodeSchema>;
+export type UnresolvedNode = z.infer<typeof unresolvedNodeSchema>;
 export type GraphEdge = z.infer<typeof graphEdgeSchema>;
 export type AccessControl = z.infer<typeof accessControlSchema>;
 export type Reentrancy = z.infer<typeof reentrancySchema>;
