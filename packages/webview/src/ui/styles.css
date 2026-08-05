@@ -279,6 +279,10 @@ body {
   font-weight: 700;
 }
 
+.ax-badge-faded {
+  opacity: 0.55;
+}
+
 .ax-tone-danger {
   color: var(--ax-error);
 }
@@ -292,7 +296,7 @@ body {
   color: var(--vscode-charts-green, #4fae6a);
 }
 .ax-tone-dim {
-  color: var(--ax-dim);
+  color: var(--ax-fg);
 }
 
 /* Swatches mirror the cytoscape rules in `style.ts`; both read the same

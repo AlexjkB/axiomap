@@ -1895,6 +1895,47 @@ actually read at, so it is 16.
 - **Added Tier 2 — a view too wide to read at fit zoom**, recording the zoom clamp as a
   symptom fix and naming the two real ones.
 
+### Boundary hardening, before 7d
+
+Two things that were cheap here and would have been expensive in Phase 8, in the same
+class as Phase 2's and Phase 3's boundary work.
+
+**Nobody had ever run this UI with the `--vscode-*` variables set.** Nothing in the repo
+sets one — `styles.css` and `style.ts` only read them, and `style.test.ts` exercises the
+resolution rule against a stub — so every screenshot ever taken of this webview, including
+all fourteen earlier in this entry, was of the browser fallback palette. That mattered
+more after 7c than before it, because 7c is where the palette stopped being five borders
+and became tuned constants: fills at 0.22–0.30 opacity, badge chips filled with `panel`,
+dimming at 0.35. All of them chosen against one dark background, and all of them due to be
+discovered in the phase whose exit criterion is Dark+, Light+ and one high-contrast theme.
+
+Injecting a real Light+ palette found two:
+
+- **The stale-finding badge nearly vanished.** Its tone was `dim` → `descriptionForeground`,
+  which on a light editor background is a grey glyph on a near-white chip. Staleness is now
+  `faded` — the finding keeps its impact colour and the chip is drawn at 55% opacity — which
+  is also the better claim: what changed is whether it is still evidence, not what it said.
+  `dim` now resolves to the editor foreground, so the overflow `+` chip is legible too.
+- **Every badge was half a badge.** The strip straddled the node's top border, and its chip
+  fill is the same `panel` colour as the node, so the overlapping half disappeared into it.
+  Moving it clear made the badges vanish entirely — a node's bounding box does not include
+  a background image drawn outside it, and the renderer culls what is outside. `bounds-expansion`
+  is the fix, and the intermediate state (a notch erased from the border and no chips) is
+  the kind of thing only a screenshot says.
+
+`test/browser-smoke.test.ts` gained the case that would have caught the whole class: with
+`--vscode-editor-background` and `--vscode-charts-blue` set before the app boots, the page
+background and **cytoscape's own resolved border colour** are the host's. That is the chain
+Phase 8 depends on — host variable → `getComputedStyle` → `readPalette` → cytoscape's colour
+parser — and until now no test crossed more than one link of it.
+
+**The screenshot harness is committed**, as `scripts/screenshots.mjs` / `pnpm screenshots`.
+Two phases running, the worst defects here were invisible to a green suite and obvious in
+one image, and twice the harness that found them was rebuilt in a scratch directory and
+thrown away. It takes `--theme browser|light|hc-dark`, walks the eight overlays, and writes
+to a gitignored `docs/screenshots/`. `browser-smoke.test.ts` remains the asserted version;
+this is the exploratory one, and Phase 8 is the phase that needs it most.
+
 ### Notes for the next session
 
 - **Phase 7d is code preview, search, history and the `html`/`svg` exports**, and then

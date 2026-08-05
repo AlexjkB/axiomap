@@ -59,6 +59,12 @@ export interface Badge {
   /** One character, drawn in the node's top-right corner. */
   glyph: string;
   tone: Tone;
+  /**
+   * Drawn at reduced opacity: the finding or claim is stale. Separate from
+   * `tone` so a High-impact finding that has gone stale still reads as High
+   * — what changed is whether it is still evidence, not what it said.
+   */
+  faded?: boolean;
   /** What it means, for the legend and the inspector. */
   title: string;
   /** Which overlay put it there, so toggling one removes only its own. */
@@ -69,6 +75,7 @@ export interface LegendEntry {
   /** A glyph for badge overlays, a swatch class for the colour channels. */
   glyph?: string;
   tone?: Tone;
+  faded?: boolean;
   swatch?: string;
   label: string;
 }
@@ -177,7 +184,7 @@ export const OVERLAYS: readonly OverlayDefinition[] = [
       { glyph: '!', tone: 'danger', label: 'High impact' },
       { glyph: '!', tone: 'warn', label: 'Medium impact' },
       { glyph: '!', tone: 'info', label: 'Low / Informational' },
-      { glyph: '!', tone: 'dim', label: 'stale — body changed since the scan' },
+      { glyph: '!', tone: 'danger', faded: true, label: 'stale — body changed since the scan' },
     ],
     needsHostData: true,
   },
@@ -288,8 +295,7 @@ function dangerBadges(node: FunctionNode): Badge[] {
   return badges;
 }
 
-function findingTone(impact: string, stale: boolean): Tone {
-  if (stale) return 'dim';
+function findingTone(impact: string): Tone {
   if (impact === 'High') return 'danger';
   if (impact === 'Medium') return 'warn';
   return 'info';
@@ -357,7 +363,8 @@ export function decorate(node: GraphNode, inputs: DecorationInputs): NodeDecorat
     for (const finding of data.findings[node.id] ?? []) {
       badges.push({
         glyph: '!',
-        tone: findingTone(finding.impact, finding.staleness !== 'current'),
+        tone: findingTone(finding.impact),
+        ...(finding.staleness === 'current' ? {} : { faded: true }),
         title:
           `${finding.check} (${finding.impact})` +
           (finding.staleness === 'current' ? '' : ' — stale: the body changed after the scan'),

@@ -44,9 +44,17 @@ export function toneColour(palette: Palette, tone: Tone): string {
     case 'ok':
       return palette.library;
     case 'dim':
-      return palette.dim;
+      // The editor foreground rather than the description grey. A badge is a
+      // 16px glyph and the muted greys most themes use for prose are close
+      // enough to a light editor background to make it disappear — which was
+      // true of Light+ before this. Fading is `faded` below, and it is applied
+      // to a colour that contrasts rather than baked into one that does not.
+      return palette.foreground;
   }
 }
+
+/** A faded chip: the claim is no longer evidence, but you can still see it. */
+const FADED_OPACITY = 0.55;
 
 /** XML text nodes and attribute values; a glyph is `$` or `!`, never markup. */
 function escape(value: string): string {
@@ -79,12 +87,13 @@ export function badgeStrip(badges: readonly Badge[], palette: Palette): BadgeStr
     .map((badge, index) => {
       const x = index * (BADGE_SIZE + BADGE_GAP);
       const colour = toneColour(palette, badge.tone);
+      const fade = badge.faded === true ? ` opacity="${String(FADED_OPACITY)}"` : '';
       return (
-        `<rect x="${String(x + 0.5)}" y="0.5" width="${String(BADGE_SIZE - 1)}" height="${String(BADGE_SIZE - 1)}" ` +
+        `<g${fade}><rect x="${String(x + 0.5)}" y="0.5" width="${String(BADGE_SIZE - 1)}" height="${String(BADGE_SIZE - 1)}" ` +
         `rx="2" fill="${escape(palette.panel)}" stroke="${escape(colour)}" stroke-width="1"/>` +
         `<text x="${String(x + BADGE_SIZE / 2)}" y="${String(BADGE_SIZE / 2)}" fill="${escape(colour)}" ` +
         `font-family="${escape(palette.fontFamily)}" font-size="9" font-weight="bold" ` +
-        `text-anchor="middle" dominant-baseline="central">${escape(badge.glyph)}</text>`
+        `text-anchor="middle" dominant-baseline="central">${escape(badge.glyph)}</text></g>`
       );
     })
     .join('');

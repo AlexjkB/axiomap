@@ -5,6 +5,9 @@ dist/
 .turbo/
 coverage/
 
+# Derived: `pnpm screenshots` writes here, and a PNG is not a diff anyone reads.
+docs/screenshots/
+
 # Axiomap's own output.
 #
 # Unanchored (`**/`) rather than §5's root-relative form, because Phase 6 gave

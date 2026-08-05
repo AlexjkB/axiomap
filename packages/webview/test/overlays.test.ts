@@ -245,8 +245,10 @@ describe('badges', () => {
       }),
       uncertainty: NONE,
     });
-    // High impact, but the claim is no longer evidence about this body.
-    expect(decoration.badges[0]?.tone).toBe('dim');
+    // Still High — what changed is whether it is evidence, not what it said —
+    // and faded rather than recoloured, so it stays visible on a light theme.
+    expect(decoration.badges[0]?.tone).toBe('danger');
+    expect(decoration.badges[0]?.faded).toBe(true);
     expect(decoration.badges[0]?.title).toMatch(/stale/);
   });
 

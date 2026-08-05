@@ -32,7 +32,15 @@ export interface OverlayBarProps {
 
 function Swatch({ entry }: { entry: LegendEntry }): JSX.Element {
   if (entry.glyph !== undefined) {
-    return <span className={`ax-badge ax-tone-${entry.tone ?? 'dim'}`}>{entry.glyph}</span>;
+    return (
+      <span
+        className={
+          `ax-badge ax-tone-${entry.tone ?? 'dim'}` + (entry.faded === true ? ' ax-badge-faded' : '')
+        }
+      >
+        {entry.glyph}
+      </span>
+    );
   }
   return <span className={`ax-swatch ${entry.swatch ?? ''}`} />;
 }

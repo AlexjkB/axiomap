@@ -95,6 +95,9 @@ class Page {
       nextId: page.nextId,
     });
     await attachedPage.send('Log.enable');
+    // Required before `Page.addScriptToEvaluateOnNewDocument`, and its absence
+    // is silent: the theme never arrives and the page looks like the fallback.
+    await attachedPage.send('Page.enable');
     return attachedPage;
   }
 
@@ -122,6 +125,29 @@ class Page {
 
   async goto(url: string): Promise<void> {
     await this.send('Page.navigate', { url });
+  }
+
+  /** Set a host's theme variables before the app boots, as VS Code does. */
+  async theme(variables: Record<string, string>): Promise<void> {
+    const source = Object.entries(variables)
+      .map(
+        ([name, value]) =>
+          `document.documentElement.style.setProperty(${JSON.stringify(name)}, ${JSON.stringify(value)});`,
+      )
+      .join('\n');
+    /*
+     * Twice: once at document start, where the app will read it, and once on
+     * `DOMContentLoaded` as the fallback for a document whose root element does
+     * not exist yet. Only the first ordering actually themes the canvas — the
+     * palette is read when the app mounts — and a silent `null` root is how the
+     * first attempt at this quietly screenshotted the fallback palette.
+     */
+    await this.send('Page.addScriptToEvaluateOnNewDocument', {
+      source:
+        `const apply = () => {\n${source}\n};\n` +
+        'if (document.documentElement) apply();\n' +
+        "document.addEventListener('DOMContentLoaded', apply);",
+    });
   }
 
   /** Poll until the predicate holds, or give up and return what it last saw. */
@@ -207,6 +233,48 @@ describe.skipIf(CHROME === undefined)('the graph in a browser', () => {
     const view = await page.until(CURRENT_VIEW, (value) => value === 'Contract detail');
     expect(view).toBe('Contract detail');
     expect(await page.until(METRICS, (value) => /layout/.test(value))).toMatch(/layout \d+ ms/);
+  }, 120_000);
+
+  /**
+   * §11: "Palette derives entirely from VS Code CSS variables. No hard-coded
+   * hex", and §7's Phase 8 makes the browser palette a *fallback* that maps onto
+   * them. Every other test of that is a unit test of `readPalette` against a
+   * stub, and nothing in this repo ever *set* one of those variables — so the
+   * chain that matters in Phase 8 (a host sets a variable → `getComputedStyle`
+   * → the palette → cytoscape's own colour parser) had never run end to end.
+   * It is one navigation to check, and cheaper here than in the phase whose
+   * exit criterion is three themes.
+   */
+  it('takes its colours from the host’s theme when one sets them', async () => {
+    const themed = await Page.open(CHROME as string);
+    try {
+      await themed.theme({
+        '--vscode-editor-background': '#ffffff',
+        '--vscode-charts-blue': '#1a85ff',
+      });
+      await themed.goto(session.handle.url);
+      await themed.until(METRICS, (value) => /layout \d+ ms/.test(value));
+
+      // The page chrome, and the canvas, which reads the same variables through
+      // a different path — cytoscape cannot parse `var(--x)`, so `style.ts`
+      // resolves them itself and this is where that resolution is either right
+      // or silently the fallback.
+      const background = await themed.evaluate(
+        "getComputedStyle(document.body).backgroundColor",
+      );
+      expect(background).toBe('rgb(255, 255, 255)');
+
+      const border = await themed.evaluate(`
+        (() => {
+          const cy = document.querySelector('.ax-canvas')._cyreg.cy;
+          return String(cy.nodes('[kind = "Contract"]').first().style('border-color'));
+        })()
+      `);
+      expect(border.replace(/\s/g, '')).toBe('rgb(26,133,255)');
+      expect(themed.consoleErrors.join('\n')).toBe('');
+    } finally {
+      themed.close();
+    }
   }, 120_000);
 
   /**

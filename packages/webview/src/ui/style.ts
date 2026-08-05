@@ -288,8 +288,15 @@ export function stylesheet(palette: Palette, preset: ViewPreset): StylesheetJson
         'background-height': 'data(badgeHeight)',
         'background-position-x': '100%',
         'background-position-y': '0%',
-        'background-offset-x': 8,
-        'background-offset-y': -8,
+        // Clear of the node body, not straddling its top border: the chip fill
+        // is the same panel colour as the node, so an overlapping half of it
+        // vanished into the node and every badge read as half a badge.
+        'background-offset-x': 10,
+        'background-offset-y': -14,
+        // …and the node's bounding box has to grow to match, or the renderer
+        // culls what now sits outside it — which drew the notch the strip had
+        // erased from the border and nothing else.
+        'bounds-expansion': 24,
         'background-image-opacity': 1,
       },
     },

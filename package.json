@@ -16,6 +16,7 @@
     "clean": "turbo run clean && rm -rf node_modules/.cache .turbo",
     "prepare": "husky",
     "bench:parser": "node scripts/bench-parser.mjs",
+    "screenshots": "node scripts/screenshots.mjs",
     "test:golden": "pnpm --filter @axiomap/core exec vitest run test/golden.test.ts",
     "test:coverage": "pnpm --filter @axiomap/core exec vitest run --coverage.enabled --coverage.provider=v8"
   },
