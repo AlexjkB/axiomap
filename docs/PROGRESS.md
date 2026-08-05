@@ -1110,3 +1110,209 @@ Two decisions were taken here rather than left for Phase 6 to take by accident:
   file yet. When Phase 6 wires it up, the config comes from the invoking working tree and
   is passed to `buildProjectGraph` for *both* sides of a diff. `runDiff` has the seam and
   the comment.
+
+---
+
+## Phase 6 — CLI
+
+**Date:** 2026-08-04
+**Status:** complete. `pnpm check` and `pnpm check:network` both green.
+
+### Exit criteria
+
+| Criterion | Result |
+|---|---|
+| **A human can audit a small protocol using only the terminal** | pass — `packages/cli/test/audit-walkthrough.test.ts` walks §15's definition of done, in order, using nothing but §12 commands, against a copy of `defi/` **with its artifacts deleted**. Ten steps, each naming the §15 item it covers. Also run by hand end to end; the session is in "The demonstration" below |
+| All commands (§12) | pass — `build`, `stats`, `diff`, `export`, `review`, `import-findings`, `query` with ten subcommands. `serve` is Phase 7's and says so |
+| All export formats | **partial, deferred with a rationale** — `dot`, `mermaid` and `json` ship. `html` and `svg` are a *rendered* graph and need the layout engine Phase 7 brings; §7 and §16 were amended rather than the gap left silent. See below |
+| Table output by default, `--json` for piping | pass — every command takes `--json`; `program.test.ts` asserts the output is parseable and that stderr stays empty, so `> file` and `| jq` both work |
+| No UI | pass — no renderer, no HTML, no server |
+
+`pnpm check` is green: 337 tests in `core` (277 from Phase 5, 60 new), 66 in `cli` (21 from
+Phase 5, 45 new), and 14 repo-level.
+
+### The demonstration
+
+Run by hand on a copy of `defi/` with `out/` removed — a protocol that does not build:
+
+```
+$ axiomap build
+mode        heuristic
+            No build artifacts. 98% of call edges resolved confidently, at or above the
+            70% threshold; edges are labelled with their confidence.
+resolution  139 edges — 0% semantic, 99% heuristic, 0% ambiguous, 1% unresolved
+compilers   none — no build artifacts were read
+
+$ axiomap stats
+real / test / mock    9 · 0 test · 0 mock
+unguarded             14 state-mutating externals with no recognised guard
+danger ops            assembly 0 · delegatecall 0 · low-level 1
+
+$ axiomap query writers-of reserve0
+1 writer
+src/Pair.sol:Pair._update(uint256,uint256)  private  reachable: yes  src/Pair.sol:134
+
+$ axiomap query path Router.swapExactTokensForTokens Pair._update
+2 hops   … src/Router.sol:66 (heuristic, possible-target) → src/Pair.sol:129
+
+$ axiomap review Pair._update --status reviewed --reviewer alex -m 'overflow bounds checked'
+$ # …client patches _update…
+$ axiomap query stale-reviews
+1 review needs attention
+stale  src/Pair.sol:Pair._update(uint256,uint256)  reviewed  alex
+
+$ axiomap diff defi-v1 defi-v2 fixtures/defi
+high   access-control-weakened  Factory.setFeeSetter … weakened from low to none
+high   storage-layout-changed   [feeSetter, pairs, allPairs] → [feeSetter, creationFee, …]
+
+$ axiomap export --format dot --view protocol | dot -Tsvg > protocol.svg
+```
+
+Every step answers one of §1's opening questions or one of §15's items, and none of it
+needed a compiler, an editor or a browser.
+
+### What was built
+
+- **`core/src/query/`** — §5's "the API both CLI and webview consume", built for the
+  terminal first and deliberately returning plain data. `refs.ts` (a human's half-
+  remembered name → a node id), `traverse.ts` (callers/callees/reachable/path),
+  `inspect.ts` (writers/readers/externals/unresolved/stats), `views.ts` (§11's five views
+  as *selection*). Nothing in `packages/cli` computes anything about the graph; §7's
+  Phase 7 inspector answers the same questions and must not get a second implementation
+  that can disagree with this one.
+- **`core/src/findings/`** — `slither --json` import, decision #4's positive half.
+- **`core/src/project/config.ts` and `globs.ts`** — §13, which nothing had read.
+- **`packages/cli`** — `commander`, `picocolors`, `ora`, one file per command, plus
+  `context.ts` (project + config + graph) and `output.ts` (tables and colour).
+
+### Three things worth the space
+
+- **A stored artifact is used only while it is still true.** `axiomap query` reads
+  `.axiomap/graph.json` rather than re-parsing, but only when no source file is newer than
+  it; otherwise it rebuilds and says why. `--stale` overrides. This is Phase 3's rule about
+  build-info artifacts one level up, and `axiomap review` is why it is worth the mtime
+  scan: recording a review against a stale graph stores the hash of a body the reviewer
+  never read, and that review then looks current forever — a false *negative* on the
+  re-review list, which is the one direction §8's flagship feature must not fail in.
+- **Traversal follows `possibleTargets`, and says when it did.** §10 gives an interface
+  call one static edge plus every implementation. Following only the static edge would
+  report `Pair.mint` as having no callers at all, which is the error
+  `analysis/reachability.ts` already refuses to make — so every hop carries `virtual`, and
+  "X calls Y" and "X's interface call could reach Y" stay different claims.
+- **The three export formats carry §4's confidence in their line style.** Solid, thin,
+  dashed, dotted — the same distinction §4 requires of the UI. A dot file that drew all
+  four identically would be the tool "silently pretending to certainty it does not have",
+  which §4 calls worse than useless in an audit.
+
+### Deviations from the spec
+
+- **`export --format html|svg` is deferred to Phase 7.** *(§7's Phase 6 amended; §16 entry
+  added.)* Both are a rendered graph, and rendering is a layout engine — `cytoscape` and
+  `elkjs` are Phase 7's, and §7's Phase 9 licence note already settles that the HTML export
+  *is* the webview in one file, since it "redistributes" elkjs. A throwaway layout engine
+  written here would be the UI work §6 forbids this phase and would be deleted one phase
+  later. `axiomap export --format dot | dot -Tsvg` produces an SVG today, and the deferred
+  formats say so rather than reporting an unknown format.
+- **`.axiomap/findings.json` is a fourth file in a user's repo**, not in §5's three, and
+  `ensureAxiomapDir` now writes it into `.axiomap/.gitignore`. §5's line is between
+  artifacts this tool computed and audit state a human authored: an imported finding is a
+  projection of the user's own Slither run and re-running the import reproduces it exactly,
+  so it is derived and stays out of git. It is persisted at all because §11's overlay needs
+  a source that does not require re-running Slither on every open.
+- **Two extra `query` subcommands beyond §12's nine.** `findings` lists what
+  `import-findings` wrote — a command that writes a file whose contents can only be read as
+  raw JSON is half a feature. (The count of "ten" above is nine plus this one.)
+- **`axiomap diff` gained `--update-review`.** Phase 5's notes flagged `migrateReview` as
+  wired to nothing and named this command as where a user would reach it.
+- **`DiffCommandOptions.target` survives alongside `path`.** Phase 5 shipped `target` and
+  `packages/cli/test/diff.test.ts` — the Phase 5 exit criterion — is written against it.
+  `path` wins when both are given.
+- **`.gitignore`'s Axiomap rules are now unanchored (`**/.axiomap/...`).** Found by running
+  the new CLI against `fixtures/defi`: a gitignore pattern containing a slash is anchored to
+  its own directory, so §5's `.axiomap/cache/` covered a root-level `.axiomap/` and nothing
+  under `fixtures/` — which is where every `axiomap build` in this repo actually writes. §5
+  makes git hygiene a security property here, and this was the rule failing to be one.
+- **`bin.ts` is a four-line shim over `program.ts`.** The whole surface has to be callable
+  from a test, and a file with a top-level `await main()` runs the CLI on import.
+
+### §13, implemented rather than described
+
+`include`/`exclude` filter the file list before anything is parsed. `entrypoints`,
+`accessControlModifiers` and `reentrancyGuards` reach the Phase 4 passes.
+`trustBoundaries.external` marks call edges into a declared-external directory as
+`crossTrustBoundary`, additively — the resolver already sets it for interface calls, and a
+user naming a directory is more evidence rather than a correction. `renderCap` and
+`layout` are validated and carried but not consumed; they are the renderer's, and
+validating them now means a user's config does not start failing the day Phase 7 lands.
+
+The glob matcher is hand-rolled, ~50 lines, for one reason: `@axiomap/core`'s production
+dependency tree is two pure-WASM packages with no transitive dependencies of their own, and
+§3 makes that a security property an auditor can check. It is not worth a glob library.
+
+**§13's diff rule is now code.** One config governs both revisions and it is the invoking
+working tree's: `openProject` loads it once and the same options object goes to both
+`buildProjectGraph` calls. The checked-out revisions have their own `axiomap.config.json`
+on disk and it is deliberately never read.
+
+**An unknown key warns and is ignored**, rather than failing the file. A config that fails
+closed on a typo fails on the day someone opens a v2 project with a v1 binary; the failure
+worth preventing is silently auditing a protocol with the wrong guard list, and a warning
+prevents that one.
+
+### Exit codes are the CI contract
+
+0 nothing found, 1 something found, 2 could not run. §15's eighth item — "run
+`axiomap query unresolved --json` in CI and fail the build on new unresolved external
+calls" — needs the first two to be distinguishable without parsing output, and every
+subcommand behaving the same way is worth more than each being individually clever.
+
+### No golden file changed
+
+Verified rather than assumed, and it is the property the config loader was designed
+around: no fixture has an `axiomap.config.json`, every §13 field is optional, and every
+default is the behaviour of the phase that introduced it. `pnpm test:golden` is green
+without regeneration.
+
+### Performance
+
+Phase 6 touched `ingest.ts` (the `include`/`exclude` filter) and `graph/build.ts` (the
+`trustBoundaries` marking), so the harness was re-run rather than assumed unaffected. Both
+additions are no-ops without a config file, and the numbers say so — same host, same
+fixture, within run-to-run noise of Phase 5:
+
+| | parse | graph + analysis | total | diff |
+|---|---|---|---|---|
+| single-cold | 7,629 ms | 994 ms | 8,716 ms | |
+| parallel-cold | 3,005 ms | 964 ms | 3,957 ms | |
+| parallel-warm | 971 ms | 955 ms | **1,883 ms** | **795 ms** |
+
+§9's warm budget passes at 1,883 ms against 5,000 ms; the diff tripwire passes at 795 ms
+against 2,500 ms.
+
+The one Phase 6 cost not in this table is `loadGraph`'s mtime scan, which walks the source
+list to decide whether the stored artifact is still true. It is the same walk the ingest
+would have done anyway, and it replaces a full rebuild on every query.
+
+### §16 changes
+
+- **Added Tier 1 — `export --format html` and `--format svg`**, with the layout-engine
+  reasoning, the `dot | dot -Tsvg` workaround, and Phase 7 as the trigger.
+
+### Notes for the next session
+
+- **Phase 7 is the webview, and §9 rule 1 is the thing to build first.** `core/src/query/`
+  is the seam it names: the webview requests subgraphs by view + filter + focus, and
+  `selectView` is already that call. Retrofitting it is what §9 calls miserable.
+- **`views.ts` is selection only.** §9's aggregation layer — directory clustering,
+  drill-down, the 1,500-element render cap — is Phase 7's and is deliberately absent. The
+  one exception is the protocol map's contract-level rollup, which is there because without
+  it the protocol map degenerates into the inheritance tree; its edges carry a synthetic
+  `rollup:` id so nothing can mistake one for a resolved call site.
+- **`renderCap` and `layout` are loaded and validated but unread**, waiting for a renderer.
+- **`axiomap serve` is registered and refuses**, pointing at Phase 7. It is the natural
+  place to hang the local HTTP endpoint §9 rule 1 asks for in browser mode.
+- **The `html` export is the webview in one file** (§7's Phase 9 licence note), not a
+  second renderer. Build it out of the Phase 7 bundle, and remember `elkjs`'s attribution
+  in the footer.
+- **`query/traverse.ts` builds its adjacency index per call.** Fine for one query; if
+  Phase 7's inspector issues one per hover, cache it on the graph.
