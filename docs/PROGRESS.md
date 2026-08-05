@@ -1391,3 +1391,133 @@ will use and which nothing had called.
   in the footer.
 - **`query/traverse.ts` builds its adjacency index per call.** Fine for one query; if
   Phase 7's inspector issues one per hover, cache it on the graph.
+
+---
+
+## Phase 7a — Aggregation layer & render cap
+
+**Date:** 2026-08-04
+**Status:** partial phase, deliberately. `pnpm check` green. **Phase 7 needs splitting; the
+rest of it (renderer, five views, overlays, inspector, code preview, search, history,
+`serve`, the `html`/`svg` exports) is not started.** See "Why this is half a phase" below.
+
+### What was built
+
+**`packages/core/src/query/aggregate.ts`** — §9 rules 2, 3 and 4, on the query API rather
+than in the renderer. §9 rule 1 is the reason it is here: "the webview never receives the
+full graph", and a webview that received the graph and clustered it itself would satisfy
+the picture and not the rule. `selectAggregatedView(graph, {view, focus, expand,
+renderCap})` is the one call §9 rule 1 describes.
+
+- **Directory clustering with drill-down.** A cluster is a directory; expanding one reveals
+  its subdirectories and its contracts, one level at a time, and edges to anything still
+  collapsed lift to the enclosing cluster and fold. Ancestors are implied, so `expand:
+  ['src/tokens/erc20']` opens the path to it.
+- **The 1,500-element cap**, with `RenderCapError` carrying `elements`, `cap` and `view` as
+  fields rather than only as prose, and a message that names the way out in the vocabulary
+  of the view you are looking at — `--up/--down` for the call graph, "collapse a directory"
+  for the protocol map, "focus a contract" for the other three.
+- **`DEFAULT_RENDER_CAP`**, which is what §13's `renderCap` has been validated against and
+  not read for since Phase 6.
+
+Three decisions worth recording, because each of them is the kind that gets made twice:
+
+- **The default view expands as far as it fits.** A literal reading of §9 rule 3 — always
+  start fully collapsed — makes the default view of `defi/` a single box labelled `src`,
+  which is worse than the hairball it is protecting against. So an explicit `expand` set is
+  honoured first and always, and then clusters open breadth-first while the result stays
+  under the cap. `defi/` draws all nine contracts; the 300-contract case stops at the
+  directory level and says so in its note. That leaves the cap for what it is actually for:
+  **an explicit request that cannot be drawn**, which is the only case that errors.
+- **The result is a display model, not a subgraph.** A cluster is not a `GraphNode` — §10's
+  kinds are a closed set of declarations and a directory is not one — and a lifted edge's
+  endpoints are directories. Every element carries an id and a parent (cytoscape's compound
+  nodes are exactly this shape) and, where one exists, the graph object it stands for **by
+  reference**. `ViewSelection`'s Phase 6 warning applies unchanged: decorating one of those
+  writes into what `graph.json` serializes.
+- **Clustering defaults on for the protocol map only.** Three of the other four views are
+  already scoped by a focus node, and boxing an inheritance tree by directory fights the
+  tree it exists to show. They get the cap and nothing else.
+
+An aggregated edge carries **both** candidate weights — `count` (call sites) and `pairs`
+(distinct contributing edges) — because §16's open question about which reads better is
+Phase 7's to answer with a layout on screen, and answering it should be a renderer changing
+which field it reads. §16 was amended to say so. Resolution folds to the **worst**
+contributor, the same rule `views.ts` uses for the protocol rollup and for the same reason:
+an aggregate is only as certain as its least certain member.
+
+### Tests
+
+`packages/core/test/aggregate.test.ts`, 17 tests, 99.7% of statements in the new module —
+the one uncovered line is a documented-unreachable guard.
+
+The `defi/` cases are hand-derived from the fixture's five files, as Phases 4 and 6
+established. The scale case is a **synthesised** 300-contract graph fed through
+`graphFromFile`: §7's Phase 7 exit criterion says "usable on a 300-contract project", and
+the only fixture that size is `large/`, which is generated rather than committed and so is
+not there in CI. It asserts the thing decision #6 is about: 300 contracts and 1,800
+cross-contract call edges is **2,100 elements**, which throws unclustered, and comes to
+**1,410** once clustered — five of twelve directories opened, seven left as boxes, every
+contract either drawn or inside a cluster that says how many it holds. 145 ms for the whole
+auto-expansion, which is 20 layouts over that graph.
+
+One invariant is asserted on every clustering test: **no call site is lost or double
+counted.** Each edge in the selection ends up in exactly one of three places — drawn,
+folded into an aggregate, or counted on the cluster that hid it — and the three sum to the
+original call-site total. §9 rule 3 aggregates "weighted by call count", and a weight that
+quietly loses a call site is a number an auditor would read as evidence.
+
+Two guards, in the "do not guess" category Phase 2's audit flagged as where a bug is worst:
+an `expand` naming a directory that is not in the view is refused with the list of ones that
+are, rather than ignored; and a selection with an edge whose endpoint is not among its nodes
+is refused rather than having the edge silently dropped. `selectView` cannot produce the
+second, but a caller filtering a selection by hand can, and a vanishing edge is the failure
+that looks like a resolver bug three phases later.
+
+### Why this is half a phase
+
+§6: "If a phase turns out to be larger than expected, stop and say so rather than pushing
+through." Phase 7 as written is React + cytoscape + ELK, five views, eight overlays, the
+inspector, shiki code preview, search, history, the aggregation layer, `axiomap serve`, and
+(via §16) the `html` and `svg` exports. That is not one session's work, and merging it into
+Phase 8 silently would be the outcome §6 is warning about.
+
+The split point was chosen by §9 rule 1's own words — "retrofitting this is miserable, build
+it this way from the first commit of Phase 7" — so the aggregation layer and the cap are
+first, and no renderer exists yet to be built against the wrong shape.
+
+**Not done, and not started:** the renderer and its bundle, the five views as *rendering*
+presets, every overlay, the inspector, code preview, search, history, `axiomap serve` and
+its local HTTP endpoint, and the `html`/`svg` exports. Phase 7's exit criteria —
+"usable on a 300-contract project; interaction stays responsive" — are **not** met: the
+first half now has a tested answer at the query layer, and the second half has nothing to
+measure yet.
+
+### Deliberately not done
+
+- **No CLI surface for aggregation.** §12 does not define one, and the three text export
+  formats pipe into tools that are not a viewport — a `dot` file with 3,000 nodes is
+  graphviz's problem and not a hairball on a screen. The cap belongs to the thing with a
+  viewport, so `aggregate` is separate from `selectView` rather than inside it.
+- **`layOut` is called once per candidate during auto-expansion** rather than updated
+  incrementally. It is a pure function of the expansion set, which is the property that
+  makes it obviously correct; incremental update is the thing that drifts from what it
+  mirrors. Measure with a renderer in front of it before optimising.
+- **`query/traverse.ts` still rebuilds its adjacency index per call** — carried over from
+  Phase 6's note, still waiting on a profile rather than a guess.
+
+### Notes for the next session
+
+- **Phase 7b is the renderer.** `selectAggregatedView` is the only door into the graph;
+  keep it that way. Every element already carries `id` and `parent`, which is cytoscape's
+  compound-node shape, so the adapter should be thin.
+- **Overlays come after the renderer, not with it.** §11's channel budget is a contract:
+  node fill is review state, border colour is access control, border *style* is resolution
+  confidence, opacity is reachability, badges are danger ops and findings, size is
+  complexity. An aggregated edge has a `resolution` (the worst contributor) and a `count`,
+  which is what edge style and weight need.
+- **A cluster needs its own visual vocabulary**, and it is not in §11's table: it carries
+  `members` and `internalEdges` precisely so a collapsed box can say "48 contracts, 291
+  calls inside" and tell the user where drilling in is worth it.
+- **`axiomap serve` is still registered and still refuses.** It is where §9 rule 1's
+  browser-mode HTTP endpoint goes, and the endpoint's payload is an `AggregatedView`.
