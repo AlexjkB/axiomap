@@ -2162,3 +2162,243 @@ open without having been opened.
   the phase that needs it most: its exit criterion is three themes.
 - **`fixtures/large/generate.mjs --sloc 22000` makes the 298-contract project** used for the
   exit criterion. It is not committed (§14) and takes a second to regenerate.
+
+---
+
+## Phase 7e — Consolidation before Phase 8: the export payload, the reader, the licence gate
+
+**Date:** 2026-08-05
+**Status:** complete. `pnpm check`, `pnpm check:network` and the new `pnpm check:licences`
+all green. Not a feature phase — three things measured at the 7d boundary that get
+structurally more expensive after Phase 8 and Phase 9, taken while they are still cheap.
+
+Every number below was reproduced before anything was changed, on a generated
+298-contract / 22k SLOC project (`node fixtures/large/generate.mjs --sloc 22000 --out
+mid300`, not committed).
+
+### The three items
+
+| Item | Result |
+|---|---|
+| **1. The html export's payload** | pass — `payloadVersion` 2. A stated quota per view kind, and one node table. Re-verified in a real browser at 298 and 2,719 contracts |
+| **2. `StaticBridge` coverage** | pass — **4.85% → 100%** statements, branches, functions and lines, over 27 tests |
+| **3. A licence CI job** | pass — `scripts/check-licences.mjs`, `pnpm check:licences`, its own job in `ci.yml`, and a test that watches it fail |
+
+`pnpm check` is green: **403** tests in `core` (unchanged), **126** in `webview` (99 + 27),
+**101** in `cli` (96 + 5), and **45** repo-level (29 + 16).
+
+### 1. The export embedded 190 views and none of them was a call graph
+
+Both defects reproduced exactly, and both are things `payloadVersion: 1` being unpublished
+made free to fix now and a v2 reader to fix later.
+
+**Zero call views fit.** 12.6 MB, 190 embedded views — 1 protocol map, 189 contract views,
+**0 call graphs** — and 1,061 omitted. The walk was breadth-first over a single queue, so
+the contract views reached `VIEW_SHARE`'s ceiling before the first function was reached.
+§9 rule 4 makes the call graph the focus-node view and §11 makes it the one an auditor
+works in, so a deliverable that can never hold one is §15's ninth item not working.
+
+Raising the ceiling does not fix that; it buys more contract views. So the fix is a stated
+policy, `VIEW_QUOTA` in `packages/cli/src/export/html.ts`:
+
+- **map 0.15, contract 0.35, call 0.5** of the view budget. `call` is largest because it is
+  the only kind whose absence turns a click into a refusal rather than into a
+  less-detailed answer; `map` is smallest because a project has tens of directories rather
+  than thousands of functions.
+- **Round-robin between the kinds**, so `call` starts being embedded as soon as the first
+  contract view has produced one rather than after every contract view has been considered.
+- **Unspent quota is pooled and offered back**, which is what makes the rule free on a
+  project small enough to embed whole — `defi/`'s queues run dry before any kind closes.
+- **A closed kind's remaining queue is counted, not walked.** Computing a thousand views to
+  reject them costs seconds and tells the reader nothing the number does not.
+
+It is written in the module rather than left to emerge from a traversal order because "how
+much of what" is exactly the kind of thing that otherwise gets decided twice.
+
+**2.1x node duplication.** 2,073 distinct nodes carried as 4,421 node objects: every
+`AggregatedView` held whole `GraphNode`s, and every `NodeInspection` held the same node
+again. Payload v2 has one `nodeTable`; views and inspections hold ids.
+
+It is deliberately not called `nodes`. A top-level `nodes` beside an `edges` would be a
+`graph.json` under another name, and §9 rule 1 is the rule the export is the permanent
+place to break. The two properties that keep it a table: nothing in it that no embedded
+view draws, and no adjacency anywhere in it. `export-rendered.test.ts` asserts both, and
+the assertion that the payload has no `nodes` property survived unchanged.
+
+**Measured after, on the same project:**
+
+| | v1 (7d) | v2 (7e) |
+|---|---|---|
+| Views | 190 — 1 protocol, 189 contract, **0 call** | **765** — 1 protocol, 88 contract, **676 call** |
+| Views omitted | 1,061 | 428 |
+| Node objects / distinct nodes | 4,421 / 2,073 = **2.13x** | 1,570 / 1,570 = **1.00x** |
+| Payload JSON | 10.37 MB | 8.51 MB |
+| File | 12.6 MB | 10.7 MB |
+
+Four times the views, in a smaller file.
+
+**At the 2,719-contract / 200k SLOC size** (`--sloc 200000`), where it now stops: 699 views
+— 1 protocol, 82 contract, 616 call — 582 omitted, 11.1 MB, 33 s end to end (dominated by
+ingesting 200k SLOC, not by the export). It opens from `file://` in Chrome and draws 869 of
+1,500 elements with a 1,953 ms worker layout. There is no size at which the zero-call-views
+pathology returns, because the quota is a floor rather than an ordering.
+
+**Re-verified in a browser, and that is now a test.** 7d drove protocol → contract →
+function → inspector → code preview by hand over CDP against a `file://` URL and found that
+every function click missed. That walk is `test/browser-smoke.test.ts`'s "the export in a
+browser" describe now: it exports `defi/`, opens the file with no server and no origin,
+and asserts each step, plus that the payload's views hold *ids* while cytoscape holds nodes
+with §10 attributes — which is `hydrateView` running in a browser against a file the CLI
+wrote.
+
+### The boundary, and a third written-twice pair
+
+§5 lets `@axiomap/webview` import core's types and not its functions, so v2 adds a pair:
+`dehydrateView`/`dehydrateInspection` in `core/query/static.ts`, `hydrateView`/
+`hydrateInspection` in `webview/src/static.ts`. It drifts more quietly than the two pairs
+already there — a hydrator that dropped `parent` would draw a node *outside* the directory
+box it belongs to, which reads as a layout quirk rather than an error.
+
+`test/serve-protocol.test.ts` pins it, over a view holding every element shape, by
+identity rather than field by field: the fields that matter are the ones nobody thought to
+list. It also pins that the writer's `PAYLOAD_VERSION` and the reader's
+`READS_PAYLOAD_VERSION` are the same number. That file's header now says there are three
+such pairs and why each earns a test.
+
+### 2. `StaticBridge` was 4.85% covered
+
+It is the reader half of the client deliverable — the third `HostBridge`, and the one a
+*client* is actually using — and every path in it had been written, screenshotted once and
+never asserted. What that left untested is precisely the half an auditor never hits: the
+refusals.
+
+`packages/webview/test/static.test.ts`, 27 tests, following `palette.test.tsx` and
+`preview.test.tsx`. **4.85% → 100%** on statements, branches, functions and lines. The
+cases worth naming:
+
+- **The refusal now states the mix, not just a total.** "3 views (1 protocol, 1 contract, 1
+  call) — not this one" answers the question the refused reader is actually asking, and it
+  is derived from the embedded requests rather than stored, so it cannot disagree with them.
+- **Two reasons a preview can be missing** are two different sentences: a node with no
+  source, and an export too large to carry it. A reader given the first for the second
+  reason goes looking for a bug in the node.
+- **The payload-version check**, which is what stops a v1 file half-rendering — a real case
+  now rather than a hypothetical, since a v1 payload has no table and would draw every view
+  empty.
+- **Search offers nothing it could not then show** — it runs over the embedded inspections,
+  so the palette cannot name a node the panel would refuse — and a malformed file makes
+  `view` and `inspect` report it rather than making the search box throw.
+
+Phase 8 adds a fourth `HostBridge` over `postMessage`. The shared contract is pinned on
+three implementations now rather than two.
+
+### 3. A licence gate, because nothing noticed elkjs
+
+§7's Phase 9: "the sibling of the network-dependency check from §3 — same pattern, same
+enforcement … fail CI on any new dependency under a strong-copyleft or unlicensed term."
+
+`scripts/check-licences.mjs` is that sibling literally: it walks the same `pnpm list
+--prod` trees, reads one field per `package.json`, and exits non-zero naming the offender
+and what requires it. Three answers — allowed, refused, **unreviewed** — and the third
+fails, because a term nobody recognises is a decision nobody has made and defaulting to
+"probably fine" is what makes a gate decorative.
+
+It evaluates the SPDX expression rather than matching the string, because `elkjs` is
+`EPL-2.0 OR GPL-3.0-or-later` and one acceptable arm is the whole reason it is consumable
+here. `A OR B` needs one arm, `A AND B` needs both, `A WITH exception` is decided by `A`.
+Recursive descent over three operators, about forty lines: a dependency inside the
+dependency checker would be the wrong shape.
+
+Current result: 77 production dependencies, all shippable, with four named as needing
+attribution where redistributed — which is the `THIRD-PARTY-NOTICES.md` Phase 9 owes, seen
+early.
+
+`test/licences.test.ts` drives it with a GPL dependency, an unlicensed one and an
+unrecognised one, the way `dependency-direction.test.ts` writes a forbidden import. A gate
+nobody has seen fail is a gate nobody knows works — which is the exact failure being fixed.
+
+### §7's licence note, amended
+
+The note said the `.vsix` and the HTML export "both redistribute" elkjs. Phase 7d then gave
+`@axiomap/cli` a direct `elkjs` dependency for `--format svg`, so the question is whether
+that is a third vector.
+
+**It is not.** npm resolves `elkjs` from its own registry entry under its own licence, and
+a dependency declaration conveys nothing. What it does change is *where the notices file
+has to go*: the note named only the `.vsix`, and a user who runs `npm i -g @axiomap/cli`
+now has elkjs on disk as a consequence of installing an MIT package. §7 now says to ship
+`THIRD-PARTY-NOTICES.md` in the npm tarball as well.
+
+Two things recorded so they are not re-argued: the SVG an export writes is output rather
+than a derivative work (it is coordinates), and the HTML export remains the case that
+matters because it inlines elkjs's worker source verbatim.
+
+### The traverse note, closed with numbers
+
+`query/traverse.ts` rebuilding its adjacency index per call has been an open note since
+Phase 6, carried again in 7a and 7b, each time "waiting on a profile rather than a guess".
+Here is the profile, on 298 contracts with `.axiomap/graph.json` already built:
+
+| Query | Wall clock | Traverses? |
+|---|---|---|
+| `query externals` | 0.58 s | yes |
+| `query unresolved` | 0.61 s | yes |
+| `stats` | 0.59 s | **no** |
+| `query callers-of <fn>` | 0.60 s | yes |
+
+They are indistinguishable from each other, and `stats` — which builds no index at all — is
+not the fastest. All four are process startup plus reading a 4.8 MB `graph.json`; the index
+does not appear above that floor. A cache would be a parameter, a default and an
+invalidation rule bought with nothing measurable. **Closed**, in the file itself rather than
+in a note, so the fifth session does not ask again.
+
+(Earlier, without the stored artifact, the same four queries are 0.76–1.09 s — the extra
+time is ingest, not traversal, and the ordering between them is unchanged.)
+
+### Deliberately not done
+
+- **§16's auto-expansion-balance and overlay-rollup entries stay deferred.** Both are
+  information-design decisions that want a real protocol on screen, and 7d recorded why.
+- **NatSpec stays deferred**, and §16 now says 7e declined it rather than leaving the owner
+  line reading as though it might have been taken. Item 1 turned out to be a format change
+  *and* a policy decision *and* a browser re-verification; a `GRAPH_SCHEMA_VERSION` 4 → 5
+  bump with four regenerated goldens beside it would have put an unread golden diff in a
+  commit whose reviewer is looking at something else, which is the failure §6 names. Owner:
+  Phase 8.
+
+### Deviations from the spec
+
+- **`payloadVersion` 1 → 2**, an unpublished format changed while that is free. The reader
+  refuses v1 rather than half-reading it.
+- **`StaticPayload.inspections` holds `StaticInspection`**, which is `NodeInspection`
+  without its node. The bridge reassembles before the UI sees anything, so nothing
+  downstream of it learned that the format has a table in it.
+- **`export --format html`'s console line is unchanged in shape** but its numbers are not:
+  it prints the view count it embedded, and the omitted count is now a much smaller
+  fraction of the reachable set.
+- **`scripts/check-licences.mjs` exports its parts** and runs its command only when invoked
+  directly, so `test/licences.test.ts` can drive the classifier with packages that are not
+  installed here. `check-no-network-deps.mjs` has no such split and no such test; it is the
+  older of the two and worth the same treatment when something next touches it.
+
+### §16 changes
+
+- **`export --format html|svg`** gained the payload v2 entry: the quota policy with the
+  before/after numbers, and the node table with the reason it is not called `nodes`.
+- **NatSpec** records that 7e declined it, with the reason, and names Phase 8 as the owner
+  rather than "Phase 8 or a 7e".
+
+### Notes for the next session
+
+- **Phase 8 is the VS Code extension.** The `HostBridge` contract is now pinned on three
+  implementations, and the fourth is correlation ids over `postMessage`. The hydration pair
+  is not its problem: `postMessage` carries a live host's answers, not a payload.
+- **The licence gate is in place before the extension's dependencies arrive**, which was
+  the point of building it now. A dependency it refuses is a conversation, not a bug: the
+  allowlist edit is the review and belongs in the diff.
+- **`fixtures/large/generate.mjs --sloc 22000 --out mid300` and `--sloc 200000 --out
+  big2700`** regenerate the two projects every number above was measured on. Neither is
+  committed (§14).
+- **The export's quota numbers are a policy, not a measurement.** If a real protocol's
+  deliverable turns out to want more contract breadth than call depth, `VIEW_QUOTA` is one
+  line and the reason it holds those values is written beside it.

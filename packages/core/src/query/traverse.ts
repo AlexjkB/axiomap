@@ -74,6 +74,16 @@ function step(edge: GraphEdge, to: string, virtual: boolean): CallStep {
  * and the only way to find those from the target's side is to have looked at
  * every edge. Doing that per visited node makes `callers-of` O(V·E), which on
  * `large/`'s 74,512 edges is the difference between a query and a coffee break.
+ *
+ * **Once per traversal, and that is where it stays.** Phases 6, 7a and 7b each
+ * carried a note asking whether it should be cached on the graph; Phase 7e
+ * measured it on a 298-contract project with the artifact already built, and the
+ * four queries are indistinguishable from each other: `externals` 0.58 s,
+ * `unresolved` 0.61 s, `stats` 0.59 s — which traverses nothing — and
+ * `callers-of` 0.60 s, all wall-clock including process start and reading a
+ * 4.8 MB `graph.json`. Building this index does not show up above that floor. A
+ * cache would be a parameter, a default and an invalidation rule bought with
+ * nothing measurable, so the note is closed rather than carried a fourth time.
  */
 interface CallIndex {
   callees: Map<string, CallStep[]>;
