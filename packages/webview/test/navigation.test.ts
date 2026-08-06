@@ -50,6 +50,8 @@ describe('navigation', () => {
   });
 
   it('toggles a directory, and closing one closes what is inside it', () => {
+    // `expanded` is the state the clicked box is *drawn* in, which is what the
+    // canvas puts on the event.
     const open = reduce(start, { type: 'pick', kind: 'Cluster', id: 'dir:src', path: 'src' });
     const deeper = reduce(open, {
       type: 'pick',
@@ -59,17 +61,62 @@ describe('navigation', () => {
     });
     expect(deeper.expand).toEqual(['src', 'src/tokens']);
 
-    const closed = reduce(deeper, { type: 'pick', kind: 'Cluster', id: 'dir:src', path: 'src' });
+    const closed = reduce(deeper, {
+      type: 'pick',
+      kind: 'Cluster',
+      id: 'dir:src',
+      path: 'src',
+      expanded: true,
+    });
     // Leaving `src/tokens` behind would reopen `src`: `aggregate` closes the
     // expansion set under its ancestors.
     expect(closed.expand).toEqual([]);
   });
 
+  /**
+   * The defect a 298-contract project showed on screen: 7a's auto-expansion
+   * opens directories nobody put in `expand`, so toggling *set membership* on a
+   * box that is visibly open added it instead of closing it — one click did
+   * nothing and the second finally closed it.
+   *
+   * The fix is that the click toggles what is drawn. `open` is the view's own
+   * list of expanded clusters, and taking it over turns auto-expansion off, or
+   * the engine would immediately reopen what was just closed.
+   */
+  it('closes a directory the engine opened, on the first click', () => {
+    const closed = reduce(start, {
+      type: 'pick',
+      kind: 'Cluster',
+      id: 'dir:src/tokens',
+      path: 'src/tokens',
+      expanded: true,
+      open: ['src', 'src/tokens'],
+    });
+
+    expect(closed.expand).toEqual(['src']);
+    expect(closed.autoExpand).toBe(false);
+    expect(toRequest(closed)).toEqual({
+      view: 'protocol',
+      expand: ['src'],
+      autoExpand: false,
+    });
+  });
+
+  it('leaves the engine in charge until a cluster is actually clicked', () => {
+    // An untouched map still gets 7a's "expand as far as it fits", and the
+    // request stays the short one.
+    expect(toRequest(start)).toEqual({ view: 'protocol' });
+    expect(start.autoExpand).toBe(true);
+  });
+
   it('drops the expansion set when the view changes', () => {
     const open = reduce(start, { type: 'pick', kind: 'Cluster', id: 'dir:src', path: 'src' });
-    expect(toRequest(open)).toEqual({ view: 'protocol', expand: ['src'] });
+    expect(toRequest(open)).toEqual({ view: 'protocol', expand: ['src'], autoExpand: false });
     const moved = reduce(open, { type: 'view', view: 'inheritance' });
     expect(moved.expand).toEqual([]);
+    // And the engine is back in charge: a view the user has not drilled into
+    // should open the way a fresh one does.
+    expect(moved.autoExpand).toBe(true);
     expect(toRequest(moved)).toEqual({ view: 'inheritance' });
   });
 

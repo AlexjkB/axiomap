@@ -76,9 +76,40 @@ export function App({ bridge, layoutClient, initialOverlays = [] }: AppProps): J
   const client = useMemo(() => layoutClient ?? new LayoutClient(browserEngine()), [layoutClient]);
   useEffect(() => () => { client.dispose(); }, [client]);
 
-  // The palette the canvas draws with, so the badge strips are coloured from
-  // the same theme the nodes are (§11: no hard-coded hex, either side).
-  const palette = useMemo(() => readDocumentPalette(), []);
+  /*
+   * The one palette in the app: the canvas, the badge strips and the code
+   * preview's syntax theme all take this (§11: no hard-coded hex, anywhere).
+   *
+   * It is state rather than a `useMemo([])` because **a host can change its
+   * theme while this is open**. Phase 8's exit criterion is legibility in
+   * Dark+, Light+ and a high-contrast theme, and switching between them is how
+   * anyone would check that — VS Code rewrites the `--vscode-*` variables on
+   * the document element and swaps a class on the body, without reloading the
+   * webview. Read once, the graph would repaint from the new theme on its next
+   * update while the badges kept the old one: a half-themed UI, which is the
+   * same class of defect as 7c's "nobody had ever run this with the variables
+   * set" and much harder to spot.
+   */
+  const [palette, setPalette] = useState(readDocumentPalette);
+  useEffect(() => {
+    const observer = new MutationObserver(() => {
+      const next = readDocumentPalette();
+      // Replaced only when something actually changed: every mutation of the
+      // document element would otherwise rebuild the stylesheet, the badge
+      // strips and the shiki grammar.
+      setPalette((previous) =>
+        JSON.stringify(previous) === JSON.stringify(next) ? previous : next,
+      );
+    });
+    observer.observe(document.documentElement, {
+      attributes: true,
+      attributeFilter: ['style', 'class', 'data-vscode-theme-kind', 'data-vscode-theme-name'],
+    });
+    observer.observe(document.body, { attributes: true, attributeFilter: ['class', 'style'] });
+    return () => {
+      observer.disconnect();
+    };
+  }, []);
 
   // §9 rule 4's hop defaults come from the engine, not from a constant here.
   const applied = useRef(false);
@@ -246,13 +277,21 @@ export function App({ bridge, layoutClient, initialOverlays = [] }: AppProps): J
     );
   }, [view, active, overlayData]);
 
-  const onPick = useCallback((pick: { kind: string; id: string; path?: string; expanded?: boolean }) => {
-    // A click both navigates and selects: §11's inspector is about the thing
-    // you just clicked, and a directory is not a node the inspector can answer
-    // about — it stands for what is *not* drawn.
-    if (pick.kind !== 'Cluster') setSelected(pick.id);
-    dispatch({ type: 'pick', ...pick });
-  }, []);
+  // The clusters the *engine* opened, which is not the same as the ones the
+  // user asked for while auto-expansion is still on. The reducer needs it to
+  // close one it never explicitly opened.
+  const open = view === null ? undefined : view.expanded;
+
+  const onPick = useCallback(
+    (pick: { kind: string; id: string; path?: string; expanded?: boolean }) => {
+      // A click both navigates and selects: §11's inspector is about the thing
+      // you just clicked, and a directory is not a node the inspector can answer
+      // about — it stands for what is *not* drawn.
+      if (pick.kind !== 'Cluster') setSelected(pick.id);
+      dispatch({ type: 'pick', ...pick, ...(open === undefined ? {} : { open }) });
+    },
+    [open],
+  );
 
   const onFocus = useCallback((id: string, kind: string) => {
     setSelected(id);
@@ -359,6 +398,7 @@ export function App({ bridge, layoutClient, initialOverlays = [] }: AppProps): J
             elements={elements}
             preset={preset}
             layoutClient={client}
+            palette={palette}
             onPick={onPick}
             onLayout={setLayout}
           />

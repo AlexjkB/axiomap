@@ -28,5 +28,14 @@ export {
   encodeViewRequest,
 } from './protocol.js';
 
+/**
+ * The third host (§12's `--format html`): a file. `sameViewRequest` is exported
+ * because the pair it forms with core's copy is pinned at the repo root — see
+ * `static.ts` for why there are two.
+ */
+export { PAYLOAD_GLOBAL, readEmbeddedPayload, sameViewRequest, StaticBridge } from './static.js';
+
 /** Where `vite build` puts the bundle, relative to the package root. */
 export const WEB_DIST = 'dist/web';
+/** Where the single-chunk build the HTML export inlines goes. */
+export const EXPORT_DIST = 'dist/export';

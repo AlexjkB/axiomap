@@ -27,7 +27,7 @@ import type { CyElements } from './elements.js';
 import { toElkGraph } from './layout/elk-graph.js';
 import type { LayoutClient } from './layout/client.js';
 import type { ViewPreset } from './presets.js';
-import { readDocumentPalette, stylesheet } from './style.js';
+import { stylesheet, type Palette } from './style.js';
 
 /**
  * How far `fit` may zoom in on a graph too small to fill the viewport.
@@ -59,6 +59,16 @@ export interface GraphCanvasProps {
   elements: CyElements;
   preset: ViewPreset;
   layoutClient: LayoutClient;
+  /**
+   * The resolved host palette (§11).
+   *
+   * Passed in rather than read here, so there is exactly one palette in the
+   * app. Two `readDocumentPalette()` call sites can disagree — and would, the
+   * moment a host changes its theme while the view is open: the canvas repaints
+   * from the new one on its next update and the badge strips, which the app
+   * generated from the old one, do not.
+   */
+  palette: Palette;
   /** A node was clicked: a cluster path to toggle, or a graph node to focus. */
   onPick: (pick: { kind: string; id: string; path?: string; expanded?: boolean }) => void;
   /** Layout finished (ms), is pending (null), or failed (a message). */
@@ -69,6 +79,7 @@ export function GraphCanvas({
   elements,
   preset,
   layoutClient,
+  palette,
   onPick,
   onLayout,
 }: GraphCanvasProps): JSX.Element {
@@ -76,6 +87,10 @@ export function GraphCanvas({
   const cy = useRef<cytoscape.Core | null>(null);
   const handlers = useRef({ onPick, onLayout });
   handlers.current = { onPick, onLayout };
+  // The mount effect runs once and must not re-run when the theme changes; the
+  // stylesheet is reapplied by the element effect below, which does.
+  const current = useRef(palette);
+  current.current = palette;
 
   useEffect(() => {
     const element = container.current;
@@ -84,10 +99,7 @@ export function GraphCanvas({
     const instance = cytoscape({
       container: element,
       elements: [],
-      style: stylesheet(
-        readDocumentPalette(),
-        preset,
-      ),
+      style: stylesheet(current.current, preset),
       wheelSensitivity: 0.2,
       // §11: no animation except functional layout transitions.
       textureOnViewport: true,
@@ -121,7 +133,7 @@ export function GraphCanvas({
 
     instance.batch(() => {
       instance.elements().remove();
-      instance.style(stylesheet(readDocumentPalette(), preset));
+      instance.style(stylesheet(palette, preset));
       instance.add([
         ...elements.nodes.map((node) => ({ group: 'nodes' as const, data: node.data, classes: node.classes })),
         ...elements.edges.map((edge) => ({ group: 'edges' as const, data: edge.data, classes: edge.classes })),
@@ -224,7 +236,7 @@ export function GraphCanvas({
     return () => {
       abandoned = true;
     };
-  }, [elements, preset, layoutClient]);
+  }, [elements, preset, layoutClient, palette]);
 
   return <div className="ax-canvas" ref={container} />;
 }

@@ -22,7 +22,7 @@ import path from 'node:path';
 
 import { describe, expect, it } from 'vitest';
 
-import { sliceNode, SourceUnavailableError } from '../src/index.js';
+import { graphFromFile, sliceNode, SourceUnavailableError } from '../src/index.js';
 import { fixture } from './fixtures.js';
 import { graphOf } from './graphs.js';
 
@@ -149,6 +149,62 @@ describe('sliceNode', () => {
 
     // And the one that does work names a file the graph already knew about.
     expect(files.has(sliceNode(graph, DEFI, MINT).file)).toBe(true);
+  });
+
+  /**
+   * §10's `SourceUnit` marks a file rather than spanning it — offset 0, length
+   * 0 — so slicing it literally returns one line of licence header, which is a
+   * preview of nothing. The file is what it means.
+   */
+  it('previews a whole file when the node is the file', async () => {
+    const { graph } = await graphOf('defi');
+    const slice = sliceNode(graph, DEFI, 'src/Pair.sol');
+
+    expect(slice.startLine).toBe(1);
+    expect(slice.text).toContain('contract Pair is IPair, Shares');
+    expect(slice.text).toContain('function swap(');
+    expect(slice.truncated).toBe(false);
+    // A file cannot have shifted relative to itself, and its `name` is a
+    // basename that need not appear in the text.
+    expect(slice.drifted).toBe(false);
+  });
+
+  /**
+   * The belt-and-braces half of the security design.
+   *
+   * A request cannot reach this: the path comes from the graph, so there is no
+   * input that makes it escape. What reaches it is a graph built somewhere else
+   * or edited by hand — and this process has read access to the whole checkout,
+   * so the guard is worth having *and* worth testing rather than asserting in a
+   * comment.
+   */
+  it('refuses a graph whose node claims a file outside the project', async () => {
+    const { file } = await graphOf('defi');
+    const scratch = fs.mkdtempSync(path.join('/tmp', 'axiomap-escape-'));
+    try {
+      // A hand-edited graph, which is exactly what the guard is for. Rebuilt
+      // from the serialized form rather than mutated in place: `graphs.ts`
+      // shares one build across the suite and nothing may write to it.
+      const forged = graphFromFile(JSON.parse(JSON.stringify(file)) as typeof file);
+      forged.setNodeAttribute(MINT, 'file', '../../../etc/passwd');
+
+      expect(() => sliceNode(forged, scratch, MINT)).toThrow(/resolves outside the project/);
+      expect(() => sliceNode(forged, scratch, MINT)).toThrow(SourceUnavailableError);
+    } finally {
+      fs.rmSync(scratch, { recursive: true, force: true });
+    }
+  });
+
+  it('says which file it could not read, rather than throwing an ENOENT', async () => {
+    const { graph } = await graphOf('defi');
+    const empty = fs.mkdtempSync(path.join('/tmp', 'axiomap-missing-'));
+    try {
+      expect(() => sliceNode(graph, empty, MINT)).toThrow(
+        /Could not read src\/Pair\.sol.*different checkout/s,
+      );
+    } finally {
+      fs.rmSync(empty, { recursive: true, force: true });
+    }
   });
 
   /**

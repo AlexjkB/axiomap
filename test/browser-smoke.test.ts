@@ -299,6 +299,55 @@ describe.skipIf(CHROME === undefined)('the graph in a browser', () => {
   }, 120_000);
 
   /**
+   * §9 rule 3's drill-down, in the direction that was broken.
+   *
+   * 7a's auto-expansion opens directories nobody put in the `expand` set, so a
+   * click that toggled *set membership* added a box that was visibly open —
+   * one click did nothing, and only the second closed it. It was invisible to
+   * the reducer's own tests, which had never been given a cluster that was open
+   * without having been opened, and obvious the moment a 298-contract project
+   * was on screen.
+   */
+  it('closes a directory the engine opened, on the first click', async () => {
+    await page.goto(session.handle.url);
+    await page.until(METRICS, (value) => /layout/.test(value));
+
+    const count = async (): Promise<number> =>
+      Number(
+        await page.evaluate(
+          "(() => document.querySelector('.ax-canvas')._cyreg.cy.nodes().length)()",
+        ),
+      );
+
+    const before = await count();
+    expect(before).toBeGreaterThan(3);
+
+    // A directory that is drawn open but is not `src` — closing the root would
+    // be a different (and duller) assertion.
+    const path = await page.evaluate(`
+      (() => {
+        const cy = document.querySelector('.ax-canvas')._cyreg.cy;
+        const box = cy.nodes('[kind = "Cluster"]')
+          .filter((node) => node.data('expanded') && node.data('path') !== 'src')
+          .first();
+        if (box.empty()) return '';
+        box.emit('tap');
+        return String(box.data('path'));
+      })()
+    `);
+    expect(path).not.toBe('');
+
+    await page.until(METRICS, (value) => /layout \d+ ms/.test(value));
+    // One click, fewer nodes. Not "the same picture, and try again".
+    const after = await page.until(
+      "(() => String(document.querySelector('.ax-canvas')._cyreg.cy.nodes().length))()",
+      (value) => Number(value) < before,
+    );
+    expect(Number(after)).toBeLessThan(before);
+    expect(page.consoleErrors.join('\n')).toBe('');
+  }, 120_000);
+
+  /**
    * An overlay that draws nothing looks exactly like an overlay with nothing to
    * report, which is the failure this project cares about most. Both halves are
    * here: a badge really reaches a node's computed style, and an overlay with

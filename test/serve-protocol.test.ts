@@ -23,6 +23,7 @@ import {
   decodeSearchRequest,
   decodeSourceRequest,
   decodeViewRequest,
+  sameViewRequest as coreSameRequest,
   META_ENDPOINT,
   NODE_ENDPOINT,
   OVERLAY_ENDPOINT,
@@ -36,6 +37,7 @@ import {
   encodeSearchRequest,
   encodeSourceRequest,
   encodeViewRequest,
+  sameViewRequest as webviewSameRequest,
   META_ENDPOINT as WEBVIEW_META,
   NODE_ENDPOINT as WEBVIEW_NODE,
   OVERLAY_ENDPOINT as WEBVIEW_OVERLAY,
@@ -122,6 +124,43 @@ describe('the serve protocol', () => {
 
     const smuggled = decodeSourceRequest({ ...encoded, file: '../../../etc/passwd', path: '/etc/passwd' });
     expect(smuggled).toEqual({ id: 'src/Vault.sol:Vault.deposit(uint256)', context: 2 });
+  });
+
+  /**
+   * `--format html`'s reader finds its view by comparing requests, and the
+   * comparison is written twice for the same §5 reason the encode/decode pair
+   * is: the CLI builds the payload, the webview reads it, and neither may
+   * import the other's functions.
+   *
+   * Drift here is the quietest failure in the export: a reader that disagreed
+   * with the writer would answer a click with *a different view* rather than
+   * with an error. This suite pins the pair — and it was added because a
+   * comment in `webview/src/static.ts` claimed it already existed.
+   */
+  it('compares view requests identically on both sides', () => {
+    const cases: [AggregatedViewOptions, AggregatedViewOptions][] = [
+      [{ view: 'protocol' }, { view: 'protocol' }],
+      [{ view: 'protocol' }, { view: 'contract' }],
+      [{ view: 'contract', focus: 'a' }, { view: 'contract', focus: 'a' }],
+      [{ view: 'contract', focus: 'a' }, { view: 'contract', focus: 'b' }],
+      [{ view: 'call', focus: 'a', up: 2, down: 3 }, { view: 'call', focus: 'a', up: 2, down: 3 }],
+      // The mismatch that made every function click in an export miss.
+      [{ view: 'call', focus: 'a' }, { view: 'call', focus: 'a', up: 2, down: 3 }],
+      [{ view: 'call', focus: 'a', up: 2, down: 3 }, { view: 'call', focus: 'a', up: 2, down: 6 }],
+      // `expand` is a set: order must not decide the answer.
+      [
+        { view: 'protocol', expand: ['src', 'src/lib'] },
+        { view: 'protocol', expand: ['src/lib', 'src'] },
+      ],
+      [{ view: 'protocol', expand: ['src'] }, { view: 'protocol', expand: [] }],
+      [{ view: 'protocol', autoExpand: false }, { view: 'protocol' }],
+      [{ view: 'state-access', includeTests: true }, { view: 'state-access', includeTests: true }],
+      [{ view: 'inheritance', renderCap: 400 }, { view: 'inheritance', renderCap: 500 }],
+    ];
+
+    for (const [a, b] of cases) {
+      expect(webviewSameRequest(a, b), JSON.stringify([a, b])).toBe(coreSameRequest(a, b));
+    }
   });
 
   it('agrees on where the endpoints are', () => {

@@ -26,25 +26,48 @@ export interface NavState {
   down: number;
   /** Directory paths open in the protocol map (§9 rule 3's drill-down). */
   expand: readonly string[];
+  /**
+   * Is the engine still choosing what to open?
+   *
+   * 7a's auto-expansion opens directories breadth-first for as long as the
+   * result fits under the cap, so a fresh protocol map has clusters open that
+   * are in nobody's `expand` set. True until the user touches a cluster, after
+   * which `expand` is the whole truth and the engine is told to stop deciding.
+   */
+  autoExpand: boolean;
 }
 
 export type NavEvent =
   | { type: 'view'; view: ViewName }
   | { type: 'focus'; focus: string | null }
   | { type: 'hops'; up: number; down: number }
-  | { type: 'pick'; kind: string; id: string; path?: string; expanded?: boolean };
+  | {
+      type: 'pick';
+      kind: string;
+      id: string;
+      path?: string;
+      /** Whether the clicked cluster is currently drawn open. */
+      expanded?: boolean;
+      /** Every cluster currently drawn open, from the view (`AggregatedView.expanded`). */
+      open?: readonly string[];
+    };
 
 export function initialState(defaults: { up: number; down: number }): NavState {
-  return { view: 'protocol', focus: null, up: defaults.up, down: defaults.down, expand: [] };
+  return {
+    view: 'protocol',
+    focus: null,
+    up: defaults.up,
+    down: defaults.down,
+    expand: [],
+    autoExpand: true,
+  };
 }
 
-function toggle(expand: readonly string[], path: string): string[] {
-  return expand.includes(path)
-    ? // Closing a directory closes what is inside it: leaving a descendant in
-      // the set would reopen the parent on the next request, since `aggregate`
-      // closes the expansion set under its ancestors.
-      expand.filter((entry) => entry !== path && !entry.startsWith(`${path}/`))
-    : [...expand, path];
+function close(expand: readonly string[], path: string): string[] {
+  // Closing a directory closes what is inside it: leaving a descendant in the
+  // set would reopen the parent on the next request, since `aggregate` closes
+  // the expansion set under its ancestors.
+  return expand.filter((entry) => entry !== path && !entry.startsWith(`${path}/`));
 }
 
 export function reduce(state: NavState, event: NavEvent): NavState {
@@ -54,7 +77,7 @@ export function reduce(state: NavState, event: NavEvent): NavState {
       // A focus that the new view cannot use is dropped rather than carried:
       // `selectView` would refuse a Function as the contract view's focus, and
       // an error is not what a user clicking a tab asked for.
-      return { ...state, view: event.view, expand: [] };
+      return { ...state, view: event.view, expand: [], autoExpand: true };
     }
     case 'focus':
       return { ...state, focus: event.focus };
@@ -63,18 +86,37 @@ export function reduce(state: NavState, event: NavEvent): NavState {
     case 'pick': {
       if (event.kind === 'Cluster') {
         if (event.path === undefined) return state;
-        return { ...state, expand: toggle(state.expand, event.path) };
+        /*
+         * Toggle what is *drawn*, not what is in the explicit set.
+         *
+         * These differ, and the difference was a real defect found by opening a
+         * 298-contract project: 7a's auto-expansion opens directories the user
+         * never asked for, so `src` is on screen wide open and absent from
+         * `expand`. Toggling set membership therefore *added* it — no visible
+         * change — and only a second click closed it. A directory you cannot
+         * shut is the drill-down half of §9 rule 3 not working.
+         *
+         * `expanded` comes from the element the click landed on, and `open` is
+         * the view's own list, so the first click takes over from the engine
+         * with the state that is actually on screen.
+         */
+        const base = state.autoExpand ? (event.open ?? state.expand) : state.expand;
+        const expand =
+          event.expanded === true ? close(base, event.path) : [...base, event.path];
+        // From here the UI owns the expansion set: leaving auto-expansion on
+        // would let the engine re-open the directory that was just closed.
+        return { ...state, expand, autoExpand: false };
       }
       // A node opens the view that is *about* it: a contract its members, a
       // function its call graph. Clicking one that already is the focus does
       // nothing rather than re-requesting the same view.
       if (event.kind === 'Contract') {
         if (state.view === 'contract' && state.focus === event.id) return state;
-        return { ...state, view: 'contract', focus: event.id, expand: [] };
+        return { ...state, view: 'contract', focus: event.id, expand: [], autoExpand: true };
       }
       if (event.kind === 'Function') {
         if (state.view === 'call' && state.focus === event.id) return state;
-        return { ...state, view: 'call', focus: event.id, expand: [] };
+        return { ...state, view: 'call', focus: event.id, expand: [], autoExpand: true };
       }
       // Storage, events, errors, and the synthetic `Unresolved` placeholders
       // have no view of their own in this phase. Nothing is a better answer
@@ -91,6 +133,7 @@ export function toRequest(state: NavState): {
   up?: number;
   down?: number;
   expand?: readonly string[];
+  autoExpand?: boolean;
 } {
   const preset = PRESETS[state.view];
   return {
@@ -98,6 +141,9 @@ export function toRequest(state: NavState): {
     ...(state.focus === null ? {} : { focus: state.focus }),
     ...(state.view === 'call' ? { up: state.up, down: state.down } : {}),
     ...(preset.clustered && state.expand.length > 0 ? { expand: state.expand } : {}),
+    // Sent only once the user has taken over, so an untouched map still gets
+    // 7a's "expand as far as it fits" and the request stays the short one.
+    ...(preset.clustered && !state.autoExpand ? { autoExpand: false } : {}),
   };
 }
 
