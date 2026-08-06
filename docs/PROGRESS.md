@@ -1950,3 +1950,215 @@ this is the exploratory one, and Phase 8 is the phase that needs it most.
   by the parser.
 - **`ProjectMeta` gained nothing this phase**, and the two new endpoints are why: audit
   state is per node and belongs beside the nodes, not in the header.
+
+---
+
+## Phase 7d — Code preview, search, history, the `html`/`svg` exports, and the phase boundary
+
+**Date:** 2026-08-05
+**Status:** **Phase 7 complete.** `pnpm check` and `pnpm check:network` both green. This
+session was the fourth of four and owns the phase boundary, so it also carries the audit
+across 7a–7d and Phase 7's own exit criteria.
+
+### Phase 7's exit criteria
+
+§7 gives the whole phase two, and neither had been tested in a viewport before this session
+— 7b's entry is explicit that density at scale had "only been measured".
+
+| Criterion | Result |
+|---|---|
+| **Usable on a 300-contract project** | pass — a generated **298-contract, 22k SLOC** project, served and driven in Chrome. All 298 contracts drawn, 718 of 1,500 elements, every directory a labelled box, ~0.63 zoom, labels legible. 888 ms to ingest and graph, 981 ms to lay out |
+| **Interaction stays responsive** | pass — zoom and pan **2 ms**, drill into a directory **580 ms** end to end, overlay toggle **844 ms**, search across the project **450 ms**. Layout is in the worker throughout (§9 rule 6), so the viewport is live while it runs |
+
+Pushed nine times further as a stress case: a **2,719-contract, 200k SLOC** project ingests
+and serves in **4.7 s** (§9 rule 5's warm budget is 5 s) and draws 869 of 1,500 elements
+with a 747 ms layout. It stays honest — "235 of 2,719 nodes drawn, 11 directories collapsed
+— expand one to drill in" — but the map opens lopsided, one directory wide open and eleven
+boxed. That is a §16 entry, below, not a fix: the remedy is an information-design decision.
+
+### 7d's own criteria
+
+| Criterion | Result |
+|---|---|
+| §11's inline shiki code preview | pass — `CodePreview.tsx` over `core/source/slice.ts`, with the Solidity grammar and a theme built from the host's palette. Screenshotted in all three themes |
+| §11's `/` fuzzy search palette | pass — `SearchPalette.tsx` over `query/search.ts`. Matched and capped host-side; a caller cannot raise the cap |
+| §11's breadcrumb + back/forward history | pass — `history.ts` wraps the navigation reducer; `Breadcrumb.tsx` draws the trail. Alt+←/→, and every crumb is a jump |
+| §12's `export --format html` | pass — 3.0 MB self-contained file, the webview in one document, elkjs attribution in the footer |
+| §12's `export --format svg` | pass — the same `ViewSelection`, laid out by the same ELK |
+| The Phase 7 boundary audit (§6) | pass — below. Three findings, all fixed |
+| Screenshot everything in a real browser | pass — 14 shots × 3 themes via `pnpm screenshots`, plus the export and the SVG driven in Chrome directly. **Six defects came out of them** |
+
+`pnpm check` is green: **403** tests in `core` (381 from 7c, 22 new), **99** in `webview`
+(68 + 31), **96** in `cli` (82 + 14), and **29** repo-level (23 + 6, six of them in a browser).
+
+### The source endpoint, which is the one that needed deciding
+
+Every payload that had crossed §9 rule 1's bridge was graph-derived. A code preview is the
+first that ships **the client's actual source** to a browser, so it got its own module and
+its own rules rather than an entry in `query/` — which is deliberately `fs`-free, and which
+the webview consumes as types.
+
+It is `core/source/slice.ts`, not the CLI's, because Phase 8's host implements the same
+`HostBridge` and a slice living in `packages/cli` would be reimplemented there — the second
+implementation 7b's notes forbid for the inspector.
+
+**The request names a node, never a path.** That is the whole security design, and it is
+structural rather than careful: the caller supplies an id, `sliceNode` takes the file from
+the graph, and there is no parameter through which a file could be named. The obvious
+convenient shape — "lines 40–80 of `src/Vault.sol`" — turns a graph viewer into a file
+server for whatever the process can read, on a tool pointed at confidential client code.
+`test/serve-protocol.test.ts` asserts the *absence* of a file parameter on both sides.
+
+Two more properties it has to have, both tested: offsets are **bytes** (§10's warning, and
+`pathological/`'s `Crlf.sol` is the fixture that catches a character-offset implementation),
+and it reports **drift** when the file no longer matches the graph — `serve` builds once
+(§12) and `.axiomap/graph.json` can be older still, so a preview confidently showing the
+wrong function is the ordinary consequence of editing while the tool is open.
+
+### Then it was pointed at a browser, again, and six things were wrong
+
+7b's and 7c's lesson held for a third time. Every one of these passed the full suite first.
+
+- **Shiki rendered monochrome code.** `settings` and `tokenColors` are the *same field* and
+  shiki prefers the former — so supplying a rule list under one and an empty array under the
+  other to satisfy the type meant every token came back with the default colour. Nothing
+  threw. It reads as a styling choice.
+- **The search palette matched almost everything.** `mint` returned 23 rows on the
+  nine-contract fixture — `sqrt`, `Sync`, `quote`, `FEE_DENOMINATOR` — because the fuzzy tier
+  ran a subsequence over the whole node id, and any path deep enough contains any four
+  letters in some order. It runs over the qualified name now, with a bound on how spread out
+  a match may be. Seven rows, all relevant.
+- **The syntax colours were illegible on a light host.** The fallbacks are Dark+'s token
+  colours, correct against browser mode's own dark background and pale-yellow-on-white
+  against a host that sets a light editor background without setting `--vscode-symbolIcon-*`.
+  Palette entries may now name a **second variable**, so those fall through to a
+  `--vscode-charts-*` the same theme chose for the same background.
+- **Every function click in the HTML export missed.** The exporter embedded
+  `{view:'call', focus}`; `navigation.ts` sends `{view:'call', focus, up, down}`. A 49-view
+  file in which none of the views was the one being asked for. The export's hops are its
+  `meta.callDefaults` now, which is what the UI initialises from.
+- **Collapsed directories in the export could not be opened** — their expansions were never
+  embedded.
+- **The SVG header clipped the note mid-word**, and sizing the image to hold the sentence
+  made a 300 px call graph a 1,000 px picture that is mostly whitespace. It wraps.
+
+A seventh came from the 298-contract run and is in the audit below.
+
+### What the exports turned out to be
+
+**`--format html` is the webview in one file**, which is what §7's Phase 9 settles when it
+says the file "redistributes" elkjs. Three things followed from there being no process on
+the other end, and none of them was obvious from §16's entry:
+
+- **A third `HostBridge`.** `StaticBridge` answers from an inlined payload. The UI does not
+  learn which bridge it got — which is the claim the deliverable makes: a client opening it
+  gets the tool, not a picture of it. It having worked unchanged is also the strongest
+  evidence so far that the Phase 8 boundary is in the right place.
+- **"The graph embedded" (§12) had to be read against §9 rule 1.** What is inlined is the
+  *answers a host would have given* — views, inspections, source ranges, the two audit-state
+  files — because an `AxiomapGraph` in a file sent to a third party is the one place
+  breaking rule 1 would be permanent. A question the payload does not answer is a stated
+  refusal naming how many views the file holds.
+- **A single-chunk build config.** The served bundle splits ELK into its own asset (§9 rule
+  6) and loads shiki's grammar lazily; a single file can fetch neither. `vite.export.config.ts`
+  builds the same UI with one chunk, and elkjs's worker is inlined and started from a
+  `Blob` — which is the sense in which the file redistributes it.
+
+**`--format svg` is a serializer, not a second layout engine.** The thing §16 refused was a
+second answer to *where things go*; this calls the same elkjs. What is written twice is the
+drawing, because cytoscape needs a DOM and a CLI has none. Its colours are literal, which is
+not a §11 violation: §11's rule is about a webview that inherits a host's theme, and an SVG
+opened in an image viewer has nothing to inherit from.
+
+### Pre-Phase-8 audit
+
+Phase 7 was audited at the boundary the same way Phases 2, 3, 5 and 6 were, asking what is
+cheap now and expensive once Phase 8 is reading it. Phase 8 implements `HostBridge` over
+`postMessage` and renders the same `App`, so the boundary is that interface and the theme
+chain behind it. Three findings.
+
+- **A comment claimed a test that did not exist.** `webview/src/static.ts` said the
+  repo-root suite pinned its `sameViewRequest` against core's copy. It did not — and core's
+  copy was exported and never called, so there were two implementations of one comparison
+  with one of them dead. Precisely the failure Phase 6's audit found in `store.ts`, whose
+  header described staleness handling the file did not have. The pair is pinned now, over a
+  table that includes the hop-limit mismatch the export shipped with.
+- **Three branches in `source/slice.ts` had no test**, found by coverage the way Phase 2's
+  audit found its two bugs: the guard refusing a node whose file resolves outside the
+  project, the unreadable-file path, and the SourceUnit whole-file case. The first is the one
+  that matters — unreachable by any request, reachable by a graph built elsewhere, and this
+  process can read a client's whole checkout. Asserted now against a hand-edited graph, which
+  is the case it exists for.
+- **The palette was read once and could not survive a theme change.** VS Code rewrites
+  `--vscode-*` on the document without reloading the webview, and Phase 8's exit criterion is
+  legibility in Dark+, Light+ and a high-contrast theme — which anyone checks by switching
+  between them. `GraphCanvas` re-read the palette on every element update while `App`
+  memoised it forever, so a switch would repaint the graph and leave the badges and the
+  syntax highlighting on the old theme. There is one palette now, it is state, and a
+  `MutationObserver` refreshes it. Verified in Chrome: changing two variables live moves both
+  a node border and a keyword colour, no reload.
+
+And one defect the 298-contract run surfaced, which is a §9 rule 3 failure rather than a
+boundary issue: **a directory opened by 7a's auto-expansion could not be closed.** The click
+toggled membership of the `expand` set, and the box was open without being in it — so the
+first click did nothing and only the second closed it. It toggles what is *drawn* now, and
+takes expansion over from the engine when it does. `browser-smoke.test.ts` has the case;
+the reducer's own tests never caught it because they had never been given a cluster that was
+open without having been opened.
+
+### Deviations from the spec
+
+- **`@axiomap/webview` gained `shiki`, and `@axiomap/cli` gained `elkjs`.** Both are §3's
+  own choices arriving where §7 puts them. The CLI imports `elk.bundled.js` rather than
+  `elk-api.js`: the latter refuses to construct without a worker, and a CLI writing a file
+  has no viewport to keep responsive.
+- **`sameViewRequest` is written twice**, in `core/query/static.ts` and
+  `webview/src/static.ts`, for the same §5 reason `encodeViewRequest`/`decodeViewRequest`
+  are — the boundary is types-only and §6 forbids adding exceptions to the lint rule. Pinned
+  at the repo root, as the other pair is.
+- **`packages/webview` has a third build.** `tsconfig.json` emits the node surface,
+  `tsconfig.ui.json` typechecks the bundled half, and `vite.export.config.ts` builds the
+  single-chunk bundle the export inlines.
+- **`export --format html` refuses stdout.** The other four are text to pipe; this one is
+  three megabytes and dumping it into a terminal is never what was meant.
+- **The palette entry table now allows more than one variable per entry.** The last string
+  is the literal fallback and everything before it is tried in order. Only the syntax
+  entries use it, for the reason above.
+- **`NavState` gained `autoExpand`.** The UI takes expansion over from the engine the first
+  time a cluster is clicked; leaving auto-expansion on would reopen what was just closed.
+
+### §16 changes
+
+- **`export --format html|svg` marked shipped**, with the three things that turned out to be
+  decisions rather than plumbing.
+- **NatSpec re-deferred, explicitly.** §16 named the Phase 7 inspector as its trigger and
+  that panel exists — so this was a decision, not an oversight. It is a *parse-layer* change:
+  `parse/` collects no comments at all, so it needs the doc comment in the neutral AST, a new
+  schema field, `GRAPH_SCHEMA_VERSION` 4 → 5, and a regeneration of all four goldens. Landing
+  that in the last hour of the phase whose criteria are about a viewport is what §6's phase
+  discipline says not to do, and §6 is emphatic that golden diffs are read and justified
+  rather than swept through. One risk is already handled — `diff/classify.ts` compares an
+  explicit allowlist, so the "NatSpec typo reads as a modification" failure stays prevented —
+  and two questions are still open. Owner: Phase 8 or a 7e, as its own change with its own
+  golden commit.
+- **Added Tier 2 — auto-expansion spends the render cap on one directory**, with the
+  2,719-contract measurement, the 298-contract numbers that show the exit criterion holds,
+  and why the fix is an information-design decision rather than a line of code.
+- **The open question on aggregate edge weighting is still open**, now with a reason to
+  expect the comparison to be uninformative: what limits a 298-contract map's legibility is
+  the *number* of edges crossing it, not how any one is weighted.
+
+### Notes for the next session
+
+- **Phase 8 is the VS Code extension**, and the seam it needs is done: `HostBridge` has six
+  methods, all request/response, and a third implementation of it (`StaticBridge`) already
+  exists and works. Implementing it over `postMessage` is correlation ids and nothing else.
+- **The `source` bridge method has one VS Code-specific question.** It reads from disk, and
+  the editor may hold unsaved changes — so a preview can disagree with what the user is
+  looking at in a way `drifted` will not catch. The extension knows the buffer; the slice
+  should probably come from it.
+- **`pnpm screenshots` now covers 7d's surfaces too** — the code preview, the palette and
+  the breadcrumb — and it is the harness that found six of this session's defects. Phase 8 is
+  the phase that needs it most: its exit criterion is three themes.
+- **`fixtures/large/generate.mjs --sloc 22000` makes the 298-contract project** used for the
+  exit criterion. It is not committed (§14) and takes a second to regenerate.
