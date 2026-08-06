@@ -59,3 +59,32 @@ jobs:
           cache: pnpm
       - run: pnpm install --frozen-lockfile
       - run: pnpm check:licences
+
+  # §7's Phase 8: "installable `.vsix`". The package is built and then *run* —
+  # `verify-vsix.mjs` unpacks it into a temp directory with no workspace above it
+  # and makes the packaged bundle parse a real contract. A path that resolves in
+  # this repo and not in the package is the failure this whole step exists for,
+  # and it is invisible to every other job here.
+  #
+  # It also carries the notices check: the `.vsix` redistributes elkjs (EPL-2.0),
+  # so `THIRD-PARTY-NOTICES.md` being current is a property of the artifact
+  # rather than a chore.
+  vsix:
+    name: packaged extension
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm notices:check
+      - run: pnpm build
+      - run: pnpm package:vsix
+      - run: pnpm verify:vsix
+      - uses: actions/upload-artifact@v4
+        with:
+          name: axiomap-vsix
+          path: dist/*.vsix

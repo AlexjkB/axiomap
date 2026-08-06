@@ -8,6 +8,16 @@ coverage/
 # Derived: `pnpm screenshots` writes here, and a PNG is not a diff anyone reads.
 docs/screenshots/
 
+# The `.vsix` and the tree it is packaged from (`pnpm package:vsix`). Both are
+# build output; the script and the manifest are what get reviewed.
+packages/vscode/.vsix/
+*.vsix
+
+# `pnpm test:host` — the editor it downloads, and the CommonJS build of the
+# suite it runs inside it.
+.vscode-test/
+packages/vscode/dist-host/
+
 # Axiomap's own output.
 #
 # Unanchored (`**/`) rather than §5's root-relative form, because Phase 6 gave

@@ -53,6 +53,12 @@ export default tseslint.config(
       '.turbo/**',
       '**/coverage/**',
       'fixtures/**',
+      // Phase 8b's build outputs. Not linting them is not a style choice: the
+      // first is a whole VS Code install and the second a bundled extension, and
+      // ESLint ran out of a 4 GB heap trying to parse them.
+      '.vscode-test/**',
+      'packages/vscode/.vsix/**',
+      'packages/vscode/dist-host/**',
     ],
   },
   js.configs.recommended,
