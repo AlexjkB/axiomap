@@ -19,8 +19,12 @@ export {
   META_ENDPOINT,
   NODE_ENDPOINT,
   OVERLAY_ENDPOINT,
+  SEARCH_ENDPOINT,
+  SOURCE_ENDPOINT,
   VIEW_ENDPOINT,
   encodeNodeRequest,
+  encodeSearchRequest,
+  encodeSourceRequest,
   encodeViewRequest,
 } from './protocol.js';
 

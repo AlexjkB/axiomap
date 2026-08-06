@@ -28,6 +28,10 @@ export const META_ENDPOINT = '/api/meta';
 export const NODE_ENDPOINT = '/api/node';
 /** §11's review-state and imported-findings overlays, the two files the host reads. */
 export const OVERLAY_ENDPOINT = '/api/overlays';
+/** §11's `/` fuzzy search palette. Matched and capped on this side (§9 rule 1). */
+export const SEARCH_ENDPOINT = '/api/search';
+/** §11's inline code preview: a byte range around one node's `src`. */
+export const SOURCE_ENDPOINT = '/api/source';
 
 /**
  * What the UI shows above the graph before it has drawn anything: §4's mode and
@@ -146,6 +150,41 @@ export function decodeNodeRequest(params: Record<string, string | undefined>): {
     throw new ViewError('"id" is required: which node should be inspected?');
   }
   return { id };
+}
+
+/**
+ * Query parameters → a search request.
+ *
+ * `limit` is decoded because a UI may legitimately want fewer rows than the
+ * default; it is *clamped* by `searchNodes` rather than here, because the
+ * ceiling is a property of the query API and not of one transport (§9 rule 1
+ * has to hold over `postMessage` too).
+ */
+export function decodeSearchRequest(
+  params: Record<string, string | undefined>,
+): { query: string; limit?: number } {
+  const query = params['q'] ?? '';
+  const limit = integer(params, 'limit');
+  return { query, ...(limit === undefined ? {} : { limit }) };
+}
+
+/**
+ * Query parameters → a source-slice request.
+ *
+ * Note what is *not* decodable: a path. §11's preview asks for the source of a
+ * **node**, and `sliceNode` takes the file from the graph — so there is no
+ * parameter here through which a caller could name a file to read. That is the
+ * whole of the design; see `source/slice.ts`.
+ */
+export function decodeSourceRequest(
+  params: Record<string, string | undefined>,
+): { id: string; context?: number } {
+  const id = params['id'];
+  if (id === undefined || id.trim() === '') {
+    throw new ViewError('"id" is required: which node\'s source should be shown?');
+  }
+  const context = integer(params, 'context');
+  return { id, ...(context === undefined ? {} : { context }) };
 }
 
 /** §9 rule 4's defaults, in the shape {@link ProjectMeta} carries them. */

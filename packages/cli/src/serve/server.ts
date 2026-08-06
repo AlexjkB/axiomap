@@ -31,13 +31,18 @@ import type { AddressInfo } from 'node:net';
 import {
   NodeNotFoundError,
   RenderCapError,
+  SourceUnavailableError,
   ViewError,
   callDefaults,
   decodeNodeRequest,
+  decodeSearchRequest,
+  decodeSourceRequest,
   decodeViewRequest,
   inspectNode,
   overlayData,
+  searchNodes,
   selectAggregatedView,
+  sliceNode,
   VIEW_NAMES,
   type AxiomapGraph,
   type FindingsFile,
@@ -52,6 +57,8 @@ const VIEW_ENDPOINT = '/api/view';
 const META_ENDPOINT = '/api/meta';
 const NODE_ENDPOINT = '/api/node';
 const OVERLAY_ENDPOINT = '/api/overlays';
+const SEARCH_ENDPOINT = '/api/search';
+const SOURCE_ENDPOINT = '/api/source';
 
 const CONTENT_TYPES: Record<string, string> = {
   '.html': 'text/html; charset=utf-8',
@@ -112,6 +119,13 @@ function toProtocolError(error: unknown): { status: number; body: ProtocolError 
   }
   if (error instanceof NodeNotFoundError) {
     return { status: 404, body: { name: 'NodeNotFoundError', message: error.message } };
+  }
+  // 404 rather than 500: a node with nothing readable behind it is an answer
+  // about the graph, not a fault. An `Unresolved` placeholder and a file the
+  // graph was built from a different checkout of both land here, and both are
+  // things the panel says out loud rather than states as an error.
+  if (error instanceof SourceUnavailableError) {
+    return { status: 404, body: { name: 'SourceUnavailableError', message: error.message } };
   }
   return {
     status: 500,
@@ -206,6 +220,12 @@ function overlaysOf(options: ServerOptions): OverlayData {
   });
 }
 
+function queryParams(url: URL): Record<string, string> {
+  const params: Record<string, string> = {};
+  for (const [key, value] of url.searchParams) params[key] = value;
+  return params;
+}
+
 export function createServer(options: ServerOptions): http.Server {
   const overlays = overlaysOf(options);
 
@@ -233,10 +253,8 @@ export function createServer(options: ServerOptions): http.Server {
     }
 
     if (url.pathname === VIEW_ENDPOINT) {
-      const params: Record<string, string> = {};
-      for (const [key, value] of url.searchParams) params[key] = value;
       try {
-        const request_ = decodeViewRequest(params);
+        const request_ = decodeViewRequest(queryParams(url));
         const view = selectAggregatedView(options.graph, {
           ...request_,
           ...(request_.renderCap === undefined && options.renderCap !== undefined
@@ -257,11 +275,52 @@ export function createServer(options: ServerOptions): http.Server {
     }
 
     if (url.pathname === NODE_ENDPOINT) {
-      const params: Record<string, string> = {};
-      for (const [key, value] of url.searchParams) params[key] = value;
       try {
-        const { id } = decodeNodeRequest(params);
+        const { id } = decodeNodeRequest(queryParams(url));
         sendJson(response, 200, inspectNode(options.graph, id));
+      } catch (error) {
+        const { status, body } = toProtocolError(error);
+        sendJson(response, status, { error: body });
+      }
+      return;
+    }
+
+    // §11's palette. The match and the cap are both `searchNodes`', on this
+    // side of the bridge — see `core/query/search.ts` for why that is §9 rule
+    // 1 rather than an optimisation.
+    if (url.pathname === SEARCH_ENDPOINT) {
+      try {
+        const { query, limit } = decodeSearchRequest(queryParams(url));
+        sendJson(
+          response,
+          200,
+          searchNodes(options.graph, query, limit === undefined ? {} : { limit }),
+        );
+      } catch (error) {
+        const { status, body } = toProtocolError(error);
+        sendJson(response, status, { error: body });
+      }
+      return;
+    }
+
+    /*
+     * §11's code preview, and the only route that reads a file off disk in
+     * response to a request.
+     *
+     * It is safe for a reason that is structural rather than careful: the
+     * request carries a **node id**, and `sliceNode` takes the path from the
+     * graph. There is no parameter here that names a file, so the static-asset
+     * guard's problem — a `..` in a URL turning a viewer into a file server —
+     * does not have an analogue to defend against.
+     */
+    if (url.pathname === SOURCE_ENDPOINT) {
+      try {
+        const { id, context } = decodeSourceRequest(queryParams(url));
+        sendJson(
+          response,
+          200,
+          sliceNode(options.graph, options.root, id, context === undefined ? {} : { context }),
+        );
       } catch (error) {
         const { status, body } = toProtocolError(error);
         sendJson(response, status, { error: body });

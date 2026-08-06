@@ -20,14 +20,20 @@ import type {
   OverlayData,
   ProjectMeta,
   ProtocolError,
+  SearchResults,
+  SourceSlice,
 } from '@axiomap/core';
 
 import {
   META_ENDPOINT,
   NODE_ENDPOINT,
   OVERLAY_ENDPOINT,
+  SEARCH_ENDPOINT,
+  SOURCE_ENDPOINT,
   VIEW_ENDPOINT,
   encodeNodeRequest,
+  encodeSearchRequest,
+  encodeSourceRequest,
   encodeViewRequest,
 } from './protocol.js';
 
@@ -49,6 +55,22 @@ export interface HostBridge {
   inspect(id: string): Promise<NodeInspection>;
   /** §11's review-state and imported-findings overlays. Two files, not the graph. */
   overlays(): Promise<OverlayData>;
+  /**
+   * §11's `/` fuzzy search palette.
+   *
+   * The match runs on the host and the result is capped there. This method
+   * exists rather than a `nodes()` the UI could filter itself precisely because
+   * the latter is §9 rule 1's forbidden payload with a search box drawn on it.
+   */
+  search(query: string, limit?: number): Promise<SearchResults>;
+  /**
+   * §11's inline code preview: a byte range around one node's `src`.
+   *
+   * The first thing across this bridge that is the *user's source* rather than
+   * something derived from it, which is why it takes a node id and not a path —
+   * the file comes from the graph. See `core/source/slice.ts`.
+   */
+  source(id: string, context?: number): Promise<SourceSlice>;
 }
 
 /**
@@ -157,5 +179,17 @@ export class HttpBridge implements HostBridge {
 
   async overlays(): Promise<OverlayData> {
     return (await this.fetchJson(this.url(OVERLAY_ENDPOINT))) as OverlayData;
+  }
+
+  async search(query: string, limit?: number): Promise<SearchResults> {
+    return (await this.fetchJson(
+      this.url(SEARCH_ENDPOINT, encodeSearchRequest(query, limit)),
+    )) as SearchResults;
+  }
+
+  async source(id: string, context?: number): Promise<SourceSlice> {
+    return (await this.fetchJson(
+      this.url(SOURCE_ENDPOINT, encodeSourceRequest(id, context)),
+    )) as SourceSlice;
   }
 }

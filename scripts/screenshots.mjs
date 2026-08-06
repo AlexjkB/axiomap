@@ -58,6 +58,13 @@ const THEMES = {
     '--vscode-charts-foreground': '#3b3b3b',
     '--vscode-editorWarning-foreground': '#bf8803',
     '--vscode-editorError-foreground': '#e51400',
+    '--vscode-charts-red': '#e51400',
+    '--vscode-symbolIcon-keywordForeground': '#af00db',
+    '--vscode-symbolIcon-classForeground': '#267f99',
+    '--vscode-symbolIcon-functionForeground': '#795e26',
+    '--vscode-symbolIcon-stringForeground': '#a31515',
+    '--vscode-symbolIcon-numberForeground': '#098658',
+    '--vscode-symbolIcon-variableForeground': '#001080',
     '--vscode-focusBorder': '#005fb8',
     '--vscode-editor-font-family': 'ui-monospace, monospace',
     '--vscode-font-family': 'system-ui, sans-serif',
@@ -76,6 +83,13 @@ const THEMES = {
     '--vscode-charts-foreground': '#ffffff',
     '--vscode-editorWarning-foreground': '#ffd700',
     '--vscode-editorError-foreground': '#f48771',
+    '--vscode-charts-red': '#f48771',
+    '--vscode-symbolIcon-keywordForeground': '#c586c0',
+    '--vscode-symbolIcon-classForeground': '#4ec9b0',
+    '--vscode-symbolIcon-functionForeground': '#dcdcaa',
+    '--vscode-symbolIcon-stringForeground': '#ce9178',
+    '--vscode-symbolIcon-numberForeground': '#b5cea8',
+    '--vscode-symbolIcon-variableForeground': '#9cdcfe',
     '--vscode-focusBorder': '#f38518',
     '--vscode-editor-font-family': 'ui-monospace, monospace',
     '--vscode-font-family': 'system-ui, sans-serif',
@@ -272,6 +286,39 @@ const tapContract = (label) => `
   })()
 `;
 
+/** Select a node without navigating, the way the inspector's own rows do. */
+const tapKind = (kind) => `
+  (() => {
+    const cy = document.querySelector('.ax-canvas')._cyreg.cy;
+    const node = cy.nodes('[kind = ' + ${JSON.stringify(JSON.stringify(kind))} + ']').first();
+    if (node.empty()) return '';
+    node.emit('tap');
+    return node.id();
+  })()
+`;
+
+const CODE = "document.querySelector('.ax-code')?.textContent ?? ''";
+const PALETTE = "document.querySelector('.ax-palette')?.textContent ?? ''";
+const CRUMBS = "document.querySelector('.ax-crumbs')?.textContent ?? ''";
+
+const typeInPalette = (text) => `
+  (() => {
+    const input = document.querySelector('.ax-palette input');
+    if (!input) return 'missing';
+    const setter = Object.getOwnPropertyDescriptor(window.HTMLInputElement.prototype, 'value').set;
+    setter.call(input, ${JSON.stringify(text)});
+    input.dispatchEvent(new Event('input', { bubbles: true }));
+    return 'ok';
+  })()
+`;
+
+const press = (key) => `
+  (() => {
+    document.dispatchEvent(new KeyboardEvent('keydown', { key: ${JSON.stringify(key)}, bubbles: true }));
+    return 'ok';
+  })()
+`;
+
 const clickOverlay = (label) => `
   (() => {
     const chip = [...document.querySelectorAll('.ax-overlay-row .ax-chip')]
@@ -323,6 +370,25 @@ async function run() {
 
         for (const label of OVERLAYS) await page.evaluate(clickOverlay(label));
         console.log(await page.shot(path.join(out, '11-all-eight.png')));
+        for (const label of OVERLAYS) await page.evaluate(clickOverlay(label));
+
+        // Phase 7d: the inspector's code preview, the search palette and the
+        // breadcrumb. Each is screenshotted where it has something to show —
+        // the lesson of 7b and 7c is that a green suite says nothing about
+        // whether a panel is legible.
+        await page.evaluate(tapKind('Function'));
+        await page.until(CODE, (value) => value.length > 0);
+        console.log(await page.shot(path.join(out, '12-code-preview.png')));
+
+        await page.evaluate(press('/'));
+        await page.until(PALETTE, (value) => value.length > 0);
+        await page.evaluate(typeInPalette('mint'));
+        await page.until(PALETTE, (value) => value.includes('mint'));
+        console.log(await page.shot(path.join(out, '13-search-palette.png')));
+        await page.evaluate(press('Escape'));
+
+        await page.until(CRUMBS, (value) => value.length > 0);
+        console.log(await page.shot(path.join(out, '14-breadcrumb.png')));
 
         if (page.consoleErrors.length > 0) {
           console.error(`console errors under ${themeName}:`, page.consoleErrors);

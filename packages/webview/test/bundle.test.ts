@@ -49,6 +49,36 @@ describe.skipIf(!built)('the built bundle', () => {
     expect(chunks.some(({ text }) => text.includes(marker))).toBe(true);
   });
 
+  /**
+   * §11's code preview needs a TextMate grammar and a regex engine — a few
+   * hundred kilobytes for a panel that is closed until something is clicked.
+   * The import is dynamic for that reason, and "dynamic" is a property of the
+   * output rather than of the source: a bundler that inlined it would leave
+   * `highlight.ts` untouched and put the whole of shiki on first paint.
+   */
+  it('keeps the syntax highlighter out of the chunk the page loads', () => {
+    const entry = chunks.filter(({ file }) => html.includes(file));
+    expect(entry).toHaveLength(1);
+
+    // The grammar's own scope name: it is in `@shikijs/langs/solidity` and
+    // nowhere else in this tree.
+    const marker = 'source.solidity';
+    expect(entry[0]?.text.includes(marker)).toBe(false);
+    expect(chunks.some(({ text }) => text.includes(marker))).toBe(true);
+  });
+
+  /**
+   * Decision #2 again, at the one place it could plausibly break: shiki's
+   * default engine is oniguruma compiled to WebAssembly, and the ways of
+   * locating that `.wasm` at runtime include fetching it from a CDN. The
+   * JavaScript engine has no asset to locate, so there should be no wasm in
+   * this bundle at all.
+   */
+  it('ships no WebAssembly for the highlighter to go looking for', () => {
+    const assets = fs.readdirSync(path.join(dist, 'assets'));
+    expect(assets.filter((file) => file.endsWith('.wasm'))).toEqual([]);
+  });
+
   it('references its assets relatively, so a webview host can mount it', () => {
     expect(html).toMatch(/src="\.\/assets\//);
     expect(html).not.toMatch(/src="\/assets\//);

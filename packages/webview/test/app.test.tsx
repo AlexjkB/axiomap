@@ -15,7 +15,7 @@
 
 // @vitest-environment jsdom
 
-import { act, cleanup, render, screen, waitFor } from '@testing-library/react';
+import { act, cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
 import type {
@@ -24,6 +24,8 @@ import type {
   NodeInspection,
   OverlayData,
   ProjectMeta,
+  SearchResults,
+  SourceSlice,
 } from '@axiomap/core';
 
 const canvasProps: Record<string, unknown>[] = [];
@@ -38,7 +40,7 @@ vi.mock('../src/ui/GraphCanvas.js', () => ({
 import { App } from '../src/ui/App.js';
 import { BridgeError, type HostBridge } from '../src/bridge.js';
 import { LayoutClient } from '../src/ui/layout/client.js';
-import { contract, fn, view } from './support.js';
+import { contract, fn, sliceOf, view } from './support.js';
 
 const meta: ProjectMeta = {
   schemaVersion: 4,
@@ -62,13 +64,20 @@ const vault = contract('src/Vault.sol:Vault');
 
 function bridgeOf(
   answer: (request: AggregatedViewOptions) => Promise<AggregatedView>,
-  extra: { inspect?: (id: string) => Promise<NodeInspection>; overlays?: () => Promise<OverlayData> } = {},
-): { bridge: HostBridge; asked: AggregatedViewOptions[]; inspected: string[] } {
+  extra: {
+    inspect?: (id: string) => Promise<NodeInspection>;
+    overlays?: () => Promise<OverlayData>;
+    search?: (query: string, limit?: number) => Promise<SearchResults>;
+    source?: (id: string) => Promise<SourceSlice>;
+  } = {},
+): { bridge: HostBridge; asked: AggregatedViewOptions[]; inspected: string[]; sliced: string[] } {
   const asked: AggregatedViewOptions[] = [];
   const inspected: string[] = [];
+  const sliced: string[] = [];
   return {
     asked,
     inspected,
+    sliced,
     bridge: {
       meta: () => Promise.resolve(meta),
       view: (request) => {
@@ -90,6 +99,13 @@ function bridgeOf(
         );
       },
       overlays: () => extra.overlays?.() ?? Promise.resolve(emptyOverlays),
+      search: (query, limit) =>
+        extra.search?.(query, limit) ??
+        Promise.resolve({ query, hits: [], total: 0, capped: false, limit: limit ?? 20 }),
+      source: (id) => {
+        sliced.push(id);
+        return extra.source?.(id) ?? Promise.resolve(sliceOf(id));
+      },
     },
   };
 }
@@ -320,5 +336,128 @@ describe('App', () => {
       expect(screen.getByText(/no \.axiomap\/review\.json/)).toBeDefined();
     });
     expect(screen.getByText(/axiomap import-findings/)).toBeDefined();
+  });
+
+  /**
+   * §11's code preview, at the wiring level: the panel is filled from a second
+   * bridge call rather than from anything the view carried, because the view
+   * carries no source and never will (§9 rule 1).
+   */
+  it('asks the host for a clicked node’s source', async () => {
+    const { bridge, sliced } = bridgeOf(() =>
+      Promise.resolve(
+        view({ nodes: [{ type: 'node', id: vault.id, node: vault, parent: null }], elements: 1 }),
+      ),
+    );
+    render(<App bridge={bridge} layoutClient={new LayoutClient(idleEngine)} />);
+
+    await waitFor(() => {
+      expect(canvasProps.length).toBeGreaterThan(0);
+    });
+    const onPick = canvasProps.at(-1)?.['onPick'] as (pick: { kind: string; id: string }) => void;
+    act(() => {
+      onPick({ kind: 'Contract', id: vault.id });
+    });
+
+    await waitFor(() => {
+      expect(sliced).toContain(vault.id);
+    });
+    await waitFor(() => {
+      expect(screen.getByText(/total \+= amount/)).toBeDefined();
+    });
+  });
+
+  /**
+   * §11's `/`. The palette is reached by a keystroke on the document, because
+   * the thing the user is looking at is a canvas that cannot hold focus — and
+   * choosing a row does the same two things a click on that canvas does.
+   */
+  it('opens the search palette on “/” and navigates to what is chosen', async () => {
+    const swap = fn('src/Pair.sol:Pair.swap(uint256)');
+    const { bridge, asked, inspected } = bridgeOf(() => Promise.resolve(view()), {
+      search: (query) =>
+        Promise.resolve({
+          query,
+          hits: [
+            {
+              id: swap.id,
+              name: 'swap',
+              kind: 'Function',
+              scope: 'src/Pair.sol:Pair',
+              file: 'src/Pair.sol',
+              line: 88,
+              match: 'name',
+            },
+          ],
+          total: 1,
+          capped: false,
+          limit: 20,
+        }),
+    });
+
+    render(<App bridge={bridge} layoutClient={new LayoutClient(idleEngine)} />);
+    await waitFor(() => {
+      expect(asked.length).toBeGreaterThan(0);
+    });
+
+    act(() => {
+      document.dispatchEvent(new KeyboardEvent('keydown', { key: '/', bubbles: true }));
+    });
+    const input = await screen.findByRole('textbox');
+    act(() => {
+      fireEvent.change(input, { target: { value: 'swap' } });
+    });
+
+    await waitFor(() => {
+      expect(screen.getByText('swap')).toBeDefined();
+    });
+    fireEvent.keyDown(input, { key: 'Enter' });
+
+    // §9 rule 4 still decides which view a Function opens; the palette only
+    // supplied the node.
+    await waitFor(() => {
+      expect(asked.some((request) => request.view === 'call' && request.focus === swap.id)).toBe(true);
+    });
+    expect(inspected).toContain(swap.id);
+  });
+
+  /**
+   * §11: "auditors get lost; give them undo." The breadcrumb and the arrows are
+   * one index into one trail, so this checks the trail exists and that going
+   * back re-requests the view you came from.
+   */
+  it('keeps a breadcrumb of where you have been, and goes back', async () => {
+    const { bridge, asked } = bridgeOf(() =>
+      Promise.resolve(
+        view({ nodes: [{ type: 'node', id: vault.id, node: vault, parent: null }], elements: 1 }),
+      ),
+    );
+    render(<App bridge={bridge} layoutClient={new LayoutClient(idleEngine)} />);
+
+    await waitFor(() => {
+      expect(canvasProps.length).toBeGreaterThan(0);
+    });
+    const onPick = canvasProps.at(-1)?.['onPick'] as (pick: { kind: string; id: string }) => void;
+    act(() => {
+      onPick({ kind: 'Contract', id: vault.id });
+    });
+
+    // Scoped to the trail: "Protocol map" is also the name of a view tab, and
+    // the crumb and the tab are different controls that happen to agree.
+    const trail = await screen.findByLabelText('History');
+    await waitFor(() => {
+      expect(trail.textContent).toContain('Contract detail: Vault');
+    });
+    expect(trail.textContent).toContain('Protocol map');
+
+    act(() => {
+      document.dispatchEvent(
+        new KeyboardEvent('keydown', { key: 'ArrowLeft', altKey: true, bubbles: true }),
+      );
+    });
+
+    await waitFor(() => {
+      expect(asked.at(-1)).toEqual({ view: 'protocol' });
+    });
   });
 });

@@ -20,19 +20,27 @@ import { describe, expect, it } from 'vitest';
 
 import {
   decodeNodeRequest,
+  decodeSearchRequest,
+  decodeSourceRequest,
   decodeViewRequest,
   META_ENDPOINT,
   NODE_ENDPOINT,
   OVERLAY_ENDPOINT,
+  SEARCH_ENDPOINT,
+  SOURCE_ENDPOINT,
   VIEW_ENDPOINT,
   type AggregatedViewOptions,
 } from '@axiomap/core';
 import {
   encodeNodeRequest,
+  encodeSearchRequest,
+  encodeSourceRequest,
   encodeViewRequest,
   META_ENDPOINT as WEBVIEW_META,
   NODE_ENDPOINT as WEBVIEW_NODE,
   OVERLAY_ENDPOINT as WEBVIEW_OVERLAY,
+  SEARCH_ENDPOINT as WEBVIEW_SEARCH,
+  SOURCE_ENDPOINT as WEBVIEW_SOURCE,
   VIEW_ENDPOINT as WEBVIEW_VIEW,
   WEB_DIST,
 } from '@axiomap/webview';
@@ -70,11 +78,59 @@ describe('the serve protocol', () => {
     }
   });
 
+  it('round-trips a search request', () => {
+    // Phase 7d's two new shapes. The palette's is the one where drift would be
+    // quietest: a UI sending `query=` to a host reading `q=` searches for the
+    // empty string, which this API deliberately answers with *nothing* — so the
+    // palette would look like a protocol with no matching nodes rather than
+    // like a broken request.
+    for (const [query, limit] of [
+      ['deposit', undefined],
+      ['', undefined],
+      ['src/Vault.sol:Vault.deposit(uint256)', 5],
+      ['?low-level', 50],
+    ] as const) {
+      expect(decodeSearchRequest(encodeSearchRequest(query, limit))).toEqual({
+        query,
+        ...(limit === undefined ? {} : { limit }),
+      });
+    }
+  });
+
+  it('round-trips a source-slice request', () => {
+    for (const [id, context] of [
+      ['src/Vault.sol:Vault.deposit(uint256)', undefined],
+      ['src/Vault.sol:Vault', 4],
+    ] as const) {
+      expect(decodeSourceRequest(encodeSourceRequest(id, context))).toEqual({
+        id,
+        ...(context === undefined ? {} : { context }),
+      });
+    }
+  });
+
+  /**
+   * The source request has no `file` parameter on either side, and that is the
+   * whole of why shipping the user's source over this bridge is safe: the path
+   * comes from the graph (`core/source/slice.ts`). A parameter added here later
+   * would be the change that quietly turns the viewer into a file server, so
+   * the absence is asserted rather than assumed.
+   */
+  it('gives the source request no way to name a file', () => {
+    const encoded = encodeSourceRequest('src/Vault.sol:Vault.deposit(uint256)', 2);
+    expect(Object.keys(encoded).sort()).toEqual(['context', 'id']);
+
+    const smuggled = decodeSourceRequest({ ...encoded, file: '../../../etc/passwd', path: '/etc/passwd' });
+    expect(smuggled).toEqual({ id: 'src/Vault.sol:Vault.deposit(uint256)', context: 2 });
+  });
+
   it('agrees on where the endpoints are', () => {
     expect(WEBVIEW_VIEW).toBe(VIEW_ENDPOINT);
     expect(WEBVIEW_META).toBe(META_ENDPOINT);
     expect(WEBVIEW_NODE).toBe(NODE_ENDPOINT);
     expect(WEBVIEW_OVERLAY).toBe(OVERLAY_ENDPOINT);
+    expect(WEBVIEW_SEARCH).toBe(SEARCH_ENDPOINT);
+    expect(WEBVIEW_SOURCE).toBe(SOURCE_ENDPOINT);
   });
 
   it('agrees on where the bundle is', () => {

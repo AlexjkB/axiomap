@@ -62,14 +62,49 @@ export interface Palette {
   error: string;
   selection: string;
   fontFamily: string;
+  /**
+   * §11's inline code preview, which needs syntax colours and not graph hues
+   * (Phase 7d).
+   *
+   * A shiki theme is by construction a list of hex values, which is the one
+   * thing §11 forbids — so these are read from the host like everything else.
+   * They are not the `--vscode-charts-*` the graph uses: VS Code publishes
+   * `--vscode-symbolIcon-*Foreground` for exactly these roles (the colours it
+   * paints its own outline and completion icons with), so a keyword in this
+   * panel is the colour the host calls a keyword rather than a hue borrowed
+   * from a chart. Their absence falls back like every other entry, which is
+   * what a browser gets.
+   */
+  syntaxComment: string;
+  syntaxKeyword: string;
+  syntaxType: string;
+  syntaxFunction: string;
+  syntaxString: string;
+  syntaxNumber: string;
+  syntaxVariable: string;
 }
 
 /**
  * What each palette entry is spelled as in a VS Code theme, and what it falls
  * back to in a browser. The fallback is the browser-mode design; the variable
  * is Phase 8's, and it wins whenever it is set.
+ *
+ * ### Why some entries name more than one variable
+ *
+ * The last string is always the literal fallback; everything before it is a
+ * variable, tried in order. Most entries name one, because most of what the
+ * graph draws with is a `--vscode-charts-*` colour that every theme defines.
+ *
+ * The syntax entries name two, and Phase 7d found out why by looking: the
+ * browser fallbacks are Dark+'s token colours, which are correct against
+ * browser mode's own dark background and *illegible* on a host that sets a
+ * light editor background without setting `--vscode-symbolIcon-*` — pale yellow
+ * on white. A partially-themed host is exactly the case a fallback exists for,
+ * so the second variable is a `--vscode-charts-*` one: chosen by the same theme
+ * for the same background, and therefore legible against it whatever the first
+ * one did. The literal hex is the third rung and only a browser reaches it.
  */
-export const PALETTE_VARIABLES: Record<keyof Palette, readonly [string, string]> = {
+export const PALETTE_VARIABLES: Record<keyof Palette, readonly [string, ...string[]]> = {
   background: ['--vscode-editor-background', '#0f1319'],
   foreground: ['--vscode-editor-foreground', '#d7dde5'],
   dim: ['--vscode-descriptionForeground', '#8b98a8'],
@@ -91,6 +126,13 @@ export const PALETTE_VARIABLES: Record<keyof Palette, readonly [string, string]>
   error: ['--vscode-editorError-foreground', '#d16969'],
   selection: ['--vscode-focusBorder', '#3f8fd0'],
   fontFamily: ['--vscode-editor-font-family', 'ui-monospace, SFMono-Regular, Menlo, monospace'],
+  syntaxComment: ['--vscode-descriptionForeground', '#6f7c8b'],
+  syntaxKeyword: ['--vscode-symbolIcon-keywordForeground', '--vscode-charts-purple', '#c586c0'],
+  syntaxType: ['--vscode-symbolIcon-classForeground', '--vscode-charts-green', '#4ec9b0'],
+  syntaxFunction: ['--vscode-symbolIcon-functionForeground', '--vscode-charts-orange', '#dcdcaa'],
+  syntaxString: ['--vscode-symbolIcon-stringForeground', '--vscode-charts-red', '#ce9178'],
+  syntaxNumber: ['--vscode-symbolIcon-numberForeground', '--vscode-charts-green', '#b5cea8'],
+  syntaxVariable: ['--vscode-symbolIcon-variableForeground', '--vscode-charts-blue', '#9cdcfe'],
 };
 
 export const FALLBACK_PALETTE: Palette = readPaletteFrom(() => '');
@@ -115,9 +157,13 @@ export function readDocumentPalette(): Palette {
 
 function readPaletteFrom(read: (variable: string) => string): Palette {
   const resolve = (key: keyof Palette): string => {
-    const [variable, fallback] = PALETTE_VARIABLES[key];
-    const value = read(variable).trim();
-    return value === '' ? fallback : value;
+    // Every entry but the last is a variable; the last is the literal fallback.
+    const rungs = PALETTE_VARIABLES[key];
+    for (let at = 0; at < rungs.length - 1; at += 1) {
+      const value = read(rungs[at] as string).trim();
+      if (value !== '') return value;
+    }
+    return rungs[rungs.length - 1] as string;
   };
   return {
     background: resolve('background'),
@@ -141,6 +187,13 @@ function readPaletteFrom(read: (variable: string) => string): Palette {
     error: resolve('error'),
     selection: resolve('selection'),
     fontFamily: resolve('fontFamily'),
+    syntaxComment: resolve('syntaxComment'),
+    syntaxKeyword: resolve('syntaxKeyword'),
+    syntaxType: resolve('syntaxType'),
+    syntaxFunction: resolve('syntaxFunction'),
+    syntaxString: resolve('syntaxString'),
+    syntaxNumber: resolve('syntaxNumber'),
+    syntaxVariable: resolve('syntaxVariable'),
   };
 }
 

@@ -202,6 +202,97 @@ describe('axiomap serve', () => {
     expect(overlays.sources).toEqual({ review: false, findings: false });
   });
 
+  /**
+   * §11's palette. The property worth an end-to-end test is not that the search
+   * works — `core/test/search.test.ts` covers the matching — but that the *cap*
+   * survives the transport. A client that could raise it over the wire would
+   * have found the route to the node set §9 rule 1 keeps on the host.
+   */
+  it('answers /api/search with a capped, ranked list', async () => {
+    const { status, body } = await get('/api/search?q=mint');
+    expect(status).toBe(200);
+    const results = body as { hits: { id: string; name: string }[]; total: number; limit: number };
+    expect(results.hits[0]?.name).toBe('mint');
+    expect(results.limit).toBe(20);
+
+    const greedy = await get('/api/search?q=a&limit=100000');
+    const capped = greedy.body as { hits: unknown[]; total: number; capped: boolean; limit: number };
+    expect(capped.limit).toBe(50);
+    expect(capped.hits.length).toBeLessThanOrEqual(50);
+    // The count is still honest about how many matched — §9 rule 2's shape: a
+    // bounded answer that says what it left out, not a silent truncation.
+    expect(capped.total).toBeGreaterThan(capped.hits.length);
+    expect(capped.capped).toBe(true);
+  });
+
+  /**
+   * §11's code preview, and the first route in this project that reads the
+   * user's source in response to a request.
+   */
+  it('answers /api/source with a byte range around a node’s src', async () => {
+    const { status, body } = await get('/api/source?id=src%2FPair.sol%3APair.mint(address)');
+    expect(status).toBe(200);
+    const slice = body as {
+      file: string;
+      text: string;
+      startLine: number;
+      language: string;
+      drifted: boolean;
+    };
+    expect(slice.file).toBe('src/Pair.sol');
+    expect(slice.language).toBe('solidity');
+    expect(slice.startLine).toBe(69);
+    expect(slice.text).toContain('function mint(address to)');
+    expect(slice.drifted).toBe(false);
+    // A *range*, not the file: `swap` is in the same file and is not in it.
+    expect(slice.text).not.toContain('function swap(');
+  });
+
+  /**
+   * The design, asserted at the transport: the request names a node, and the
+   * path comes from the graph. There is no parameter that reaches a file, so
+   * none of these is a way in — each is refused as "not a node".
+   */
+  it('will not read a file the graph does not name', async () => {
+    for (const attempt of [
+      '/api/source?id=..%2F..%2F..%2Fetc%2Fpasswd',
+      '/api/source?id=%2Fetc%2Fpasswd',
+      '/api/source?id=..%2F..%2Fpackage.json',
+    ]) {
+      const { status, body } = await get(attempt);
+      expect(status).toBe(404);
+      expect((body as { error: { name: string } }).error.name).toBe('SourceUnavailableError');
+    }
+
+    // Parameters that look like a path are not read at all: the id decides
+    // everything, and this request answers about the node it names.
+    const smuggled = await get(
+      '/api/source?file=%2Fetc%2Fpasswd&id=src%2FPair.sol%3APair.mint(address)&path=%2Fetc%2Fpasswd',
+    );
+    expect(smuggled.status).toBe(200);
+    expect((smuggled.body as { file: string }).file).toBe('src/Pair.sol');
+    expect((smuggled.body as { text: string }).text).toContain('function mint');
+
+    const blank = await get('/api/source');
+    expect(blank.status).toBe(400);
+  });
+
+  /**
+   * `src/Pair.sol` *is* a node — a SourceUnit — so this is a legitimate 200 and
+   * not a hole. Its `src` is a zero-length marker at offset 0 (§10's kinds are
+   * declarations; a file is what they live in), so what it means is the file.
+   */
+  it('previews a whole file when the node is the file, bounded by the cap', async () => {
+    const { status, body } = await get('/api/source?id=src%2FPair.sol');
+    expect(status).toBe(200);
+    const slice = body as { text: string; startLine: number; truncated: boolean };
+    expect(slice.startLine).toBe(1);
+    expect(slice.text).toContain('contract Pair is IPair, Shares');
+    expect(slice.text).toContain('function swap(');
+    // 4.7 KB, comfortably inside the default limit.
+    expect(slice.truncated).toBe(false);
+  });
+
   it('answers GET only', async () => {
     const response = await fetch(`${base}/api/meta`, { method: 'POST' });
     expect(response.status).toBe(405);

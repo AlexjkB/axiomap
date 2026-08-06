@@ -24,8 +24,12 @@ import type {
   NodeInspection,
   NodeRelation,
   OverlayData,
+  SourceSlice,
   StateVariableNode,
 } from '@axiomap/core';
+
+import { CodePreview } from './CodePreview.js';
+import type { Palette } from './style.js';
 
 export interface InspectorProps {
   /** The node being inspected, or null while nothing is selected. */
@@ -35,6 +39,12 @@ export interface InspectorProps {
   error: string | null;
   /** The host's audit-state files, for this node's review entry and findings. */
   overlays: OverlayData | null;
+  /** §11's inline preview: the byte range the host cut around this node's `src`. */
+  slice: SourceSlice | null;
+  sliceBusy: boolean;
+  sliceError: string | null;
+  /** Resolved once by the app, so the preview's theme is the graph's (§11). */
+  palette: Palette;
   /** Inspect another node without moving the graph. */
   onInspect: (id: string) => void;
   /** Re-root the graph on a node — §11's "focus here". */
@@ -203,6 +213,10 @@ export function Inspector({
   busy,
   error,
   overlays,
+  slice,
+  sliceBusy,
+  sliceError,
+  palette,
   onInspect,
   onFocus,
   onClose,
@@ -301,6 +315,11 @@ export function Inspector({
             ) : null}
           </div>
         </section>
+
+        {/* §11's preview sits directly under the attributes: the question a
+            click on a function asks is "what does it do", and the answer is the
+            body. Everything below this is about what surrounds it. */}
+        <CodePreview slice={slice} busy={sliceBusy} error={sliceError} palette={palette} />
 
         {review === undefined && findings.length === 0 ? null : (
           <section className="ax-inspect-section">

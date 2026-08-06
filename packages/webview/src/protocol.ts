@@ -22,6 +22,8 @@ export const VIEW_ENDPOINT = '/api/view';
 export const META_ENDPOINT = '/api/meta';
 export const NODE_ENDPOINT = '/api/node';
 export const OVERLAY_ENDPOINT = '/api/overlays';
+export const SEARCH_ENDPOINT = '/api/search';
+export const SOURCE_ENDPOINT = '/api/source';
 
 const EXPAND_SEPARATOR = ',';
 
@@ -51,4 +53,20 @@ export function encodeViewRequest(request: AggregatedViewOptions): Record<string
 /** §11's inspector request: one node id, encoded the same way. */
 export function encodeNodeRequest(id: string): Record<string, string> {
   return { id };
+}
+
+/**
+ * §11's search palette.
+ *
+ * No `limit` unless a caller sets one: the cap is the host's (§9 rule 1), and a
+ * UI that sent its own default would be a second opinion about how much of the
+ * node set may cross the bridge.
+ */
+export function encodeSearchRequest(query: string, limit?: number): Record<string, string> {
+  return { q: query, ...(limit === undefined ? {} : { limit: String(limit) }) };
+}
+
+/** §11's code preview: the source of one *node*, never of a path. */
+export function encodeSourceRequest(id: string, context?: number): Record<string, string> {
+  return { id, ...(context === undefined ? {} : { context: String(context) }) };
 }

@@ -14,6 +14,7 @@ import type {
   FunctionNode,
   GraphEdge,
   SourceRefRecord,
+  SourceSlice,
   StateVariableNode,
 } from '@axiomap/core';
 
@@ -111,6 +112,23 @@ export function edge(over: Partial<GraphEdge> & Pick<GraphEdge, 'id' | 'from' | 
     sites: [src],
     count: 1,
     possibleTargets: [],
+    ...over,
+  };
+}
+
+/** §11's code-preview payload: the byte range a host cut around a node's `src`. */
+export function sliceOf(id: string, over: Partial<SourceSlice> = {}): SourceSlice {
+  return {
+    id,
+    file: 'src/Vault.sol',
+    language: 'solidity',
+    text: '    function deposit(uint256 amount) external {\n        total += amount;\n    }\n',
+    startLine: 12,
+    focusStartLine: 12,
+    focusEndLine: 14,
+    lines: 3,
+    truncated: false,
+    drifted: false,
     ...over,
   };
 }

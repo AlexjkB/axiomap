@@ -61,6 +61,7 @@ export {
 export * from './diff/index.js';
 export * from './review/index.js';
 export * from './query/index.js';
+export * from './source/index.js';
 export * from './findings/index.js';
 
 export {

@@ -14,18 +14,27 @@
  * hairball (rule 2).
  */
 
-import type { AggregatedView, NodeInspection, OverlayData, ProjectMeta } from '@axiomap/core';
+import type {
+  AggregatedView,
+  NodeInspection,
+  OverlayData,
+  ProjectMeta,
+  SourceSlice,
+} from '@axiomap/core';
 import { useCallback, useEffect, useMemo, useReducer, useRef, useState } from 'react';
 
 import { BridgeError, type HostBridge } from '../bridge.js';
+import { Breadcrumb } from './Breadcrumb.js';
 import { GraphCanvas } from './GraphCanvas.js';
+import { current, initialHistory, reduceHistory } from './history.js';
 import { Inspector } from './Inspector.js';
 import { toElements } from './elements.js';
 import { LayoutClient, browserEngine } from './layout/client.js';
-import { initialState, reduce, ready, toRequest } from './navigation.js';
+import { initialState, ready, toRequest } from './navigation.js';
 import { OverlayBar } from './OverlayBar.js';
 import { nodeUncertainty, overlayCoverage, type OverlayName } from './overlays.js';
 import { PRESETS } from './presets.js';
+import { SearchPalette } from './SearchPalette.js';
 import { readDocumentPalette } from './style.js';
 import { Toolbar } from './Toolbar.js';
 
@@ -43,7 +52,16 @@ export function App({ bridge, layoutClient, initialOverlays = [] }: AppProps): J
   const [error, setError] = useState<BridgeError | null>(null);
   const [busy, setBusy] = useState(true);
   const [layout, setLayout] = useState<number | null | { failed: string }>(null);
-  const [state, dispatch] = useReducer(reduce, initialState({ up: 2, down: 3 }));
+  /*
+   * §11's history wraps the navigation reducer rather than replacing it: every
+   * event a click produces still goes through `reduce`, and `reduceHistory`
+   * decides whether the result is a new place. `state` below is the entry the
+   * index points at, so back/forward and the breadcrumb are the same thing seen
+   * twice rather than two things kept in step.
+   */
+  const [history, dispatch] = useReducer(reduceHistory, initialHistory(initialState({ up: 2, down: 3 })));
+  const state = current(history);
+  const [paletteOpen, setPaletteOpen] = useState(false);
 
   const [overlayData, setOverlayData] = useState<OverlayData | null>(null);
   const [active, setActive] = useState<ReadonlySet<OverlayName>>(() => new Set(initialOverlays));
@@ -51,6 +69,9 @@ export function App({ bridge, layoutClient, initialOverlays = [] }: AppProps): J
   const [inspection, setInspection] = useState<NodeInspection | null>(null);
   const [inspectError, setInspectError] = useState<string | null>(null);
   const [inspecting, setInspecting] = useState(false);
+  const [slice, setSlice] = useState<SourceSlice | null>(null);
+  const [sliceError, setSliceError] = useState<string | null>(null);
+  const [slicing, setSlicing] = useState(false);
 
   const client = useMemo(() => layoutClient ?? new LayoutClient(browserEngine()), [layoutClient]);
   useEffect(() => () => { client.dispose(); }, [client]);
@@ -157,6 +178,46 @@ export function App({ bridge, layoutClient, initialOverlays = [] }: AppProps): J
     };
   }, [bridge, selected]);
 
+  /*
+   * §11's code preview. A second request rather than a field on the inspection,
+   * because it is a different kind of payload — the first thing across this
+   * bridge that is the user's *source* rather than something derived from their
+   * graph — and because a panel should be able to show a node's attributes
+   * while its body is still being read off disk.
+   *
+   * Three lines of context, so a function does not open flush against the
+   * panel's top edge with no sight of what it sits between.
+   */
+  useEffect(() => {
+    if (selected === null) {
+      setSlice(null);
+      setSliceError(null);
+      return;
+    }
+    let cancelled = false;
+    setSlicing(true);
+    void bridge
+      .source(selected, 3)
+      .then((loaded) => {
+        if (cancelled) return;
+        setSlice(loaded);
+        setSliceError(null);
+        setSlicing(false);
+      })
+      .catch((cause: unknown) => {
+        if (cancelled) return;
+        setSlice(null);
+        // The host's sentence, verbatim: "this is an unresolved placeholder,
+        // there is no source to show" is an answer about the graph, and
+        // rewording it here would be a second opinion about what was found.
+        setSliceError(cause instanceof Error ? cause.message : String(cause));
+        setSlicing(false);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [bridge, selected]);
+
   const preset = PRESETS[state.view];
   const elements = useMemo(
     () =>
@@ -199,11 +260,54 @@ export function App({ bridge, layoutClient, initialOverlays = [] }: AppProps): J
   }, []);
 
   const toggleOverlay = useCallback((name: OverlayName) => {
-    setActive((current) => {
-      const next = new Set(current);
+    setActive((on) => {
+      const next = new Set(on);
       if (!next.delete(name)) next.add(name);
       return next;
     });
+  }, []);
+
+  const search = useCallback((query: string, limit?: number) => bridge.search(query, limit), [bridge]);
+
+  /*
+   * §11's `/`, plus back and forward.
+   *
+   * On `document` rather than on a focused element, because the thing the user
+   * is looking at is a canvas that cannot hold focus. Guarded against firing
+   * while someone is typing in the palette or in the hop steppers — a `/` in a
+   * search box is a slash.
+   */
+  useEffect(() => {
+    const onKey = (event: KeyboardEvent): void => {
+      const target = event.target;
+      const typing =
+        target instanceof HTMLInputElement ||
+        target instanceof HTMLTextAreaElement ||
+        (target instanceof HTMLElement && target.isContentEditable);
+
+      if (event.key === '/' && !typing && !event.metaKey && !event.ctrlKey && !event.altKey) {
+        event.preventDefault();
+        setPaletteOpen(true);
+        return;
+      }
+      if (event.key === 'Escape' && !typing) {
+        setPaletteOpen(false);
+        return;
+      }
+      // Alt+arrow, which is what a browser uses and therefore what a hand
+      // already knows. Not the bare arrows: those pan a graph.
+      if (event.altKey && event.key === 'ArrowLeft') {
+        event.preventDefault();
+        dispatch({ type: 'back' });
+      } else if (event.altKey && event.key === 'ArrowRight') {
+        event.preventDefault();
+        dispatch({ type: 'forward' });
+      }
+    };
+    document.addEventListener('keydown', onKey);
+    return () => {
+      document.removeEventListener('keydown', onKey);
+    };
   }, []);
 
   return (
@@ -233,6 +337,19 @@ export function App({ bridge, layoutClient, initialOverlays = [] }: AppProps): J
         onToggle={toggleOverlay}
         onClear={() => {
           setActive(new Set());
+        }}
+      />
+
+      <Breadcrumb
+        history={history}
+        onBack={() => {
+          dispatch({ type: 'back' });
+        }}
+        onForward={() => {
+          dispatch({ type: 'forward' });
+        }}
+        onJump={(index) => {
+          dispatch({ type: 'jump', index });
         }}
       />
 
@@ -281,6 +398,10 @@ export function App({ bridge, layoutClient, initialOverlays = [] }: AppProps): J
             busy={inspecting}
             error={inspectError}
             overlays={overlayData}
+            slice={slice}
+            sliceBusy={slicing}
+            sliceError={sliceError}
+            palette={palette}
             onInspect={setSelected}
             onFocus={onFocus}
             onClose={() => {
@@ -289,6 +410,23 @@ export function App({ bridge, layoutClient, initialOverlays = [] }: AppProps): J
           />
         )}
       </main>
+
+      <SearchPalette
+        open={paletteOpen}
+        search={search}
+        onPick={(hit) => {
+          setPaletteOpen(false);
+          // The same two things a click on the canvas does: navigate to the
+          // node, and open the inspector on it. Reached from a palette rather
+          // than from a drill-down, but §9 rule 4 still holds — `reduce` decides
+          // which view a node opens, and it is the only thing that does.
+          setSelected(hit.id);
+          dispatch({ type: 'pick', kind: hit.kind, id: hit.id });
+        }}
+        onClose={() => {
+          setPaletteOpen(false);
+        }}
+      />
 
       <footer className="ax-status">
         <span className="ax-note">{view === null ? 'loading…' : view.note}</span>
