@@ -41,3 +41,21 @@ jobs:
           cache: pnpm
       - run: pnpm install --frozen-lockfile
       - run: pnpm check:network
+
+  # §7's Phase 9: "the sibling of the network-dependency check from §3 — same
+  # pattern, same enforcement". Its own job for the same reason that one has
+  # one: a licence conflict is a fact about the dependency tree, and reading it
+  # in a red build beside a hundred passing tests is not the same as reading it
+  # as the thing that failed.
+  licences:
+    name: licence compliance
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm check:licences

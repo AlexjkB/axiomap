@@ -13,6 +13,7 @@
     "lint": "eslint .",
     "check": "pnpm build && pnpm test && pnpm lint",
     "check:network": "node scripts/check-no-network-deps.mjs",
+    "check:licences": "node scripts/check-licences.mjs",
     "clean": "turbo run clean && rm -rf node_modules/.cache .turbo",
     "prepare": "husky",
     "bench:parser": "node scripts/bench-parser.mjs",
