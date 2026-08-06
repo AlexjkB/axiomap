@@ -2594,3 +2594,222 @@ which §7's Phase 9 says the `.vsix` "redistributes" elkjs.
   and none of it has run in an extension host. That is 8b's first hour, not its last.
 - **`GraphPanel.open` is keyed by workspace folder**, and `sessions` likewise. A multi-root
   workspace is two protocols; nothing in 8a has been run against one.
+
+---
+
+## Phase 8b — The `.vsix`, the public surface, and the three themes
+
+**Date:** 2026-08-06
+**Status:** Phase 8 complete. `pnpm check`, `pnpm check:network`, `pnpm check:licences`,
+`pnpm notices:check`, `pnpm verify:vsix` and `pnpm test:host` all green.
+
+### Phase 8's three exit criteria
+
+| Criterion | Result |
+|---|---|
+| Installable `.vsix` | **pass** — `dist/axiomap-0.1.0.vsix`, 1.0 MB, 17 files. Installed into the VS Code on this machine (1.131) as `axiomap.axiomap@0.1.0`; `pnpm verify:vsix` unpacks it outside this repo and makes the packaged bundle parse a real contract |
+| Click-to-navigate feels instant | **pass** — 8 nodes revealed from the command, in a real extension host: **median 19 ms, worst 30 ms**. Asserted under a 100 ms budget, warm, in `test-host/suite.ts` |
+| Legible in Dark+, Light+ and a high-contrast theme | **pass** — foreground contrast 11.2:1 / 21.0:1 / 21.0:1; the lowest shape hue 3.96:1 / 3.12:1 / 6.94:1 against WCAG 1.4.11's 3:1; closest meaning-carrying pair ΔE 35.0 / 33.0 / 21.7. Asserted in CI from palettes dumped out of a real editor, and looked at |
+
+`pnpm check` is green: **432** tests in `core` (419 from 8a, 13 new), **148** in `webview`
+(135 + 13), **101** in `cli` (unchanged), **51** in `vscode` (27 + 24), and **58**
+repo-level (53 + 5). Plus **8** in an extension host, which are not part of `pnpm check`
+and say so below.
+
+### Packaging, which was the phase
+
+8a's notes named three obstacles and said none was solved. All three came down to the same
+thing: **`@axiomap/core` resolves two files relative to its own module URL, and a bundle is
+exactly what breaks that.** A path that resolves in the workspace and not in the `.vsix`
+fails as "the graph is empty" on a user's machine and passes everything in CI, so the fix
+had to be one a packaged host states rather than one anything searches for.
+
+`packages/core/src/runtime.ts` is that: `configureRuntime({ grammarWasm, workerEntry })`,
+called once by `activate`, consulted by `treesitter.ts` and `workers.ts`, defaulting to
+today's behaviour when nothing is configured. Three details worth recording:
+
+- **A worker thread does not inherit it.** `configureRuntime` is module state and a worker
+  is a second module registry, so the pool ships the assets through `workerData` and the
+  entry configures itself. Without that, a bundled extension parses correctly on the main
+  thread and loads no grammar in its workers — which is the silent half of the failure.
+- **Both defaults became lazy.** `new URL(path, import.meta.url)` throws when
+  `import.meta.url` is empty, and esbuild's CommonJS output makes it empty. At module scope
+  that is the whole extension failing to load before anything can say where the grammar is;
+  on call it is a failure that only a genuinely unconfigured host reaches.
+- **`web-tree-sitter` is not bundled**, and not left as a bare `external` either. It is the
+  one dependency that is not plain JavaScript — its emscripten glue locates its own `.wasm`
+  from `__dirname` — so it is copied into `extension/vendor/` and required by a *relative*
+  path. A bare `require('web-tree-sitter')` walks `node_modules` upwards, and `vsce`
+  excludes `node_modules` from a `.vsix` unconditionally: it would have resolved in a
+  developer's workspace and nowhere else. Found by reading the packaged file list.
+
+Two more things that only showed up by looking at the artifact. `vsce` falls back to the
+nearest `.gitignore` when there is no `.vscodeignore`, and this repo's ignores `dist/` and
+`node_modules/` — so the first successful package was **six files** with no webview, no
+grammar and no parser, and `vsce` reported success. And the workspace `package.json` cannot
+be the published manifest: its `name` is the pnpm scope `@axiomap/vscode`, which is not a
+legal extension name. The manifest is derived by `scripts/package-vsix.mjs`, which keeps
+`packages/vscode/package.json` the single source of truth for what is *contributed* while
+setting what is *published*.
+
+`scripts/verify-vsix.mjs` is the answer to all of it: unpack into a temp directory with no
+workspace above it, `require` the entry with a stubbed `vscode`, and drive
+`dist/worker-entry.cjs` as a real `Worker` against a contract written on the spot. If the
+grammar, web-tree-sitter's runtime, the module format or the worker entry is wrong, it
+fails there rather than on a user's machine. It runs in CI as its own job.
+
+### The editor half ran, and it was 8b's first hour
+
+8a: "That a `reveal` moves a cursor, that a lens draws above a function, that the watch
+fires: all of it is unit-tested against shapes and none of it has run in an extension host."
+
+`pnpm test:host` launches a real VS Code against **the staged `.vsix` tree** — not the
+workspace package — over a copy of `fixtures/defi`, and runs eight tests: activation and
+the five commands, the panel opening and the packaged parser leaving its cache on disk, a
+lens landing on the line its declaration starts on, a reveal moving the cursor, the reveal
+budget above, the artifact watch turning a hand-written `review.json` into a stale-review
+lens, and a setting turning the lens off without touching the graph.
+
+It is not in `pnpm check`, because it downloads and launches an editor. It has its own CI
+job in spirit and its own command in fact, and the unit suites stay the thing that runs on
+a save.
+
+**It found one thing immediately**: the extension never writes `.axiomap/graph.json`. The
+test assumed it would. It does not — the session holds the graph in memory and only
+`axiomap build` writes the artifact — so the assertion moved to the parse cache, which *is*
+the packaged parser's footprint, and the gap went to §16 rather than being fixed inside a
+packaging phase.
+
+### The palette was wrong in the two themes almost everyone uses
+
+The three-theme criterion was the last thing left and looked like the smallest. The
+screenshot harness carried two themes' variables transcribed by hand, which is a guess
+about the thing under test, so the extension-host suite now dumps them out of a running
+editor — a plain webview per theme reporting `getComputedStyle` for every variable
+`style.ts` reads.
+
+Dark+ and Light+ both spell **`--vscode-charts-orange` as `rgba(234, 92, 0, 0.33)`**. At a
+third of an opacity that composites to **1.6:1** against the editor background, against
+WCAG 1.4.11's 3:1 for a non-text object. That variable is `state` and `writes`: the orange
+half of §11's state access map — "functions left, storage right, reads blue / writes
+orange" — which §11 singles out as the thing nothing else does well. The hand-typed table
+said `#d18616`, opaque, so every screenshot ever taken of this UI showed an orange nobody
+gets.
+
+The fix is one rule in `readPaletteFrom`: **a host colour is taken at full opacity**, except
+`dim`, whose job is to be quieter than the foreground. A third of an opacity is right for
+what VS Code uses that variable for — a filled area behind a chart line — and wrong for a
+2px border on a small node. It is also a channel conflict: §11's budget spends node opacity
+on reachability dimming, so a hue arriving pre-faded is quietly claiming a channel that
+belongs to something else. The hue stays the host's; the opacity is ours.
+
+One thing was left as it is, deliberately. **The high-contrast theme sets no
+`--vscode-charts-orange` at all**, so `state` and `writes` reach the literal fallback. That
+is the case the fallback chain was built for in 7d ("a partially-themed host is exactly the
+case a fallback exists for"), it measures 8.4:1 on black, and it stays ΔE 21.7 from the
+nearest other meaning — so it is recorded rather than papered over with a variable that
+means something else.
+
+`packages/webview/test/theme-legibility.test.ts` is where the criterion actually lives: it
+reads the committed dumps, resolves the palette the shipping code resolves, and asserts
+4.5:1 for text, 3:1 for every shape hue, and ΔE > 12 between hues that carry meaning. The
+last threshold is set well under the measured minimum on purpose — it is there to catch two
+roles collapsing onto one colour, not to track a theme drifting a few units.
+
+### The public surface, settled before Phase 9 freezes it
+
+- **`axiomap.axiomap`**, at the user's decision. Registering the `axiomap` publisher id on
+  both the VS Code Marketplace and Open VSX is a Phase 9 prerequisite, and if either is
+  taken this has to be redone after it is permanent — the risk was stated and accepted.
+- **Five command ids**, one new: `axiomap.revealNode`, the symmetric twin of
+  `axiomap.focusNode` and hidden from the palette for the same reason. It exists because
+  §11's node → editor direction was previously reachable *only* from a webview message,
+  which meant it could not be driven by a keybinding, by another extension, or by a test.
+  The reveal itself moved out of `panel.ts` into `navigation.ts` so both callers share one
+  answer to where a node is.
+- **`axiomap.graph`** stays the webview view type, now pinned by a test, because §16's
+  restart entry would key saved state on it.
+- **Two settings, and a rule.** `axiomap.codeLens.enabled` and `axiomap.followCursor`, both
+  editor behaviour, both with no §13 equivalent. The rule in `settings.ts`: **no setting may
+  name a §13 field, and no setting may change what the graph contains.** §13's config is
+  committed and shared, and §13 already settles the principle for diffs — one config governs
+  both revisions, because the question is what changed in the protocol. A setting that
+  overrode one of its keys would mean two auditors with the same checkout looking at two
+  different graphs, and the one who was wrong would be the one whose settings nobody can
+  see. `test/vscode-public-api.test.ts` asserts it against `axiomapConfigSchema` rather than
+  against a list, so a §13 field added later is covered the day it is added.
+- **`THIRD-PARTY-NOTICES.md`** is generated by `scripts/notices.mjs` from the same
+  production walk the licence gate uses, with each package's licence text verbatim — a
+  notice that needs the network to read is not a notice (decision #2). Phase 9 owns its
+  place in the release; 8b generated and committed it because 8b builds the first artifact
+  that *redistributes* anything, and shipping a `.vsix` containing elkjs without it would be
+  shipping a licence violation. The packaging step refuses to run without it, and
+  `pnpm notices:check` fails when the tree moves under it.
+
+### The Phase 8 boundary audit
+
+**`packages/vscode` coverage: 22.9% → 48.7% statements, 90.7% branches.** Six files at or
+near 100% (`codelens.ts`, `html.ts`, `host.ts`, `runtime.ts`, `session.ts`, `settings.ts`),
+`assets.ts` at 75%. What is left at 0% is `extension.ts` and `panel.ts`, which is the state
+7e found `StaticBridge` in and the same answer applies: they are the two files that cannot
+run without an editor, and they now have one. Everything they decide is asserted by the
+extension-host suite; the unit suites cover everything that does not need a host.
+
+**Core's surface from 8a.** `lenses.ts` (96%) and `locate.ts` (98%) were already covered.
+`project/session.ts` was at **5.4%** and `project/overlay-sources.ts` at **9%** — the CLI
+exercised both end to end, so nothing was broken, but the file whose entire job is the
+*policy* on whether `.axiomap/graph.json` is still true had no test of the policy. Now
+94.6% and 82%, with every branch of `loadProjectGraph` asserted as a different answer to a
+user's "why am I looking at this graph": built, artifact, source newer, §13 settings
+changed, unreadable artifact, `stale`, explicit rebuild.
+
+**Determinism and round-trip.** An artifact written and read back is the same graph —
+every attribute of every node and every edge, not just a shape match. Two builds of one
+unchanged project serialize to identical bytes. Two `AxiomapSession`s over one project
+produce identical `GraphFile`s, and one session shares a single load between concurrent
+callers rather than handing three features three graphs that can drift.
+
+### Deviations from the spec
+
+- **`@vscode/test-cli`/`@vscode/test-electron`, `esbuild`, `@vscode/vsce` and `mocha` are
+  new devDependencies.** The licence gate's production walk is unchanged at 77 packages,
+  none refused. Mocha rather than vitest for the host suite because it runs in the extension
+  host's CommonJS registry, which is the same constraint the extension is under.
+- **ESLint ran out of a 4 GB heap** once `.vscode-test/` (a whole VS Code install) existed.
+  Three build outputs are now ignored. Worth recording because the failure looked like a
+  test hang rather than like a new directory.
+- **`pnpm test:host` is not part of `pnpm check`.** It launches an editor, and on a machine
+  with no `xvfb` that means a window on the desktop. It is a separate command and a separate
+  CI job.
+- **The extension README is `packages/vscode/README.md`**, which is the marketplace page.
+  §7's Phase 9 "README is the product" is about the repo root and is still Phase 9's.
+
+### §16 changes
+
+- **NatSpec: declined, and it is now Phase 8c.** §16's rule said whoever takes it takes it
+  as its own change; 8b's commit is a packaging change, a public-API change, a palette fix
+  and a boundary audit, and none of those reviewers is the reviewer of a
+  `GRAPH_SCHEMA_VERSION` bump with four regenerated goldens behind it. The rule did its job:
+  an item with a number gets scheduled, a rider gets deferred a fifth time.
+- **Added Tier 2 — the extension never writes `.axiomap/graph.json`.** Found by an
+  extension-host test that assumed it would. Deferred because it is a policy question rather
+  than a missing call: writing on every load makes the editor mutate a derived directory
+  nobody asked it to touch, and writing only on the explicit command leaves the two hosts
+  disagreeing after an ordinary open. Not a trap meanwhile — the parse cache makes the
+  second open warm, and the freshness rule means neither host ever *serves* a stale graph.
+
+### Notes for the next session
+
+- **Phase 9 is next, and three of its prerequisites are now concrete.** The publisher id
+  must be registered on both marketplaces before the first publish; `THIRD-PARTY-NOTICES.md`
+  exists and needs to go into the npm tarballs as well as the `.vsix` (§7's 7e amendment);
+  and `packages/*/package.json` are all `private: true` and `0.0.0`, which Changesets will
+  have opinions about.
+- **The `.vsix` is 1.0 MB, and 1.4 MB of the 4.3 MB unpacked is elkjs's worker.** It is
+  shipped unminified-as-published; nothing has needed it smaller.
+- **A multi-root workspace is still untested.** 8a flagged it and the host suite opens a
+  single folder. `GraphPanel.open` and `sessions` are both keyed by workspace folder, so the
+  design is there; nothing has run against two.
+- **`pnpm test:host` is the harness for anything editor-shaped from here on.** It took about
+  an hour to build and found a wrong assumption in its first run. Adding a case to it is now
+  cheap, which was the whole point.
