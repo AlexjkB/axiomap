@@ -187,6 +187,64 @@ export function decodeSourceRequest(
   return { id, ...(context === undefined ? {} : { context }) };
 }
 
+/**
+ * The graph file minus the graph.
+ *
+ * Spelled as an explicit field list rather than a rest-destructure so that a
+ * field added to `GraphFile` later is *not* published by accident. §9 rule 1 is
+ * a rule about what leaves a host, and "whatever the artifact happens to
+ * contain" is not a payload anyone decided on.
+ *
+ * It moved here from the HTTP host in Phase 8, when a second host needed the
+ * same header: two explicit field lists are two decisions about what a UI is
+ * allowed to see, and the whole value of writing the list out is that there is
+ * one of it.
+ */
+export function projectMeta(
+  file: GraphFile,
+  options: { root: string; renderCap: number },
+): ProjectMeta {
+  return {
+    schemaVersion: file.schemaVersion,
+    generator: file.generator,
+    project: file.project,
+    mode: file.mode,
+    modeReason: file.modeReason,
+    score: file.score,
+    diagnostics: file.diagnostics,
+    root: options.root,
+    renderCap: options.renderCap,
+    views: VIEW_NAMES,
+    callDefaults: callDefaults(),
+  };
+}
+
+/**
+ * An error a query threw, as the wire carries it.
+ *
+ * Added in Phase 8, when there were two hosts answering the same six requests.
+ * The HTTP host maps the *status* — 422 for a render cap, 404 for a node that is
+ * not there — and that mapping is HTTP's and stays in the CLI; what is shared is
+ * the answer to "what does this error look like to a UI", and a webview that
+ * received a differently-shaped `RenderCapError` would lose §9 rule 2's way out
+ * while still printing a sentence that looked right.
+ *
+ * The name is taken from the error itself rather than matched against a list of
+ * classes, so a query that grows a new error type is carried rather than
+ * flattened into `Error`.
+ */
+export function describeProtocolError(error: unknown): ProtocolError {
+  if (!(error instanceof Error)) return { name: 'Error', message: String(error) };
+  const detail = error as Error & { elements?: number; cap?: number; view?: string };
+  return {
+    name: error.name === '' ? 'Error' : error.name,
+    message: error.message,
+    ...(typeof detail.elements === 'number' ? { elements: detail.elements } : {}),
+    ...(typeof detail.cap === 'number' ? { cap: detail.cap } : {}),
+    ...(typeof detail.view === 'string' ? { view: detail.view } : {}),
+  };
+}
+
 /** §9 rule 4's defaults, in the shape {@link ProjectMeta} carries them. */
 export function callDefaults(): { up: number; down: number } {
   return { up: DEFAULT_CALL_UP, down: DEFAULT_CALL_DOWN };

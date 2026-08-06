@@ -90,6 +90,18 @@ export interface CyEdgeData {
   /** Call sites (§10's `count`), which is what edge weight encodes. */
   count: number;
   width: number;
+  /**
+   * The call site (§10's `src` on every edge), for §11's "click edge → reveal
+   * the call site". Absent on an aggregated edge, which stands for many sites
+   * and has no one place to send an editor.
+   *
+   * Carried as three fields rather than as the `SourceRef` itself for the
+   * reason at the top of this file: what a renderer hangs on a graph object
+   * ends up in `graph.json`, so nothing here holds a reference to one.
+   */
+  file?: string;
+  line?: number;
+  column?: number;
 }
 
 export interface CyElements {
@@ -337,6 +349,9 @@ function displayEdge(element: DisplayEdge): CyElements['edges'][number] {
       resolution: edge.resolution,
       count: edge.count,
       width: edgeWidth(edge.count),
+      file: edge.src.file,
+      line: edge.src.line,
+      column: edge.src.column,
     },
     classes:
       `edge-${edge.kind} res-${edge.resolution}${subkind}` +

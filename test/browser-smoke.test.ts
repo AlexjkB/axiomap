@@ -19,12 +19,19 @@
 
 import { spawn, spawnSync, type ChildProcess } from 'node:child_process';
 import fs from 'node:fs';
+import http from 'node:http';
 import os from 'node:os';
 import path from 'node:path';
+import type { AddressInfo } from 'node:net';
 
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 
 import { runExport, startServe, type ServeSession } from '@axiomap/cli';
+import { buildProjectGraph, overlayData } from '@axiomap/core';
+import { CHANNEL } from '@axiomap/webview';
+import { answer, isBridgeRequest, type HostSources } from '@axiomap/vscode/host';
+import { webviewBundle } from '@axiomap/vscode/assets';
+import { webviewHtml } from '@axiomap/vscode/html';
 
 const CHROME = ['google-chrome', 'chromium', 'chromium-browser'].find(
   (candidate) => spawnSync(candidate, ['--version'], { timeout: 10_000 }).status === 0,
@@ -496,4 +503,200 @@ describe.skipIf(CHROME === undefined)('the export in a browser', () => {
     expect(kinds).toContain('Contract');
     expect(file.consoleErrors.join('\n')).toBe('');
   }, 120_000);
+});
+
+/**
+ * The fourth host, in a real browser (Phase 8).
+ *
+ * There is no VS Code here to run an extension in, and there will not be one in
+ * CI either. What *can* be run is the half that has been wrong three times in
+ * this project's history: the bundle, in a browser, with the layout engine
+ * actually starting. So the page below is the document the extension serves —
+ * `webviewHtml`, verbatim, CSP included — and the extension host is faked by
+ * this test: a shim provides `acquireVsCodeApi`, the requests it collects are
+ * pumped out over CDP, and each one is answered by `answer()`, which is the same
+ * function the real panel calls.
+ *
+ * What that covers is exactly what a unit test cannot: the CSP does not block
+ * the bundle, the ELK worker starts from a blob (§9 rule 6, the *one* thing
+ * that differs from browser mode), the bridge's correlation ids match up across
+ * a real `postMessage`, and §11's reveal leaves the page when a node is clicked.
+ *
+ * What it does not cover is the editor's own half — that a `reveal` moves a
+ * cursor, that a lens appears above a function. Those need an extension host;
+ * they are the packaging session's, with a `.vsix` installed in a real editor.
+ */
+describe.skipIf(CHROME === undefined)('the graph in a VS Code webview', () => {
+  let served: { url: string; close: () => Promise<void> } | undefined;
+  let host: Page | undefined;
+  let sources: HostSources;
+  let pump: NodeJS.Timeout | undefined;
+
+  /** Everything the extension would hold, without the extension. */
+  beforeAll(async () => {
+    if (CHROME === undefined) return;
+    const built = await buildProjectGraph('fixtures/defi', {
+      cacheDir: null,
+      workers: 1,
+      enrich: false,
+    });
+    sources = {
+      graph: built.graph,
+      file: built.file,
+      root: path.resolve('fixtures/defi'),
+      renderCap: 1500,
+      overlays: overlayData(built.graph, { review: null, findings: null }),
+    };
+
+    const bundle = webviewBundle('/nonexistent-extension');
+    const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'axiomap-webview-'));
+
+    /*
+     * The shim is the whole of the fake: `postMessage` puts the request on a
+     * queue this test drains, and the answers come back the way the editor
+     * sends them — a `message` event on `window`. It is nonce'd because the
+     * document's own CSP is under test, and an inline script without one would
+     * be refused, which is the correct behaviour and would break the harness.
+     */
+    const document = webviewHtml({
+      scriptUri: './vscode.js',
+      styleUri: './vscode.css',
+      cspSource: "'self'",
+      nonce: 'harness',
+      elkWorker: bundle.elkWorker,
+    }).replace(
+      '<div id="root"></div>',
+      '<div id="root"></div>\n' +
+        '<script nonce="harness">window.__sent = []; window.__events = [];' +
+        'window.acquireVsCodeApi = () => ({ postMessage: (message) => {' +
+        // Requests are drained and answered by the pump below; notifications
+        // (§11's `reveal`) are kept, because they are what a test asserts on.
+        "  (message && message.method ? window.__sent : window.__events).push(message);" +
+        '} });' +
+        '</script>',
+    );
+
+    fs.writeFileSync(path.join(dir, 'index.html'), document);
+    fs.copyFileSync(bundle.script, path.join(dir, 'vscode.js'));
+    fs.copyFileSync(bundle.style, path.join(dir, 'vscode.css'));
+
+    // A module script cannot be loaded cross-origin, and `file://` is one — so
+    // the harness serves the directory the way the editor serves its bundle.
+    const server = http.createServer((request, response) => {
+      const requested = (request.url ?? '/').split('?')[0] ?? '/';
+      if (requested === '/favicon.ico') {
+        // The editor answers this itself; a 404 in the console of a tool asking
+        // to be trusted is the same bad first impression `serve` avoids.
+        response.writeHead(204).end();
+        return;
+      }
+      const name = requested === '/' ? 'index.html' : requested.slice(1);
+      const target = path.join(dir, path.basename(name));
+      if (!fs.existsSync(target)) {
+        response.writeHead(404).end();
+        return;
+      }
+      response.writeHead(200, {
+        'content-type': target.endsWith('.css')
+          ? 'text/css'
+          : target.endsWith('.js')
+            ? 'text/javascript'
+            : 'text/html',
+      });
+      response.end(fs.readFileSync(target));
+    });
+    await new Promise<void>((resolve) => server.listen(0, '127.0.0.1', resolve));
+    const port = (server.address() as AddressInfo).port;
+    served = {
+      url: `http://127.0.0.1:${String(port)}/`,
+      close: () =>
+        new Promise<void>((resolve) => {
+          server.closeAllConnections();
+          server.close(() => {
+            resolve();
+          });
+        }),
+    };
+
+    host = await Page.open(CHROME);
+  }, 180_000);
+
+  afterAll(async () => {
+    if (pump !== undefined) clearInterval(pump);
+    host?.close();
+    await served?.close();
+  });
+
+  /** Drain the webview's outbox and answer it, the way `panel.ts` does. */
+  function startPump(page: Page): NodeJS.Timeout {
+    return setInterval(() => {
+      void (async () => {
+        const drained = await page.evaluate(
+          '(() => { const out = window.__sent ?? []; window.__sent = []; return JSON.stringify(out); })()',
+        );
+        const messages = JSON.parse(drained === '' ? '[]' : drained) as unknown[];
+        for (const message of messages) {
+          if (!isBridgeRequest(message)) continue;
+          const response = answer(sources, message);
+          await page.evaluate(`window.postMessage(${JSON.stringify(response)}, '*')`);
+        }
+      })();
+    }, 50);
+  }
+
+  it('mounts, answers over postMessage, and lays out in a blob worker', async () => {
+    const page = host as Page;
+    await page.goto((served as { url: string }).url);
+    pump = startPump(page);
+
+    const metrics = await page.until(METRICS, (value) => /layout/.test(value));
+    // §9 rule 6, in the host where the worker had to come from a blob: a
+    // cross-origin worker script is refused, so this is the line that would say
+    // `layout failed` if the blob route had been wrong.
+    expect(metrics).toMatch(/layout \d+ ms \(worker\)/);
+    expect(metrics).not.toMatch(/layout failed/);
+    expect(metrics).toMatch(/\d+ \/ 1500 elements/);
+    // A CSP violation is a console error, which is why this assertion is the
+    // one that covers the policy in `html.ts` end to end.
+    expect(page.consoleErrors.join('\n')).toBe('');
+  }, 180_000);
+
+  it('asks the editor to reveal the node that was clicked (§11)', async () => {
+    const page = host as Page;
+    await page.until(METRICS, (value) => /layout \d+ ms/.test(value));
+
+    // Everything the shim collects from here on is what the extension host
+    // would have received.
+    const clicked = await page.evaluate(tap('[kind = "Contract"]'));
+    expect(clicked).not.toBe('');
+
+    const reveal = await page.until(
+      "JSON.stringify((window.__events ?? []).filter((message) => message.event === 'reveal'))",
+      (value) => value !== '[]' && value !== '',
+    );
+    const targets = JSON.parse(reveal) as { target: { kind: string; id: string } }[];
+    expect(targets[0]?.target).toEqual({ kind: 'node', id: clicked });
+  }, 180_000);
+
+  it('selects the node the editor’s cursor landed on, without navigating (§11)', async () => {
+    const page = host as Page;
+    await page.goto((served as { url: string }).url);
+    await page.until(METRICS, (value) => /layout \d+ ms/.test(value));
+    const before = await page.evaluate(CURRENT_VIEW);
+
+    const id = await page.evaluate(`
+      (() => {
+        const cy = document.querySelector('.ax-canvas')._cyreg.cy;
+        return cy.nodes('[kind = "Contract"]').first().id();
+      })()
+    `);
+    const select = { channel: CHANNEL, event: 'select', id, kind: 'Contract' };
+    await page.evaluate(`window.postMessage(${JSON.stringify(select)}, '*')`);
+
+    // The inspector opens on it — and the view does not change, which is the
+    // difference between `select` and `focus` that `vscode.ts` explains.
+    const inspector = await page.until(INSPECTOR, (value) => value.includes(id.split(':').pop() ?? ''));
+    expect(inspector).toContain(id.split(':').pop());
+    expect(await page.evaluate(CURRENT_VIEW)).toBe(before);
+  }, 180_000);
 });

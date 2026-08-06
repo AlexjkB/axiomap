@@ -99,6 +99,52 @@ export class PositionIndex {
   }
 
   /**
+   * The inverse of `byteOffsetAt`: a byte offset back to a UTF-16 index.
+   *
+   * Phase 8 needs it because an editor is the one consumer that works the other
+   * way round. `SourceRef` carries `line`/`column` for the *start* of a node
+   * (which is already a VS Code `Position`), but its extent is `length` in
+   * bytes, and selecting a declaration means turning the end of that range into
+   * a position in a buffer. Doing it by re-encoding in the extension would be a
+   * second implementation of the conversion §10 warns about, in the host whose
+   * whole job is landing the cursor in the right place.
+   *
+   * An offset inside a multi-byte character resolves to the start of that
+   * character rather than throwing: half a code point is not a position, and a
+   * graph built from a different revision of a file is the ordinary way to ask
+   * for one.
+   */
+  utf16IndexAt(byteOffset: number): number {
+    if (this.#isAscii) return Math.max(0, Math.min(byteOffset, this.#text.length));
+    const clamped = Math.max(0, Math.min(byteOffset, this.byteLength));
+
+    const starts = this.#lineByteStarts;
+    let lo = 0;
+    let hi = starts.length - 1;
+    while (lo < hi) {
+      const mid = (lo + hi + 1) >> 1;
+      if ((starts[mid] as number) <= clamped) lo = mid;
+      else hi = mid - 1;
+    }
+
+    let index = this.#lineStarts[lo] as number;
+    let bytes = starts[lo] as number;
+    while (bytes < clamped && index < this.#text.length) {
+      const size = Buffer.byteLength(this.#text[index] as string, 'utf8');
+      // A surrogate pair is two UTF-16 units and one character; `text[index]`
+      // gives the high surrogate alone, whose lone encoding is 3 bytes rather
+      // than the pair's 4. Step by the pair.
+      const pair =
+        (this.#text.charCodeAt(index) & 0xfc00) === 0xd800 && index + 1 < this.#text.length;
+      const step = pair ? 4 : size;
+      if (bytes + step > clamped) break;
+      bytes += step;
+      index += pair ? 2 : 1;
+    }
+    return index;
+  }
+
+  /**
    * Build a SourceRef from a half-open UTF-16 range `[start, end)`.
    *
    * The range is half-open, and every backend normalises to that before

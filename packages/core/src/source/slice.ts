@@ -58,6 +58,21 @@ export interface SourceSliceOptions {
   context?: number;
   /** Byte ceiling on the returned text. */
   limit?: number;
+  /**
+   * Where the bytes come from, when the caller has a better copy than the disk.
+   *
+   * Added in Phase 8 for the one host where "the file" is routinely not what
+   * the user is looking at: an editor with unsaved changes. A preview read off
+   * disk would then show a function the buffer no longer contains, and
+   * `drifted` could not catch it — the graph and the disk agree, and it is the
+   * *screen* that has moved on.
+   *
+   * It takes the repo-relative path the graph holds and returns the current
+   * text, or undefined to fall back to disk. It cannot be used to read a file
+   * of the caller's choosing: the path still comes from the node, and the
+   * containment check below still runs.
+   */
+  read?: (file: string) => string | undefined;
 }
 
 export interface SourceSlice {
@@ -180,13 +195,18 @@ export function sliceNode(
     );
   }
 
+  const supplied = options.read?.(node.file);
   let buffer: Buffer;
-  try {
-    buffer = fs.readFileSync(target);
-  } catch {
-    throw new SourceUnavailableError(
-      `Could not read ${node.file}. The graph may have been built from a different checkout.`,
-    );
+  if (supplied === undefined) {
+    try {
+      buffer = fs.readFileSync(target);
+    } catch {
+      throw new SourceUnavailableError(
+        `Could not read ${node.file}. The graph may have been built from a different checkout.`,
+      );
+    }
+  } else {
+    buffer = Buffer.from(supplied, 'utf8');
   }
 
   const context = Math.max(0, options.context ?? 0);

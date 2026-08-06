@@ -2402,3 +2402,195 @@ time is ingest, not traversal, and the ordering between them is unchanged.)
 - **The export's quota numbers are a policy, not a measurement.** If a real protocol's
   deliverable turns out to want more contract breadth than call depth, `VIEW_QUOTA` is one
   line and the reason it holds those values is written beside it.
+
+## Phase 8a — The extension host: the panel, both navigation directions, CodeLens
+
+**Date:** 2026-08-06
+**Status:** partial phase, deliberately — the first of two. `pnpm check`,
+`pnpm check:network` and `pnpm check:licences` all green. **Phase 8b is the remainder: the
+`.vsix`, and the three-theme legibility criterion.**
+
+Phase 8's own exit criteria are "installable `.vsix`; click-to-navigate feels instant; the
+graph is legible in Dark+, Light+, and one high-contrast theme". All three need a packaged
+extension in a running editor, and this session has no editor — so they belong to 8b
+together, and the split is along that line rather than at an arbitrary point. What 8a owns
+is everything that is true before packaging: the host, the protocol, the two navigation
+directions, the lens, the watch, and the webview entry, verified in a real browser against
+a faked extension host.
+
+### 8a's own criteria
+
+| Criterion | Result |
+|---|---|
+| A fourth `HostBridge`, over `postMessage` (§9 rule 1) | pass — `webview/src/vscode.ts` and `vscode/src/host.ts`. Correlation ids, and the *same* request encoding browser mode puts in a query string, so the host decodes with `decodeViewRequest` |
+| The webview embedded in a VS Code panel | pass — `panel.ts` + `html.ts`, driven end to end in Chrome against a faked host: mounts, answers, and lays out in a worker |
+| §11's node → editor, and edge → **call site** | pass — `reveal` notifications; `navigation.ts` converts §10's byte offsets to editor positions. The browser test asserts the reveal leaves the webview with the id that was clicked |
+| §11's inverse navigation, editor → graph | pass — `nodeAtOffset` in core, `onDidChangeTextEditorSelection` in the extension, `select` into the webview. Asserted in the browser: the inspector opens and **the view does not change** |
+| §11's CodeLens line | pass — `query/lenses.ts` for the counts, `codelens.ts` for the sentence, 6 tests on the wording and 5 on the counts |
+| Commands and keybindings | pass — four commands, two keybindings, an editor context-menu entry, and a repo-level test that the manifest and the registrations name the same set |
+| Artifact watch | pass — `.axiomap/graph.json` reloads the graph; `review.json`/`findings.json` re-read the two overlay files only |
+| All colour from VS Code CSS custom properties | pass — the palette was already `--vscode-*` (Phase 7c); the document this phase adds contains no hex at all, and a test asserts it |
+| No `.vsix`, no three-theme check | 8b's, above |
+
+`pnpm check` is green: **419** tests in `core` (403 from 7e, 16 new), **135** in `webview`
+(126 + 9), **101** in `cli` (unchanged), **27** in `vscode` (0 before), and **53**
+repo-level (45 + 8, three of them in a browser).
+
+### One interface, four hosts, and the seam held
+
+Phase 7d's note said implementing `HostBridge` over `postMessage` was "correlation ids and
+nothing else". That turned out to be true of the *bridge*, and the interesting part was
+what it is not enough for.
+
+`HostBridge` is six questions and six answers, which is all a browser tab and a
+self-contained file can be. An editor is a live host with a cursor in it, and §11 asks for
+three things that are not questions about the graph: reveal, inverse navigation, and (from
+§7) the artifact watch. They are a **separate, optional `EditorLink`** (`webview/src/editor.ts`),
+so `App` behaves exactly as before when it does not have one — browser mode and the export
+are unaffected by a feature only an editor can offer, and neither had to learn that a fourth
+host exists.
+
+Two of those notifications are deliberately different events, and it is the one design
+decision in this phase worth stating:
+
+- **`select`** is a *cursor* landing on a declaration. It highlights and opens the
+  inspector. It does not navigate, and it does not reveal back — a cursor move that dragged
+  the view somewhere else on every keystroke would make the panel unusable while typing, and
+  one that revealed back would be a feedback loop between two things the user is steering by
+  hand.
+- **`focus`** is a *command* — a CodeLens click, "reveal in graph". That is §11's "focus
+  here" arriving from outside the webview, and it navigates.
+
+Written as one event, the difference would have been decided by whichever caller was
+written first.
+
+### What moved into core, and why that was the point
+
+Three things the CLI owned turned out to be *policy* rather than plumbing the moment a
+second host needed them. §5 forbids `vscode → cli`, so the alternative was a second copy of
+each:
+
+- **`project/session.ts`** — open a project, read §13's config, and load a graph: from
+  `.axiomap/graph.json` while no source is newer than it, and by building otherwise. Two
+  answers to "is this artifact still true" is the editor and the terminal disagreeing about
+  whether the graph on screen describes the code on disk. The CLI keeps what is genuinely
+  its own: the flag names and the spinner, now attached through a hook.
+- **`project/overlay-sources.ts`** — §11's two file-backed overlays, including the rule that
+  a malformed one is a warning and an absent overlay rather than a dead host.
+- **`query/protocol.ts`'s `projectMeta` and `describeProtocolError`** — the explicit field
+  list that decides what a UI may see, and the shape an error takes on the wire. The whole
+  value of writing that field list out by hand is that there is one of it; the HTTP host
+  keeps the *status* mapping, which is HTTP's alone.
+
+§5 is amended for the first of these. The other two are files inside directories §5 already
+names.
+
+### 7d's open question, answered: the buffer
+
+7d left one VS Code-specific question on the `source` method — the preview reads from disk,
+and the editor may hold unsaved changes, "so a preview can disagree with what the user is
+looking at in a way `drifted` will not catch". It cannot catch it: the graph and the disk
+agree, and it is the *screen* that has moved on.
+
+`sliceNode` now takes an optional `read`, and the panel supplies the open document when
+there is a dirty one. The path still comes from the graph — there is still no parameter
+through which a caller can name a file, which is the security design 7d wrote down — and
+drift is still reported, now against the buffer. Three tests, including one that asserts the
+callback is asked about the node's own file and falls back to disk.
+
+### Then it was pointed at a browser, because that lesson has held three times
+
+7b, 7c and 7d each found defects that a green suite was blind to and one image made obvious.
+There is no VS Code here to run an extension in, and there will not be one in CI — but the
+half that has actually been wrong before is the bundle in a browser, and that can be run.
+
+`test/browser-smoke.test.ts` gained a "the graph in a VS Code webview" describe that serves
+**the real document** — `webviewHtml`, CSP included — with a shim providing
+`acquireVsCodeApi`, and answers what the page posts with `answer()`, the same function the
+real panel calls. It covers the three things a unit test cannot: the CSP does not block the
+bundle, the ELK worker starts (§9 rule 6), and the bridge's ids match across a real
+`postMessage`.
+
+Nothing was wrong this time, which is worth recording as an outcome rather than as an
+absence: the two things most likely to have been — a CSP that refuses its own bundle, and
+a worker that cannot start — are the two the harness was built to catch.
+
+**The worker is the one thing that genuinely differs from browser mode.** A webview
+document's origin is not the origin its resources are served from, so a worker started from
+an asset URL is refused as cross-origin. The extension reads `elk-worker.min.js` off its own
+disk and hands it to the page as a string, which the entry turns into a same-origin `Blob` —
+the same route the HTML export takes, arrived at independently. That is also the sense in
+which §7's Phase 9 says the `.vsix` "redistributes" elkjs.
+
+### Deviations from the spec
+
+- **Phase 8 is split into 8a and 8b**, along the line that separates what needs a packaged
+  extension in a running editor from what does not. §6 says a phase that needs splitting is
+  useful information; all three of Phase 8's exit criteria are on the far side of that line,
+  so splitting anywhere else would have produced a session whose criteria were half-checkable.
+- **`packages/vscode` is a fourth tested package.** `vitest.config.ts` aliases the `vscode`
+  module to `test/vscode-stub.ts`, which carries **shapes and no behaviour** — a stub that
+  reimplemented `Range` semantics would be a second implementation of the editor, and a test
+  passing against it would say nothing. The modules that decide anything (`host.ts`,
+  `session.ts`, `html.ts`, the pure half of `navigation.ts` and `codelens.ts`) are written
+  not to need it.
+- **The CodeLens provider is selected by path, not by language id.** `solidity` is
+  contributed by whichever Solidity extension the user happens to have installed, and a
+  provider bound to a language id shows nothing at all for somebody with none — a failure
+  that reads as this extension being broken rather than as a missing dependency.
+- **The extension does not build a graph to answer a lens.** Opening a `.sol` file in a
+  200k-SLOC repo would otherwise start a multi-second ingest nobody asked for. Lenses appear
+  once a command has loaded the graph, and the provider is refreshed then. `activationEvents`
+  is empty for the same reason: Axiomap is a tool you reach for.
+- **`.sol` files are not watched.** Core's freshness rule already rebuilds when the sources
+  are newer than the artifact, at the moment a graph is next asked for; rebuilding on every
+  save is §16's incremental-reparse entry, still deferred.
+- **The webview package has a third build** (`vite.vscode.config.ts` → `dist/vscode/`),
+  single-chunk for the same reason the export's is: every *second* thing a webview fetches
+  is a cross-origin request to get right, and the whole bundle is on local disk anyway.
+- **`packages/vscode` gained an `exports` map** with `./host`, `./html` and `./assets`
+  subpaths, so the repo-level tests can reach the parts that do not import `vscode`. The
+  root `.` entry is still the extension's activation entry, which is what the editor loads.
+- **`@types/vscode` is the package's only new dependency**, and it is a devDependency; the
+  licence gate's production walk is unchanged at 77 packages, none refused.
+
+### §16 changes
+
+- **Added Tier 2 — webview state across an editor restart.** `retainContextWhenHidden`
+  covers tab switching; a window reload loses the laid-out graph and the history. What makes
+  it more than serialization is that the graph may have moved underneath the saved state, so
+  restoring a focus node that no longer exists is the confident-wrong answer §6 rules out.
+- **NatSpec: a rule instead of a fourth owner line.** §16 named Phase 8 as its owner and 8a
+  declined it, which is the third deferral — so the entry now says it is not a rider on
+  another phase's commit: whoever takes it takes it as its own change, with its own
+  golden-file commit, and answers the two open questions first. 8b may take it; if it does
+  not, it becomes a numbered item of its own.
+
+### Notes for the next session
+
+- **Phase 8b is the `.vsix` and the three themes**, and the packaging question is the real
+  work rather than `vsce package`. Three things are known to be in the way, and none of them
+  is solved yet:
+  - **CommonJS versus ESM.** Every package here is `"type": "module"`; VS Code's extension
+    host has historically required CommonJS for an extension's entry point. Bundling to CJS
+    with esbuild is the ordinary answer.
+  - **The grammar `.wasm`.** `parse/treesitter.ts` resolves it with
+    `new URL('../../vendor/tree-sitter-solidity.wasm', import.meta.url)`, which is correct
+    from `dist/parse/` and from `src/parse/` and wrong from anywhere a bundler would put it.
+    Phase 1's notes flagged this as Phase 8's problem in as many words. `web-tree-sitter`
+    ships a second `.wasm` of its own inside `node_modules`.
+  - **Worker threads.** `parse/workers.ts` falls back to inline parsing when it cannot find
+    a built worker entry, so a bad answer here is *slow*, not broken — which is the failure
+    mode to prefer, and worth checking rather than assuming.
+  `pnpm deploy --filter @axiomap/vscode` is the pnpm-shaped alternative to bundling and
+  keeps every path relative to a real `node_modules`; it was not tried.
+- **`pnpm screenshots` is the harness for the theme criterion**, and it drives browser mode.
+  The new browser describe in `browser-smoke.test.ts` is the one that drives the *VS Code*
+  bundle, and `Page.theme()` sets host variables before the app boots — pointing that at a
+  real Dark+/Light+/high-contrast variable dump is the cheap version of the exit criterion,
+  and installing the `.vsix` is the honest one. Do both.
+- **The editor half is still unverified by anything.** That a `reveal` moves a cursor, that a
+  lens draws above a function, that the watch fires: all of it is unit-tested against shapes
+  and none of it has run in an extension host. That is 8b's first hour, not its last.
+- **`GraphPanel.open` is keyed by workspace folder**, and `sessions` likewise. A multi-root
+  workspace is two protocols; nothing in 8a has been run against one.

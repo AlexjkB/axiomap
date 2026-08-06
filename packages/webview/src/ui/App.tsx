@@ -24,6 +24,7 @@ import type {
 import { useCallback, useEffect, useMemo, useReducer, useRef, useState } from 'react';
 
 import { BridgeError, type HostBridge } from '../bridge.js';
+import type { EditorLink } from '../editor.js';
 import { Breadcrumb } from './Breadcrumb.js';
 import { GraphCanvas } from './GraphCanvas.js';
 import { current, initialHistory, reduceHistory } from './history.js';
@@ -44,9 +45,17 @@ export interface AppProps {
   layoutClient?: LayoutClient;
   /** Overlays on at startup. Empty by default: §11's overlays are opt-in layers. */
   initialOverlays?: readonly OverlayName[];
+  /**
+   * The editor, when the host is one (§11's bidirectional navigation).
+   *
+   * Optional, and everything below reads as "if there is an editor": browser
+   * mode and the HTML export have none, and neither should behave differently
+   * for the existence of a host they will never meet.
+   */
+  editor?: EditorLink;
 }
 
-export function App({ bridge, layoutClient, initialOverlays = [] }: AppProps): JSX.Element {
+export function App({ bridge, layoutClient, initialOverlays = [], editor }: AppProps): JSX.Element {
   const [meta, setMeta] = useState<ProjectMeta | null>(null);
   const [view, setView] = useState<AggregatedView | null>(null);
   const [error, setError] = useState<BridgeError | null>(null);
@@ -62,6 +71,18 @@ export function App({ bridge, layoutClient, initialOverlays = [] }: AppProps): J
   const [history, dispatch] = useReducer(reduceHistory, initialHistory(initialState({ up: 2, down: 3 })));
   const state = current(history);
   const [paletteOpen, setPaletteOpen] = useState(false);
+  /*
+   * Phase 8's artifact watch, as one number.
+   *
+   * The host rebuilt the graph, so every answer this component is holding was
+   * about the previous one. Rather than invalidating each piece of state by
+   * hand, the generation goes into the dependency list of every request effect
+   * — which is the same trick `key` already plays for the view request, and it
+   * means a request added later is refreshed by construction rather than by
+   * somebody remembering to add it here.
+   */
+  const [refreshed, setRefreshed] = useState<{ at: number; reason: string } | null>(null);
+  const generation = refreshed === null ? 0 : refreshed.at;
 
   const [overlayData, setOverlayData] = useState<OverlayData | null>(null);
   const [active, setActive] = useState<ReadonlySet<OverlayName>>(() => new Set(initialOverlays));
@@ -131,7 +152,7 @@ export function App({ bridge, layoutClient, initialOverlays = [] }: AppProps): J
     return () => {
       cancelled = true;
     };
-  }, [bridge]);
+  }, [bridge, generation]);
 
   // Review state and imported findings: two small files, read once. They are
   // not the graph (§9 rule 1) — they are keyed by node id and carry no source.
@@ -150,7 +171,7 @@ export function App({ bridge, layoutClient, initialOverlays = [] }: AppProps): J
     return () => {
       cancelled = true;
     };
-  }, [bridge]);
+  }, [bridge, generation]);
 
   const request = toRequest(state);
   const key = JSON.stringify(request);
@@ -180,7 +201,7 @@ export function App({ bridge, layoutClient, initialOverlays = [] }: AppProps): J
     };
     // `key` is the request, serialized: the effect re-runs when what is being
     // asked for changes and not when an unrelated bit of state does.
-  }, [bridge, key]);
+  }, [bridge, key, generation]);
 
   useEffect(() => {
     if (selected === null) {
@@ -207,7 +228,7 @@ export function App({ bridge, layoutClient, initialOverlays = [] }: AppProps): J
     return () => {
       cancelled = true;
     };
-  }, [bridge, selected]);
+  }, [bridge, selected, generation]);
 
   /*
    * §11's code preview. A second request rather than a field on the inspection,
@@ -247,7 +268,7 @@ export function App({ bridge, layoutClient, initialOverlays = [] }: AppProps): J
     return () => {
       cancelled = true;
     };
-  }, [bridge, selected]);
+  }, [bridge, selected, generation]);
 
   const preset = PRESETS[state.view];
   const elements = useMemo(
@@ -287,16 +308,69 @@ export function App({ bridge, layoutClient, initialOverlays = [] }: AppProps): J
       // A click both navigates and selects: §11's inspector is about the thing
       // you just clicked, and a directory is not a node the inspector can answer
       // about — it stands for what is *not* drawn.
-      if (pick.kind !== 'Cluster') setSelected(pick.id);
+      if (pick.kind !== 'Cluster') {
+        setSelected(pick.id);
+        // §11: "Click node → reveal in editor." A cluster is a directory and
+        // has no declaration to land on.
+        editor?.reveal({ kind: 'node', id: pick.id });
+      }
       dispatch({ type: 'pick', ...pick, ...(open === undefined ? {} : { open }) });
     },
-    [open],
+    [open, editor],
   );
 
-  const onFocus = useCallback((id: string, kind: string) => {
-    setSelected(id);
-    dispatch({ type: 'pick', kind, id });
-  }, []);
+  /**
+   * §11: "Click edge → reveal the **call site**."
+   *
+   * The site, not either endpoint: §10 puts a `src` on every edge precisely so
+   * that clicking `deposit → _mint` lands inside `deposit` at the call rather
+   * than at `_mint`'s definition. An aggregated edge stands for many sites and
+   * carries none, so it navigates nothing — the way to reach one of them is to
+   * open the directory it summarises.
+   */
+  const onPickEdge = useCallback(
+    (site: { file: string; line: number; column: number } | null) => {
+      if (site !== null) editor?.reveal({ kind: 'site', ...site });
+    },
+    [editor],
+  );
+
+  const onFocus = useCallback(
+    (id: string, kind: string) => {
+      setSelected(id);
+      editor?.reveal({ kind: 'node', id });
+      dispatch({ type: 'pick', kind, id });
+    },
+    [editor],
+  );
+
+  /*
+   * §11's inverse navigation, and the artifact watch.
+   *
+   * A cursor landing on a declaration *selects* it: the inspector opens on it
+   * and the canvas highlights it if it is drawn. It deliberately does not
+   * navigate, and deliberately does not reveal back — see `editor.ts`.
+   */
+  useEffect(() => {
+    if (editor === undefined) return;
+    const offSelect = editor.onSelect((id) => {
+      setSelected(id);
+    });
+    // A command, not a cursor: this one navigates. It does not reveal back —
+    // the editor is already where the request came from.
+    const offFocus = editor.onFocus((id, kind) => {
+      setSelected(id);
+      dispatch({ type: 'pick', kind, id });
+    });
+    const offRefresh = editor.onRefresh((reason) => {
+      setRefreshed({ at: Date.now(), reason });
+    });
+    return () => {
+      offSelect();
+      offFocus();
+      offRefresh();
+    };
+  }, [editor]);
 
   const toggleOverlay = useCallback((name: OverlayName) => {
     setActive((on) => {
@@ -399,7 +473,9 @@ export function App({ bridge, layoutClient, initialOverlays = [] }: AppProps): J
             preset={preset}
             layoutClient={client}
             palette={palette}
+            selected={selected}
             onPick={onPick}
+            onPickEdge={onPickEdge}
             onLayout={setLayout}
           />
 
@@ -469,7 +545,10 @@ export function App({ bridge, layoutClient, initialOverlays = [] }: AppProps): J
       />
 
       <footer className="ax-status">
-        <span className="ax-note">{view === null ? 'loading…' : view.note}</span>
+        <span className="ax-note">
+          {refreshed === null ? '' : `${refreshed.reason} · `}
+          {view === null ? 'loading…' : view.note}
+        </span>
         <span className="ax-metrics">
           {view === null ? '' : `${String(view.elements)} / ${String(view.cap)} elements`}
           {layout === null

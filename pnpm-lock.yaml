@@ -14,6 +14,9 @@ importers:
       '@axiomap/core':
         specifier: workspace:^
         version: link:packages/core
+      '@axiomap/vscode':
+        specifier: workspace:^
+        version: link:packages/vscode
       '@axiomap/webview':
         specifier: workspace:^
         version: link:packages/webview
@@ -99,6 +102,10 @@ importers:
       '@axiomap/webview':
         specifier: workspace:*
         version: link:../webview
+    devDependencies:
+      '@types/vscode':
+        specifier: ^1.85.0
+        version: 1.125.0
 
   packages/webview:
     dependencies:
@@ -883,6 +890,9 @@ packages:
 
   '@types/unist@3.0.3':
     resolution: {integrity: sha512-ko/gIFJRv177XgZsZcBwnqJN5x/Gien8qNOn0D5bQU/zAzVf9Zt3BlcUiLqhV9y4ARk0GbT3tnUiPNgnTXzc/Q==}
+
+  '@types/vscode@1.125.0':
+    resolution: {integrity: sha512-0icm/ZQAaism87P0ekHqi4/Ju9du+Tm0RUW+y7vqRsxY2cY0FNRX1nAnaW7nT6npPt2tfHiheZ55Zm9UhqonFA==}
 
   '@typescript-eslint/eslint-plugin@8.65.0':
     resolution: {integrity: sha512-IEgob78X12rHpUmtcwFsXhZdVGJtwTVP8FiCLZkR6GlYVrl2PcuB+KhCE5BlVC/eQpQnu8WXRtkHZuPar+gCRA==}
@@ -2853,6 +2863,8 @@ snapshots:
       csstype: 3.2.3
 
   '@types/unist@3.0.3': {}
+
+  '@types/vscode@1.125.0': {}
 
   '@typescript-eslint/eslint-plugin@8.65.0(@typescript-eslint/parser@8.65.0(eslint@9.39.5(jiti@2.7.0))(typescript@5.9.3))(eslint@9.39.5(jiti@2.7.0))(typescript@5.9.3)':
     dependencies:

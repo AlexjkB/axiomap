@@ -71,6 +71,18 @@ export interface GraphCanvasProps {
   palette: Palette;
   /** A node was clicked: a cluster path to toggle, or a graph node to focus. */
   onPick: (pick: { kind: string; id: string; path?: string; expanded?: boolean }) => void;
+  /**
+   * An edge was clicked, with its **call site** (§11: "click edge → reveal the
+   * call site"). Null for an aggregated edge, which stands for many sites and
+   * carries none.
+   */
+  onPickEdge?: (site: { file: string; line: number; column: number } | null) => void;
+  /**
+   * The node the app considers selected, which is not always one that was
+   * clicked here: §11's inverse navigation selects from the *editor's* cursor.
+   * Applied to cytoscape's own selection so both routes light the same box.
+   */
+  selected?: string | null;
   /** Layout finished (ms), is pending (null), or failed (a message). */
   onLayout: (result: number | null | { failed: string }) => void;
 }
@@ -81,12 +93,14 @@ export function GraphCanvas({
   layoutClient,
   palette,
   onPick,
+  onPickEdge,
+  selected = null,
   onLayout,
 }: GraphCanvasProps): JSX.Element {
   const container = useRef<HTMLDivElement | null>(null);
   const cy = useRef<cytoscape.Core | null>(null);
-  const handlers = useRef({ onPick, onLayout });
-  handlers.current = { onPick, onLayout };
+  const handlers = useRef({ onPick, onPickEdge, onLayout });
+  handlers.current = { onPick, onPickEdge, onLayout };
   // The mount effect runs once and must not re-run when the theme changes; the
   // stylesheet is reapplied by the element effect below, which does.
   const current = useRef(palette);
@@ -114,6 +128,20 @@ export function GraphCanvas({
         ...(node.data('path') === undefined ? {} : { path: String(node.data('path')) }),
         ...(node.data('expanded') === undefined ? {} : { expanded: Boolean(node.data('expanded')) }),
       });
+    });
+
+    instance.on('tap', 'edge', (event) => {
+      const edge = event.target as cytoscape.EdgeSingular;
+      const file = edge.data('file') as string | undefined;
+      handlers.current.onPickEdge?.(
+        file === undefined
+          ? null
+          : {
+              file,
+              line: Number(edge.data('line')),
+              column: Number(edge.data('column')),
+            },
+      );
     });
 
     cy.current = instance;
@@ -237,6 +265,26 @@ export function GraphCanvas({
       abandoned = true;
     };
   }, [elements, preset, layoutClient, palette]);
+
+  /*
+   * §11's inverse navigation, at the end that draws.
+   *
+   * The app's selection is the authority — a click here and a cursor move in
+   * the editor both end up in it — so cytoscape's own selection is made to
+   * follow it rather than the two being kept in step. A selected node that this
+   * view does not draw is not an error: the inspector is showing it, and the
+   * canvas has nothing to light.
+   */
+  useEffect(() => {
+    const instance = cy.current;
+    if (instance === null) return;
+    instance.batch(() => {
+      instance.elements(':selected').unselect();
+      if (selected === null) return;
+      const node = instance.getElementById(selected);
+      if (!node.empty()) node.select();
+    });
+  }, [selected, elements]);
 
   return <div className="ax-canvas" ref={container} />;
 }

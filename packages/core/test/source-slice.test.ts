@@ -233,4 +233,51 @@ describe('sliceNode', () => {
       fs.rmSync(scratch, { recursive: true, force: true });
     }
   });
+
+  /**
+   * Phase 8: an editor is the one host where the file on disk is routinely not
+   * what the user is looking at.
+   *
+   * A preview read off disk while the buffer has unsaved changes shows a
+   * function the screen does not contain, and `drifted` cannot catch it —
+   * the graph and the disk agree, and it is the *editor* that has moved on. So
+   * the caller may supply the bytes; the path still comes from the graph.
+   */
+  describe('reading from a caller’s buffer rather than from disk', () => {
+    it('slices what the caller supplied', async () => {
+      const { graph } = await graphOf('defi');
+      const onDisk = sliceNode(graph, DEFI, MINT);
+      const edited = fs
+        .readFileSync(path.join(DEFI, 'src/Pair.sol'), 'utf8')
+        .replace('function mint(', 'function mint( /* unsaved */ ');
+
+      const slice = sliceNode(graph, DEFI, MINT, { read: () => edited });
+      expect(slice.text).toContain('unsaved');
+      expect(onDisk.text).not.toContain('unsaved');
+    });
+
+    it('is asked about the node’s own file, and falls back to disk', async () => {
+      const { graph } = await graphOf('defi');
+      const asked: string[] = [];
+      const slice = sliceNode(graph, DEFI, MINT, {
+        read: (file) => {
+          asked.push(file);
+          return undefined;
+        },
+      });
+      // The path is the graph's, not the caller's: there is no parameter here
+      // through which a file could be named.
+      expect(asked).toEqual(['src/Pair.sol']);
+      expect(slice.text).toContain('function mint(');
+    });
+
+    it('still reports drift, against the buffer', async () => {
+      const { graph } = await graphOf('defi');
+      const pushed = `${'// pushed down\n'.repeat(20)}${fs.readFileSync(
+        path.join(DEFI, 'src/Pair.sol'),
+        'utf8',
+      )}`;
+      expect(sliceNode(graph, DEFI, MINT, { read: () => pushed }).drifted).toBe(true);
+    });
+  });
 });

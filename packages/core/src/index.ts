@@ -44,6 +44,19 @@ export {
   type LoadedConfig,
 } from './project/config.js';
 export { globToRegExp, matchesAny, pathFilter, type PathFilter } from './project/globs.js';
+export {
+  analysisOptions,
+  buildOptions,
+  GRAPH_FILE,
+  loadProjectGraph,
+  newestInput,
+  openProject,
+  type LoadedGraph,
+  type ProjectContext,
+  type SessionHooks,
+  type SessionOptions,
+} from './project/session.js';
+export { readOverlayFiles, type OverlayFiles } from './project/overlay-sources.js';
 
 export * from './symbols/index.js';
 

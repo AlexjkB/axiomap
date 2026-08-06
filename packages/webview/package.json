@@ -11,7 +11,7 @@
     "dist"
   ],
   "scripts": {
-    "build": "tsc -b && tsc -p tsconfig.ui.json && vite build && vite build --config vite.export.config.ts",
+    "build": "tsc -b && tsc -p tsconfig.ui.json && vite build && vite build --config vite.export.config.ts && vite build --config vite.vscode.config.ts",
     "dev": "vite",
     "test": "vitest run --passWithNoTests",
     "clean": "rm -rf dist tsconfig.tsbuildinfo"

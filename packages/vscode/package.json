@@ -2,19 +2,125 @@
   "name": "@axiomap/vscode",
   "version": "0.0.0",
   "private": true,
-  "description": "Axiomap VS Code extension.",
+  "description": "Graph-based navigation and comprehension for Solidity protocols. Works on code that does not compile.",
   "license": "MIT",
   "type": "module",
   "main": "./dist/extension.js",
   "types": "./dist/extension.d.ts",
-  "files": ["dist"],
+  "exports": {
+    ".": {
+      "types": "./dist/extension.d.ts",
+      "default": "./dist/extension.js"
+    },
+    "./host": {
+      "types": "./dist/host.d.ts",
+      "default": "./dist/host.js"
+    },
+    "./html": {
+      "types": "./dist/html.d.ts",
+      "default": "./dist/html.js"
+    },
+    "./assets": {
+      "types": "./dist/assets.d.ts",
+      "default": "./dist/assets.js"
+    }
+  },
+  "files": [
+    "dist"
+  ],
   "scripts": {
     "build": "tsc -b",
-    "test": "vitest run --passWithNoTests",
+    "test": "vitest run",
     "clean": "rm -rf dist tsconfig.tsbuildinfo"
   },
   "dependencies": {
     "@axiomap/core": "workspace:*",
     "@axiomap/webview": "workspace:*"
+  },
+  "devDependencies": {
+    "@types/vscode": "^1.85.0"
+  },
+  "displayName": "Axiomap",
+  "publisher": "axiomap",
+  "categories": [
+    "Visualization",
+    "Programming Languages",
+    "Other"
+  ],
+  "keywords": [
+    "solidity",
+    "audit",
+    "security",
+    "graph",
+    "ethereum"
+  ],
+  "engines": {
+    "vscode": "^1.85.0",
+    "node": ">=20"
+  },
+  "activationEvents": [],
+  "contributes": {
+    "languages": [
+      {
+        "id": "solidity",
+        "aliases": [
+          "Solidity"
+        ],
+        "extensions": [
+          ".sol"
+        ]
+      }
+    ],
+    "commands": [
+      {
+        "command": "axiomap.open",
+        "title": "Open Graph",
+        "category": "Axiomap"
+      },
+      {
+        "command": "axiomap.rebuild",
+        "title": "Rebuild Graph",
+        "category": "Axiomap"
+      },
+      {
+        "command": "axiomap.revealInGraph",
+        "title": "Reveal Current Position in Graph",
+        "category": "Axiomap"
+      },
+      {
+        "command": "axiomap.focusNode",
+        "title": "Focus Node in Graph",
+        "category": "Axiomap",
+        "enablement": "false"
+      }
+    ],
+    "keybindings": [
+      {
+        "command": "axiomap.open",
+        "key": "ctrl+alt+g",
+        "mac": "cmd+alt+g"
+      },
+      {
+        "command": "axiomap.revealInGraph",
+        "key": "ctrl+alt+r",
+        "mac": "cmd+alt+r",
+        "when": "editorTextFocus && resourceExtname == .sol"
+      }
+    ],
+    "menus": {
+      "editor/context": [
+        {
+          "command": "axiomap.revealInGraph",
+          "when": "resourceExtname == .sol",
+          "group": "navigation@9"
+        }
+      ],
+      "commandPalette": [
+        {
+          "command": "axiomap.focusNode",
+          "when": "false"
+        }
+      ]
+    }
   }
 }

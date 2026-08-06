@@ -43,7 +43,32 @@ export {
   StaticBridge,
 } from './static.js';
 
+/**
+ * The fourth host (§7's Phase 8): a VS Code webview, over `postMessage`.
+ *
+ * The extension imports the wire types and the channel name from here, so the
+ * two ends of §9 rule 1's second transport are one declaration rather than two
+ * that agree today. `VsCodeBridge` itself is constructed inside the webview and
+ * is exported for the same reason `HttpBridge` is: so a test can drive it.
+ */
+export {
+  acquireApi,
+  CHANNEL,
+  VsCodeBridge,
+  type BridgeMethod,
+  type BridgeRequest,
+  type BridgeResponse,
+  type HostEvent,
+  type RevealMessage,
+  type RevealTarget,
+  type VsCodeApi,
+  type VsCodeBridgeOptions,
+} from './vscode.js';
+export type { EditorLink } from './editor.js';
+
 /** Where `vite build` puts the bundle, relative to the package root. */
 export const WEB_DIST = 'dist/web';
 /** Where the single-chunk build the HTML export inlines goes. */
 export const EXPORT_DIST = 'dist/export';
+/** Where the single-chunk build a VS Code webview loads goes. */
+export const VSCODE_DIST = 'dist/vscode';

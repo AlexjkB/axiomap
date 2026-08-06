@@ -33,17 +33,18 @@ import {
   RenderCapError,
   SourceUnavailableError,
   ViewError,
-  callDefaults,
+  DEFAULT_RENDER_CAP,
   decodeNodeRequest,
   decodeSearchRequest,
   decodeSourceRequest,
   decodeViewRequest,
+  describeProtocolError,
   inspectNode,
   overlayData,
+  projectMeta,
   searchNodes,
   selectAggregatedView,
   sliceNode,
-  VIEW_NAMES,
   type AxiomapGraph,
   type FindingsFile,
   type GraphFile,
@@ -100,37 +101,26 @@ export interface ServeHandle {
   close: () => Promise<void>;
 }
 
+/**
+ * An error, as HTTP carries it.
+ *
+ * The *body* is `describeProtocolError`'s, in core, because Phase 8's
+ * `postMessage` host sends the same shape and a UI reads one of them. What is
+ * HTTP's alone, and stays here, is the status: which of these is a refusal, a
+ * missing thing, or a fault.
+ */
 function toProtocolError(error: unknown): { status: number; body: ProtocolError } {
-  if (error instanceof RenderCapError) {
-    return {
-      // 422: the request was understood and is a thing this host will not do.
-      status: 422,
-      body: {
-        name: 'RenderCapError',
-        message: error.message,
-        elements: error.elements,
-        cap: error.cap,
-        view: error.view,
-      },
-    };
-  }
-  if (error instanceof ViewError) {
-    return { status: 400, body: { name: 'ViewError', message: error.message } };
-  }
-  if (error instanceof NodeNotFoundError) {
-    return { status: 404, body: { name: 'NodeNotFoundError', message: error.message } };
-  }
+  const body = describeProtocolError(error);
+  // 422: the request was understood and is a thing this host will not do.
+  if (error instanceof RenderCapError) return { status: 422, body };
+  if (error instanceof ViewError) return { status: 400, body };
+  if (error instanceof NodeNotFoundError) return { status: 404, body };
   // 404 rather than 500: a node with nothing readable behind it is an answer
   // about the graph, not a fault. An `Unresolved` placeholder and a file the
   // graph was built from a different checkout of both land here, and both are
   // things the panel says out loud rather than states as an error.
-  if (error instanceof SourceUnavailableError) {
-    return { status: 404, body: { name: 'SourceUnavailableError', message: error.message } };
-  }
-  return {
-    status: 500,
-    body: { name: 'Error', message: error instanceof Error ? error.message : String(error) },
-  };
+  if (error instanceof SourceUnavailableError) return { status: 404, body };
+  return { status: 500, body };
 }
 
 function sendJson(response: http.ServerResponse, status: number, payload: unknown): void {
@@ -148,29 +138,15 @@ function sendJson(response: http.ServerResponse, status: number, payload: unknow
 /**
  * The graph file minus the graph.
  *
- * Spelled as an explicit field list rather than a rest-destructure so that a
- * field added to `GraphFile` later is *not* published by accident. §9 rule 1 is
- * a rule about what leaves this process, and "whatever the artifact happens to
- * contain" is not a payload anyone decided on.
+ * The field list is `projectMeta`'s, in core, since Phase 8 gave the extension
+ * the same header to publish — see there for why it is an explicit list rather
+ * than a rest-destructure.
  */
 function metaOf(options: ServerOptions): ProjectMeta {
-  const file = options.file;
-  const header = {
-    schemaVersion: file.schemaVersion,
-    generator: file.generator,
-    project: file.project,
-    mode: file.mode,
-    modeReason: file.modeReason,
-    score: file.score,
-    diagnostics: file.diagnostics,
-  };
-  return {
-    ...header,
+  return projectMeta(options.file, {
     root: options.root,
-    renderCap: options.renderCap ?? 1500,
-    views: VIEW_NAMES,
-    callDefaults: callDefaults(),
-  };
+    renderCap: options.renderCap ?? DEFAULT_RENDER_CAP,
+  });
 }
 
 /**
