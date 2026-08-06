@@ -155,13 +155,48 @@ export function readDocumentPalette(): Palette {
   );
 }
 
+/**
+ * The one entry whose job is to be quieter than the foreground, and therefore
+ * the one allowed to arrive from the host already translucent.
+ */
+const KEEPS_ITS_ALPHA = new Set<keyof Palette>(['dim']);
+
+/**
+ * Take a host colour at full strength.
+ *
+ * **Found in Phase 8b, by dumping the variables out of a real editor rather
+ * than transcribing them.** Dark+ and Light+ both spell `--vscode-charts-orange`
+ * as `rgba(234, 92, 0, 0.33)`, and at a third of an opacity it composites to
+ * **1.6:1** against the editor background — well under WCAG 1.4.11's 3:1 for a
+ * non-text object, and invisible in practice. That variable is `state` and
+ * `writes`: the *orange* half of §11's state access map, "reads blue / writes
+ * orange", the view §11 says nothing else does well.
+ *
+ * A third of an opacity is the right choice for the thing VS Code uses it for —
+ * a filled area behind a chart line. It is the wrong choice for a 2px border on
+ * a small node. And §11's channel budget has already spent node opacity on
+ * reachability dimming, so a hue that arrives pre-faded is not just faint, it is
+ * quietly claiming a channel that belongs to something else.
+ *
+ * So the **hue** is the host's, as §11 requires, and the **opacity** stays ours.
+ */
+function opaque(value: string): string {
+  const rgba = /^rgba\(\s*([\d.]+)[,\s]+([\d.]+)[,\s]+([\d.]+)[,\s/]+[\d.]+\s*\)$/i.exec(
+    value.trim(),
+  );
+  if (rgba !== null) return `rgb(${rgba[1] ?? '0'}, ${rgba[2] ?? '0'}, ${rgba[3] ?? '0'})`;
+  // `#rrggbbaa`, the other form a theme may use.
+  const hex8 = /^#([0-9a-f]{6})[0-9a-f]{2}$/i.exec(value.trim());
+  return hex8 === null ? value : `#${hex8[1] ?? ''}`;
+}
+
 function readPaletteFrom(read: (variable: string) => string): Palette {
   const resolve = (key: keyof Palette): string => {
     // Every entry but the last is a variable; the last is the literal fallback.
     const rungs = PALETTE_VARIABLES[key];
     for (let at = 0; at < rungs.length - 1; at += 1) {
       const value = read(rungs[at] as string).trim();
-      if (value !== '') return value;
+      if (value !== '') return KEEPS_ITS_ALPHA.has(key) ? value : opaque(value);
     }
     return rungs[rungs.length - 1] as string;
   };

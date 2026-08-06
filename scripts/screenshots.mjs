@@ -41,59 +41,35 @@ import { startServe } from '@axiomap/cli';
  * variable missing here falls back exactly as it does in a browser, which is
  * the behaviour worth being able to see.
  */
+/**
+ * What a host's theme sets.
+ *
+ * **Dumped out of a real VS Code**, one file per theme, by the extension-host
+ * suite (`pnpm test:host` → `packages/webview/test/themes/*.json`). They used to
+ * be transcribed by hand into this file, which is a guess about the thing under
+ * test — and the guess was wrong in a way that mattered: Dark+ and Light+ spell
+ * `--vscode-charts-orange` as `rgba(234, 92, 0, 0.33)`, not as the opaque
+ * `#d18616` that was written here, so every screenshot ever taken of this UI
+ * showed a state-access map in an orange nobody actually gets. See
+ * `packages/webview/test/theme-legibility.test.ts`.
+ */
 const THEMES = {
   // The browser fallback: the app resolves every variable itself.
   browser: {},
-  light: {
-    '--vscode-editor-background': '#ffffff',
-    '--vscode-editor-foreground': '#3b3b3b',
-    '--vscode-descriptionForeground': '#717171',
-    '--vscode-panel-border': '#e5e5e5',
-    '--vscode-editorWidget-background': '#f8f8f8',
-    '--vscode-editorGroup-border': '#e5e5e5',
-    '--vscode-charts-blue': '#1a85ff',
-    '--vscode-charts-purple': '#652d90',
-    '--vscode-charts-green': '#388a34',
-    '--vscode-charts-orange': '#d18616',
-    '--vscode-charts-foreground': '#3b3b3b',
-    '--vscode-editorWarning-foreground': '#bf8803',
-    '--vscode-editorError-foreground': '#e51400',
-    '--vscode-charts-red': '#e51400',
-    '--vscode-symbolIcon-keywordForeground': '#af00db',
-    '--vscode-symbolIcon-classForeground': '#267f99',
-    '--vscode-symbolIcon-functionForeground': '#795e26',
-    '--vscode-symbolIcon-stringForeground': '#a31515',
-    '--vscode-symbolIcon-numberForeground': '#098658',
-    '--vscode-symbolIcon-variableForeground': '#001080',
-    '--vscode-focusBorder': '#005fb8',
-    '--vscode-editor-font-family': 'ui-monospace, monospace',
-    '--vscode-font-family': 'system-ui, sans-serif',
-  },
-  'hc-dark': {
-    '--vscode-editor-background': '#000000',
-    '--vscode-editor-foreground': '#ffffff',
-    '--vscode-descriptionForeground': '#ffffff',
-    '--vscode-panel-border': '#6fc3df',
-    '--vscode-editorWidget-background': '#0c141f',
-    '--vscode-editorGroup-border': '#6fc3df',
-    '--vscode-charts-blue': '#3794ff',
-    '--vscode-charts-purple': '#c586c0',
-    '--vscode-charts-green': '#89d185',
-    '--vscode-charts-orange': '#d18616',
-    '--vscode-charts-foreground': '#ffffff',
-    '--vscode-editorWarning-foreground': '#ffd700',
-    '--vscode-editorError-foreground': '#f48771',
-    '--vscode-charts-red': '#f48771',
-    '--vscode-symbolIcon-keywordForeground': '#c586c0',
-    '--vscode-symbolIcon-classForeground': '#4ec9b0',
-    '--vscode-symbolIcon-functionForeground': '#dcdcaa',
-    '--vscode-symbolIcon-stringForeground': '#ce9178',
-    '--vscode-symbolIcon-numberForeground': '#b5cea8',
-    '--vscode-symbolIcon-variableForeground': '#9cdcfe',
-    '--vscode-focusBorder': '#f38518',
-    '--vscode-editor-font-family': 'ui-monospace, monospace',
-    '--vscode-font-family': 'system-ui, sans-serif',
-  },
+  ...Object.fromEntries(
+    fs
+      .readdirSync(new URL('../packages/webview/test/themes/', import.meta.url))
+      .filter((name) => name.endsWith('.json'))
+      .map((name) => [
+        name.replace(/\.json$/, ''),
+        JSON.parse(
+          fs.readFileSync(
+            new URL(`../packages/webview/test/themes/${name}`, import.meta.url),
+            'utf8',
+          ),
+        ).values,
+      ]),
+  ),
 };
 
 function parseArgs(argv) {

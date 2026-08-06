@@ -1,0 +1,28 @@
+{
+  "theme": "Default Dark+",
+  "values": {
+    "--vscode-editor-background": "#1e1e1e",
+    "--vscode-editor-foreground": "#d4d4d4",
+    "--vscode-descriptionForeground": "rgba(204, 204, 204, 0.7)",
+    "--vscode-panel-border": "rgba(128, 128, 128, 0.35)",
+    "--vscode-editorWidget-background": "#252526",
+    "--vscode-editorGroup-border": "#444444",
+    "--vscode-charts-blue": "#59a4f9",
+    "--vscode-charts-purple": "#b180d7",
+    "--vscode-charts-green": "#89d185",
+    "--vscode-charts-orange": "rgba(234, 92, 0, 0.33)",
+    "--vscode-charts-red": "#f14c4c",
+    "--vscode-charts-foreground": "#cccccc",
+    "--vscode-editorWarning-foreground": "#cca700",
+    "--vscode-editorError-foreground": "#f14c4c",
+    "--vscode-focusBorder": "#007fd4",
+    "--vscode-symbolIcon-keywordForeground": "#cccccc",
+    "--vscode-symbolIcon-classForeground": "#ee9d28",
+    "--vscode-symbolIcon-functionForeground": "#b180d7",
+    "--vscode-symbolIcon-stringForeground": "#cccccc",
+    "--vscode-symbolIcon-numberForeground": "#cccccc",
+    "--vscode-symbolIcon-variableForeground": "#75beff",
+    "--vscode-editor-font-family": "'Droid Sans Mono', monospace",
+    "--vscode-font-family": "system-ui, \"Ubuntu\", \"Droid Sans\", sans-serif"
+  }
+}
