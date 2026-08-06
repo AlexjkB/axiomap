@@ -7,11 +7,18 @@
  * and any claim stronger than what the analysis found.
  */
 
-import { describe, expect, it } from 'vitest';
+import fs from 'node:fs';
+import path from 'node:path';
+
+import { afterEach, describe, expect, it } from 'vitest';
+import { Uri, state, workspace } from 'vscode';
 
 import type { FileLens } from '@axiomap/core';
 
-import { lensTitle } from '../src/codelens.js';
+import { AxiomapLensProvider, FOCUS_COMMAND, lensTitle } from '../src/codelens.js';
+import { AxiomapSession } from '../src/session.js';
+import { CODE_LENS_ENABLED } from '../src/settings.js';
+import { fixture } from './fixtures.js';
 
 function lens(over: Partial<FileLens> = {}): FileLens {
   return {
@@ -95,5 +102,97 @@ describe('lensTitle', () => {
     expect(
       lensTitle(lens({ review: { status: 'flagged', staleness: 'current', at: 'now' }, findings: 2 })),
     ).toBe('▸ flagged · 2 findings');
+  });
+});
+
+/**
+ * The provider itself, which was the uncovered half of this file at the Phase 8b
+ * boundary audit.
+ *
+ * Three decisions live here and nowhere else, and none of them is the sentence
+ * above: that a lens is *not* drawn before a command has loaded the graph, that
+ * a lens sits on the line its declaration starts on, and that the setting turns
+ * it off. `pnpm test:host` checks the same three against a real editor; this
+ * checks them in CI, on a machine with none.
+ */
+describe('AxiomapLensProvider', () => {
+  const MINIMAL = fixture('minimal');
+  const file = path.join(MINIMAL, 'src/Vault.sol');
+
+  /** Only what the provider touches. The stub's rule is shapes, never behaviour. */
+  function document(): { uri: Uri; getText: () => string } {
+    const text = fs.readFileSync(file, 'utf8');
+    return { uri: Uri.file(file), getText: () => text };
+  }
+
+  afterEach(() => {
+    workspace.settings = {};
+    state.root = '';
+  });
+
+  it('draws nothing until something has loaded the graph', async () => {
+    state.root = MINIMAL;
+    const session = AxiomapSession.open(MINIMAL);
+    const provider = new AxiomapLensProvider(() => session);
+
+    // Opening a `.sol` file in a 200k-SLOC repo must not start an ingest nobody
+    // asked for; lenses appear once a command has built the graph.
+    expect(await provider.provideCodeLenses(document() as never)).toEqual([]);
+    expect(session.state).toBeNull();
+
+    await session.ready();
+    expect((await provider.provideCodeLenses(document() as never)).length).toBeGreaterThan(0);
+  });
+
+  it('draws nothing for a folder with no session', async () => {
+    const provider = new AxiomapLensProvider(() => undefined);
+    expect(await provider.provideCodeLenses(document() as never)).toEqual([]);
+  });
+
+  it('puts each lens on its declaration’s own line, carrying its node id', async () => {
+    state.root = MINIMAL;
+    const session = AxiomapSession.open(MINIMAL);
+    await session.ready();
+    const provider = new AxiomapLensProvider(() => session);
+
+    const lenses = await provider.provideCodeLenses(document() as never);
+    const lines = fs.readFileSync(file, 'utf8').split('\n');
+
+    for (const drawn of lenses) {
+      const id = drawn.command?.arguments?.[0] as string;
+      expect(drawn.command?.command).toBe(FOCUS_COMMAND);
+      expect(id.startsWith('src/Vault.sol')).toBe(true);
+      expect(drawn.command?.title.startsWith('▸')).toBe(true);
+      // A zero-width range on the declaration's first line (§10's byte offsets
+      // converted once, in `navigation.ts`), so the editor draws the lens above
+      // the declaration rather than in the middle of the file.
+      expect(drawn.range.start.line).toBe(drawn.range.end.line);
+      const name = id.split(/[.:(]/).at(-2) ?? id;
+      expect(lines[drawn.range.start.line] ?? '', id).toContain(name);
+    }
+  });
+
+  it('draws nothing when the setting is off', async () => {
+    state.root = MINIMAL;
+    const session = AxiomapSession.open(MINIMAL);
+    await session.ready();
+    const provider = new AxiomapLensProvider(() => session);
+
+    workspace.settings = { [CODE_LENS_ENABLED]: false };
+    expect(await provider.provideCodeLenses(document() as never)).toEqual([]);
+  });
+
+  it('fires onDidChangeCodeLenses when the graph moves', () => {
+    const provider = new AxiomapLensProvider(() => undefined);
+    let fired = 0;
+    provider.onDidChangeCodeLenses(() => {
+      fired += 1;
+    });
+
+    // What the artifact watch and the rebuild command both call; without it the
+    // editor keeps drawing the previous graph's counts.
+    provider.refresh();
+    expect(fired).toBe(1);
+    provider.dispose();
   });
 });

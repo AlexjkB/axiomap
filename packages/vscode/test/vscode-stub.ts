@@ -93,6 +93,11 @@ export const workspace = {
     return full.startsWith(prefix) ? full.slice(prefix.length) : full;
   },
   textDocuments: [] as { uri: Uri; isDirty: boolean; getText: () => string }[],
+  /** What a test sets; `getConfiguration` reads it. Shapes, as ever. */
+  settings: {} as Record<string, unknown>,
+  getConfiguration(): { get: (key: string) => unknown } {
+    return { get: (key: string) => workspace.settings[key] };
+  },
 };
 
 export const window = {
