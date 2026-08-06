@@ -60,6 +60,21 @@
   },
   "activationEvents": [],
   "contributes": {
+    "configuration": {
+      "title": "Axiomap",
+      "properties": {
+        "axiomap.codeLens.enabled": {
+          "type": "boolean",
+          "default": true,
+          "description": "Show the Axiomap CodeLens above contracts and functions. The counts come from a graph that is already loaded; turning this off does not change how the graph is built."
+        },
+        "axiomap.followCursor": {
+          "type": "boolean",
+          "default": true,
+          "description": "Highlight the graph node the editor's cursor is inside, while the graph panel is open. Highlighting only — it never moves the graph's view. Turn it off to stop the inspector opening as you type."
+        }
+      }
+    },
     "languages": [
       {
         "id": "solidity",
@@ -92,6 +107,12 @@
         "title": "Focus Node in Graph",
         "category": "Axiomap",
         "enablement": "false"
+      },
+      {
+        "command": "axiomap.revealNode",
+        "title": "Reveal Node in Editor",
+        "category": "Axiomap",
+        "enablement": "false"
       }
     ],
     "keybindings": [
@@ -118,6 +139,10 @@
       "commandPalette": [
         {
           "command": "axiomap.focusNode",
+          "when": "false"
+        },
+        {
+          "command": "axiomap.revealNode",
           "when": "false"
         }
       ]

@@ -95,6 +95,46 @@ export async function revealRange(
   editor.revealRange(target, vscode.TextEditorRevealType.InCenterIfOutsideViewport);
 }
 
+/**
+ * §11's "click node → reveal in editor", as one function.
+ *
+ * Here rather than inside `panel.ts` because there are two callers and only one
+ * of them is a panel: the webview's `reveal` message, and the `axiomap.revealNode`
+ * command, which is what a keybinding or another extension has to go through.
+ * Two copies would be two answers to where a node is.
+ *
+ * Returns whether it navigated, so a caller can say why it did not:
+ *
+ * - a node the graph does not have — the artifact and the request disagree;
+ * - §10's `Unresolved` placeholder, which stands for a call that could not be
+ *   bound and has nothing on disk to open. Its own `src` points at the *caller*,
+ *   so navigating would land somewhere plausible and wrong;
+ * - a file that will not open, which usually means the graph was built from a
+ *   different checkout.
+ */
+export async function revealNode(
+  root: vscode.Uri,
+  graph: { hasNode: (id: string) => boolean; getNodeAttributes: (id: string) => GraphNode },
+  id: string,
+): Promise<boolean> {
+  if (!graph.hasNode(id)) return false;
+  const node = graph.getNodeAttributes(id);
+  if (node.kind === 'Unresolved') return false;
+
+  const uri = vscode.Uri.joinPath(root, ...node.file.split('/'));
+  let text: string;
+  try {
+    text = (await vscode.workspace.openTextDocument(uri)).getText();
+  } catch {
+    void vscode.window.showWarningMessage(
+      `Axiomap: could not open ${node.file}. The graph may have been built from a different checkout.`,
+    );
+    return false;
+  }
+  await revealRange(root, node.file, rangeOfRef(node.file, text, node.src));
+  return true;
+}
+
 /** A declaration's range in a document that is already open. */
 export function rangeOfNode(document: vscode.TextDocument, node: GraphNode): EditorRange {
   return rangeOfRef(node.file, document.getText(), node.src);

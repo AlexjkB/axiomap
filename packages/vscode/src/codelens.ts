@@ -32,6 +32,7 @@ import * as vscode from 'vscode';
 
 import type { AxiomapSession } from './session.js';
 import { rangeOfRef } from './navigation.js';
+import { settingsFor } from './settings.js';
 
 /** The command a lens invokes: focus this node in the graph panel. */
 export const FOCUS_COMMAND = 'axiomap.focusNode';
@@ -100,6 +101,10 @@ export class AxiomapLensProvider implements vscode.CodeLensProvider {
   }
 
   async provideCodeLenses(document: vscode.TextDocument): Promise<vscode.CodeLens[]> {
+    // Editor behaviour, not a fact about the protocol — see `settings.ts` for
+    // why that is the only kind of setting this extension has.
+    if (!settingsFor(document.uri).codeLensEnabled) return [];
+
     const session = this.#sessionFor(document.uri);
     if (session === undefined) return [];
 

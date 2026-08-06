@@ -27,7 +27,7 @@
 import { isBridgeRequest, answer, type HostSources } from './host.js';
 import { webviewBundle } from './assets.js';
 import { nonce as makeNonce, webviewHtml } from './html.js';
-import { rangeOfRef, rangeOfSite, revealRange } from './navigation.js';
+import { rangeOfSite, revealNode, revealRange } from './navigation.js';
 import type { AxiomapSession } from './session.js';
 import { CHANNEL, type HostEvent, type RevealMessage } from '@axiomap/webview';
 import * as vscode from 'vscode';
@@ -193,23 +193,6 @@ export class GraphPanel {
       return;
     }
 
-    if (!state.graph.hasNode(message.target.id)) return;
-    const node = state.graph.getNodeAttributes(message.target.id);
-    // §10's `Unresolved` placeholder stands for a call whose target could not be
-    // bound; there is nothing on disk to open, and its own `src` points at the
-    // caller. The panel already says so.
-    if (node.kind === 'Unresolved') return;
-
-    const uri = vscode.Uri.joinPath(root, ...node.file.split('/'));
-    let text: string;
-    try {
-      text = (await vscode.workspace.openTextDocument(uri)).getText();
-    } catch {
-      void vscode.window.showWarningMessage(
-        `Axiomap: could not open ${node.file}. The graph may have been built from a different checkout.`,
-      );
-      return;
-    }
-    await revealRange(root, node.file, rangeOfRef(node.file, text, node.src));
+    await revealNode(root, state.graph, message.target.id);
   }
 }
