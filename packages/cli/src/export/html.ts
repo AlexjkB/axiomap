@@ -26,25 +26,46 @@
  * ### It is bounded, and it says where it stops
  *
  * A 300-contract protocol has thousands of reachable views and every one of
- * them could be embedded. The exporter walks them breadth-first from the one
- * that was asked for and stops at a byte budget, then records what it left out.
- * A deliverable that silently stops answering at the third click is worse than
- * one that says how far it goes — the same argument §9 rule 2 makes for the
- * render cap, and §4 makes for everything else.
+ * them could be embedded. The exporter walks them from the one that was asked
+ * for and stops at a byte budget, then records what it left out. A deliverable
+ * that silently stops answering at the third click is worse than one that says
+ * how far it goes — the same argument §9 rule 2 makes for the render cap, and §4
+ * makes for everything else.
+ *
+ * ### What it stops on is a quota per view kind, not a queue running dry
+ *
+ * Phase 7d walked that set breadth-first and spent the budget in the order the
+ * queue produced it. On a 298-contract project that meant **190 views: one
+ * protocol map and 189 contract views, and not one call graph** — the contract
+ * views reached the ceiling before the walk got to the first function. §9 rule 4
+ * makes the call graph the view that requires a focus node, and §11 makes it the
+ * one an auditor lives in, so a deliverable that can never contain one is §15's
+ * ninth item not working.
+ *
+ * Raising the ceiling does not fix that; it buys more contract views. The fix is
+ * to decide **how much of what** before the walk starts, which is `VIEW_QUOTA`
+ * below. It is stated here rather than left to emerge from a traversal order,
+ * because "how much of what" is the kind of thing that otherwise gets decided
+ * twice — once in the queue and once in whatever reads it.
  */
 
 import {
+  dehydrateInspection,
+  dehydrateView,
   inspectNode,
+  PAYLOAD_VERSION,
   RenderCapError,
   selectAggregatedView,
   sliceNode,
   type AggregatedView,
   type AggregatedViewOptions,
   type AxiomapGraph,
-  type NodeInspection,
+  type GraphNode,
   type OverlayData,
   type ProjectMeta,
   type SourceSlice,
+  type StaticAggregatedView,
+  type StaticInspection,
   type StaticPayload,
   type StaticView,
 } from '@axiomap/core';
@@ -61,6 +82,56 @@ import {
 export const DEFAULT_EXPORT_BUDGET = 12 * 1024 * 1024;
 const VIEW_SHARE = 0.4;
 const INSPECT_SHARE = 0.7;
+
+/**
+ * The three things a view can be, from the reader's point of view.
+ *
+ * §11 lists five views, but only three shapes are *reachable by clicking* in an
+ * export: the view the file opened on and its directory expansions, a contract's
+ * members, and a call graph rooted on a function. `state-access` and
+ * `inheritance` are opening views rather than destinations, so they share the
+ * map's quota — an export asked for one of them spends that quota on it.
+ */
+export type ViewQuotaKind = 'map' | 'contract' | 'call';
+
+/**
+ * **The policy: how much of the view budget each kind may spend.**
+ *
+ * Fractions of `budget * VIEW_SHARE`, and they are floors as much as ceilings —
+ * a kind may not be starved by another kind's queue being longer, which is
+ * exactly what happened to the call graph in Phase 7d.
+ *
+ * - **`call` gets the largest share** because it is the view §9 rule 4 makes
+ *   focus-dependent and §11 makes the one an auditor works in, and because it is
+ *   the only kind whose absence makes a click land on a refusal rather than on a
+ *   less-detailed answer.
+ * - **`contract` is the middle** — it is the drill-down every contract on the
+ *   map offers, so it wants breadth, but a contract view the file lacks still
+ *   leaves the map and the inspector answering for that contract.
+ * - **`map` is small** because there are few of them: the opening view plus one
+ *   per directory expansion, and a project has tens of directories, not
+ *   thousands of them.
+ *
+ * Unspent quota is not wasted: whatever no kind claimed is pooled and offered
+ * back to the kinds that still have queued requests (see `buildPayload`). So a
+ * nine-contract project still embeds everything reachable, and only a project
+ * big enough to exhaust the budget ever sees these numbers bite.
+ */
+export const VIEW_QUOTA: Readonly<Record<ViewQuotaKind, number>> = {
+  map: 0.15,
+  contract: 0.35,
+  call: 0.5,
+};
+
+/** Which quota a request spends from. */
+export function quotaKind(request: AggregatedViewOptions): ViewQuotaKind {
+  if (request.view === 'contract') return 'contract';
+  if (request.view === 'call') return 'call';
+  return 'map';
+}
+
+/** Round-robin order, so a kind is never blocked behind another kind's queue. */
+const QUOTA_ORDER: readonly ViewQuotaKind[] = ['map', 'contract', 'call'];
 
 export interface HtmlExportOptions {
   graph: AxiomapGraph;
@@ -89,8 +160,8 @@ function bytes(value: unknown): number {
  * they contribute nothing to inspect — which is the same reason the UI does not
  * open the inspector when one is clicked.
  */
-function drawnNodes(view: AggregatedView): string[] {
-  return view.nodes.flatMap((element) => (element.type === 'node' ? [element.node.id] : []));
+function drawnNodes(view: StaticAggregatedView): string[] {
+  return view.nodes.flatMap((element) => (element.type === 'node' ? [element.id] : []));
 }
 
 /**
@@ -156,19 +227,38 @@ function requestKey(request: AggregatedViewOptions): string {
 export function buildPayload(options: HtmlExportOptions): StaticPayload {
   const budget = options.budget ?? DEFAULT_EXPORT_BUDGET;
   const views: StaticView[] = [];
-  const inspections: Record<string, NodeInspection> = {};
+  const nodeTable: Record<string, GraphNode> = {};
+  const inspections: Record<string, StaticInspection> = {};
   const sources: Record<string, SourceSlice> = {};
 
   let used = 0;
   let viewsOmitted = 0;
 
+  const viewBudget = budget * VIEW_SHARE;
+  const allowance: Record<ViewQuotaKind, number> = {
+    map: viewBudget * VIEW_QUOTA.map,
+    contract: viewBudget * VIEW_QUOTA.contract,
+    call: viewBudget * VIEW_QUOTA.call,
+  };
+  const spent: Record<ViewQuotaKind, number> = { map: 0, contract: 0, call: 0 };
+  const queues: Record<ViewQuotaKind, AggregatedViewOptions[]> = { map: [], contract: [], call: [] };
+
   const seen = new Set<string>();
-  const queue: AggregatedViewOptions[] = [options.initial];
+  queues[quotaKind(options.initial)].push(options.initial);
   seen.add(requestKey(options.initial));
 
-  while (queue.length > 0) {
-    const request = queue.shift() as AggregatedViewOptions;
-
+  /**
+   * Answer one request and record it, or say why it was not recorded.
+   *
+   * `cap` is what this request may cost — the kind's remaining quota during the
+   * quota rounds, and the shared remainder afterwards. `null` means "whatever it
+   * costs", which only the opening view gets: a file that opened on nothing
+   * because the budget was tight would be worse than a large file.
+   */
+  const embed = (
+    request: AggregatedViewOptions,
+    cap: number | null,
+  ): { status: 'embedded' | 'refused' | 'over'; cost: number } => {
     let view: AggregatedView;
     try {
       view = selectAggregatedView(options.graph, request);
@@ -177,40 +267,105 @@ export function buildPayload(options: HtmlExportOptions): StaticPayload {
       // refusal is the correct answer to that request, and the reader gets the
       // same refusal from `StaticBridge`. Anything else is a real failure and
       // should not be swallowed.
-      if (error instanceof RenderCapError) {
-        viewsOmitted += 1;
-        continue;
-      }
+      if (error instanceof RenderCapError) return { status: 'refused', cost: 0 };
       throw error;
     }
 
-    const cost = bytes(view);
-    // The first view is always embedded, whatever it costs: a file that opened
-    // on nothing because the budget was tight would be worse than a large file.
-    if (views.length > 0 && used + cost > budget * VIEW_SHARE) {
-      viewsOmitted += 1;
-      continue;
-    }
+    const split = dehydrateView(view);
+    // The honest cost of embedding this view: the view itself, plus the nodes it
+    // draws that no earlier view already put in the table. Charging for a node
+    // twice would reintroduce the accounting v1 had, one level up.
+    const fresh = split.nodes.filter((node) => !(node.id in nodeTable));
+    const cost = bytes(split.view) + fresh.reduce((total, node) => total + bytes(node), 0);
+    if (cap !== null && cost > cap) return { status: 'over', cost };
 
-    views.push({ request, view });
+    for (const node of fresh) nodeTable[node.id] = node;
+    views.push({ request, view: split.view });
     used += cost;
 
     for (const next of nextRequests(request, view, options.meta.callDefaults)) {
       const key = requestKey(next);
       if (seen.has(key)) continue;
       seen.add(key);
-      queue.push(next);
+      queues[quotaKind(next)].push(next);
+    }
+    return { status: 'embedded', cost };
+  };
+
+  /*
+   * The quota rounds. One request per kind per round, so `call` starts being
+   * embedded as soon as the first contract view has produced one rather than
+   * after every contract view has been considered — which is the whole of the
+   * defect this replaces.
+   *
+   * A kind closes when its next request does not fit what it has left. Its
+   * remaining queue is not walked: computing a thousand views in order to reject
+   * them costs seconds and tells the reader nothing the count does not.
+   */
+  const closed = new Set<ViewQuotaKind>();
+  while (closed.size < QUOTA_ORDER.length) {
+    let progressed = false;
+    for (const kind of QUOTA_ORDER) {
+      if (closed.has(kind)) continue;
+      const request = queues[kind].shift();
+      if (request === undefined) {
+        closed.add(kind);
+        continue;
+      }
+      progressed = true;
+      const first = views.length === 0;
+      const result = embed(request, first ? null : allowance[kind] - spent[kind]);
+      if (result.status === 'embedded') {
+        spent[kind] += result.cost;
+      } else if (result.status === 'over') {
+        // Put it back: the remainder pass may still afford it.
+        queues[kind].unshift(request);
+        closed.add(kind);
+      } else {
+        viewsOmitted += 1;
+      }
+    }
+    if (!progressed) break;
+  }
+
+  /*
+   * Whatever no kind claimed is offered back, round-robin, to the kinds that
+   * still have requests queued. This is what keeps the quotas from *costing*
+   * anything on a project small enough to embed whole: `defi/`'s queues run dry
+   * long before any of them closes, and a project whose call graph is cheap gets
+   * the contract views the call quota did not need.
+   */
+  let remaining = viewBudget - used;
+  let draining = true;
+  while (draining && remaining > 0) {
+    draining = false;
+    for (const kind of QUOTA_ORDER) {
+      const request = queues[kind].shift();
+      if (request === undefined) continue;
+      const result = embed(request, remaining);
+      if (result.status === 'over') {
+        queues[kind].unshift(request);
+        continue;
+      }
+      draining = true;
+      if (result.status === 'refused') viewsOmitted += 1;
+      remaining -= result.cost;
     }
   }
+
+  // Everything still queued is a view this file could have held and does not.
+  viewsOmitted += QUOTA_ORDER.reduce((total, kind) => total + queues[kind].length, 0);
 
   const ids = [...new Set(views.flatMap((entry) => drawnNodes(entry.view)))].sort();
 
   for (const id of ids) {
     if (used > budget * INSPECT_SHARE) break;
     try {
-      const inspection = inspectNode(options.graph, id);
-      inspections[id] = inspection;
-      used += bytes(inspection);
+      // The node half is already in `nodeTable` — every id here came from a
+      // view that put it there — so only the relations are new bytes.
+      const split = dehydrateInspection(inspectNode(options.graph, id));
+      inspections[id] = split.inspection;
+      used += bytes(split.inspection);
     } catch {
       // A node in a view that cannot be inspected would be a bug in the engine
       // rather than in the export; the panel says so on the other side, and one
@@ -238,10 +393,11 @@ export function buildPayload(options: HtmlExportOptions): StaticPayload {
   }
 
   return {
-    payloadVersion: 1,
+    payloadVersion: PAYLOAD_VERSION,
     generatedAt: new Date().toISOString(),
     meta: options.meta,
     overlays: options.overlays,
+    nodeTable,
     views,
     inspections,
     sources,

@@ -10,6 +10,11 @@
  *
  * This test is the thing that stops that. It belongs to neither package, which
  * is what this directory is for.
+ *
+ * There are three such pairs now, added as the boundary grew: the request
+ * encoding (Phase 7b), `sameViewRequest` (Phase 7d), and payload v2's
+ * dehydrate/hydrate (Phase 7e). Every one of them fails silently rather than
+ * loudly, which is the property that earns a test here.
  */
 
 import fs from 'node:fs';
@@ -23,20 +28,29 @@ import {
   decodeSearchRequest,
   decodeSourceRequest,
   decodeViewRequest,
+  dehydrateInspection,
+  dehydrateView,
   sameViewRequest as coreSameRequest,
+  PAYLOAD_VERSION,
   META_ENDPOINT,
   NODE_ENDPOINT,
   OVERLAY_ENDPOINT,
   SEARCH_ENDPOINT,
   SOURCE_ENDPOINT,
   VIEW_ENDPOINT,
+  type AggregatedView,
   type AggregatedViewOptions,
+  type ContractNode,
+  type NodeInspection,
 } from '@axiomap/core';
 import {
   encodeNodeRequest,
   encodeSearchRequest,
   encodeSourceRequest,
   encodeViewRequest,
+  hydrateInspection,
+  hydrateView,
+  READS_PAYLOAD_VERSION,
   sameViewRequest as webviewSameRequest,
   META_ENDPOINT as WEBVIEW_META,
   NODE_ENDPOINT as WEBVIEW_NODE,
@@ -161,6 +175,104 @@ describe('the serve protocol', () => {
     for (const [a, b] of cases) {
       expect(webviewSameRequest(a, b), JSON.stringify([a, b])).toBe(coreSameRequest(a, b));
     }
+  });
+
+  /**
+   * Payload v2's second written-twice pair (Phase 7e).
+   *
+   * The export carries each node once, in a table, and the views point at it by
+   * id — so the CLI splits (`dehydrateView`) and the reader reassembles
+   * (`hydrateView`), and §5 puts those two functions in packages that may share
+   * types and not code. The failure is quieter than the request pair's: a
+   * hydrator that dropped `parent` would draw a node *outside* the directory box
+   * it belongs to, which looks like a layout quirk rather than an error, and one
+   * that dropped a `GraphNode` field would silently unstyle an overlay.
+   *
+   * So this asserts identity over a view with every element shape in it, rather
+   * than field by field — the fields that matter are the ones nobody thought to
+   * list.
+   */
+  it('splits a view and puts it back together unchanged', () => {
+    const vault: ContractNode = {
+      id: 'src/Vault.sol:Vault',
+      name: 'Vault',
+      file: 'src/Vault.sol',
+      scope: null,
+      src: { file: 'src/Vault.sol', offset: 10, length: 90, line: 3, column: 0 },
+      kind: 'Contract',
+      contractKind: 'contract',
+      baseNames: ['Owned'],
+      linearizedBases: ['src/Vault.sol:Vault', 'src/Owned.sol:Owned'],
+      linearizationCertainty: 'certain',
+      isFullyImplemented: true,
+      isTest: false,
+      isMock: false,
+    };
+
+    const original: AggregatedView = {
+      view: 'protocol',
+      nodes: [
+        {
+          type: 'cluster',
+          id: 'dir:src',
+          path: 'src',
+          label: 'src',
+          parent: null,
+          expanded: true,
+          members: 9,
+          internalEdges: 4,
+        },
+        { type: 'node', id: vault.id, node: vault, parent: 'dir:src' },
+      ],
+      edges: [
+        {
+          type: 'aggregate',
+          id: 'agg:dir:src->dir:lib',
+          kind: 'calls',
+          from: 'dir:src',
+          to: 'dir:lib',
+          count: 7,
+          pairs: 3,
+          members: ['e1', 'e2', 'e3'],
+          resolution: 'heuristic',
+        },
+      ],
+      elements: 3,
+      cap: 1500,
+      expanded: ['src'],
+      collapsed: ['lib'],
+      note: '9 of 12 contracts drawn.',
+    };
+
+    const split = dehydrateView(original);
+    // The nodes really did leave the view — otherwise this proves nothing about
+    // the duplication the format exists to remove.
+    expect(JSON.stringify(split.view)).not.toContain('linearizedBases');
+    expect(split.nodes).toEqual([vault]);
+
+    const table = Object.fromEntries(split.nodes.map((node) => [node.id, node]));
+    expect(hydrateView(split.view, table)).toEqual(original);
+
+    const inspected: NodeInspection = {
+      id: vault.id,
+      node: vault,
+      scope: null,
+      members: [{ id: 'src/Vault.sol:Vault.deposit(uint256)', name: 'deposit', kind: 'Function' }],
+      incoming: [],
+      outgoing: [],
+    };
+    const inspectionSplit = dehydrateInspection(inspected);
+    expect(inspectionSplit.inspection).not.toHaveProperty('node');
+    expect(hydrateInspection(inspectionSplit.inspection, table)).toEqual(inspected);
+  });
+
+  /**
+   * And the two halves must think they are talking about the same format. A
+   * reader that accepted a version the writer no longer emits is the "renders
+   * most of itself" failure the version field exists to prevent.
+   */
+  it('writes the payload version it reads', () => {
+    expect(READS_PAYLOAD_VERSION).toBe(PAYLOAD_VERSION);
   });
 
   it('agrees on where the endpoints are', () => {

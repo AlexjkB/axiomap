@@ -138,13 +138,50 @@ describe('export --format html', () => {
    */
   it('embeds answers rather than the graph', () => {
     const payload = readPayload(html);
-    expect(payload.payloadVersion).toBe(1);
+    expect(payload.payloadVersion).toBe(2);
     expect(Array.isArray(payload.views)).toBe(true);
     expect(payload.views.length).toBeGreaterThan(1);
     // No `AxiomapGraph`, and no `graph.json` under another name.
     expect(payload).not.toHaveProperty('nodes');
     expect(payload).not.toHaveProperty('edges');
     expect(payload.meta).not.toHaveProperty('nodes');
+
+    /*
+     * v2 lifted the drawn nodes into one table, and a table of nodes is one
+     * `edges` field away from being the thing this test exists to forbid. The
+     * two properties that keep it on the right side of §9 rule 1: nothing in it
+     * that no view draws, and no adjacency anywhere in it.
+     */
+    const drawn = new Set(
+      payload.views.flatMap((entry) =>
+        entry.view.nodes.flatMap((node) => (node.type === 'node' ? [node.id] : [])),
+      ),
+    );
+    expect(Object.keys(payload.nodeTable).sort()).toEqual([...drawn].sort());
+    for (const node of Object.values(payload.nodeTable)) {
+      expect(node).not.toHaveProperty('edges');
+      expect(node).not.toHaveProperty('callers');
+      expect(node).not.toHaveProperty('callees');
+    }
+  });
+
+  /**
+   * The defect this quota exists for: Phase 7d's breadth-first walk spent the
+   * whole view budget on contract views and embedded **zero call graphs** on a
+   * 298-contract project. §9 rule 4 makes the call graph the focus-node view and
+   * §11 makes it the one an auditor works in, so a deliverable that cannot hold
+   * one is §15's ninth item not working.
+   *
+   * `defi/` is small enough that everything reachable fits, so this asserts the
+   * mix rather than the ratio — the ratio is asserted against a budget small
+   * enough to bind, in `export-budget.test.ts`.
+   */
+  it('holds every kind of view a click can ask for, not just the cheapest', () => {
+    const payload = readPayload(html);
+    const kinds = new Set(payload.views.map((entry) => entry.request.view));
+    expect(kinds).toContain('protocol');
+    expect(kinds).toContain('contract');
+    expect(kinds).toContain('call');
   });
 
   /**
@@ -178,7 +215,7 @@ describe('export --format html', () => {
     const payload = readPayload(html);
     const drawn = new Set(
       payload.views.flatMap((entry) =>
-        entry.view.nodes.flatMap((node) => (node.type === 'node' ? [node.node.id] : [])),
+        entry.view.nodes.flatMap((node) => (node.type === 'node' ? [node.id] : [])),
       ),
     );
     expect(drawn.size).toBeGreaterThan(10);
@@ -227,7 +264,11 @@ describe('export --format html', () => {
 function readPayload(html: string): {
   payloadVersion: number;
   meta: { callDefaults: { up: number; down: number } };
-  views: { request: Record<string, unknown>; view: { nodes: { type: string; node: { id: string } }[] } }[];
+  nodeTable: Record<string, Record<string, unknown>>;
+  views: {
+    request: Record<string, unknown> & { view: string };
+    view: { nodes: { type: string; id: string }[] };
+  }[];
   inspections: Record<string, unknown>;
   sources: Record<string, { text: string; file: string }>;
 } {

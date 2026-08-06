@@ -18,10 +18,13 @@
  */
 
 import { spawn, spawnSync, type ChildProcess } from 'node:child_process';
+import fs from 'node:fs';
+import os from 'node:os';
+import path from 'node:path';
 
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 
-import { startServe, type ServeSession } from '@axiomap/cli';
+import { runExport, startServe, type ServeSession } from '@axiomap/cli';
 
 const CHROME = ['google-chrome', 'chromium', 'chromium-browser'].find(
   (candidate) => spawnSync(candidate, ['--version'], { timeout: 10_000 }).status === 0,
@@ -381,5 +384,116 @@ describe.skipIf(CHROME === undefined)('the graph in a browser', () => {
     );
     expect(badged).toMatch(/^\d+:data:image\/svg\+xml/);
     expect(page.consoleErrors.join('\n')).toBe('');
+  }, 120_000);
+});
+
+/**
+ * The deliverable, opened the way a client opens it (Phase 7e).
+ *
+ * §15's ninth item is "export one HTML file and send it to a client", and the
+ * only place that is either true or false is a browser pointed at a `file://`
+ * URL — no server, no origin, a `StaticBridge` with nothing on the other end.
+ * Phase 7d drove this by hand and found that **every function click missed**,
+ * because the exporter embedded a request the UI never sends. Nothing in the
+ * suite could have caught it.
+ *
+ * Phase 7e changed the payload format underneath all of that — one node table,
+ * views and inspections holding ids — so the walk is a test now rather than a
+ * session someone remembers doing.
+ */
+describe.skipIf(CHROME === undefined)('the export in a browser', () => {
+  let exported: string;
+  let file: Page;
+
+  beforeAll(async () => {
+    const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'axiomap-export-browser-'));
+    exported = path.join(dir, 'deliverable.html');
+    await runExport({ path: 'fixtures/defi', format: 'html', out: exported });
+    file = await Page.open(CHROME as string);
+  }, 300_000);
+
+  afterAll(() => {
+    file?.close();
+    fs.rmSync(path.dirname(exported), { recursive: true, force: true });
+  });
+
+  it('opens on a laid-out map, drills to a function, and shows its code', async () => {
+    await file.goto(`file://${exported}`);
+
+    // 1. It opened, and ELK ran — from a `Blob` worker, which is the sense in
+    //    which this file redistributes elkjs.
+    const metrics = await file.until(METRICS, (value) => /layout/.test(value));
+    expect(metrics).toMatch(/layout \d+ ms/);
+    expect(metrics).not.toMatch(/layout failed/);
+
+    // 2. Protocol → contract. The nodes were reassembled from the table on the
+    //    way through the bridge, so a drawn label is evidence hydration ran.
+    const contractId = await file.evaluate(tap('[kind = "Contract"]'));
+    expect(contractId).not.toBe('');
+    expect(await file.until(CURRENT_VIEW, (value) => value === 'Contract detail')).toBe(
+      'Contract detail',
+    );
+
+    // 3. The inspector, filled from an embedded inspection — `linearization` is
+    //    a §10 node attribute and not part of the drawn element.
+    expect(await file.until(INSPECTOR, (value) => /linearization/.test(value))).toMatch(
+      /linearization/,
+    );
+
+    // 4. Contract → function → call graph. This is the click that was broken in
+    //    the file Phase 7d shipped, and the one the quota now guarantees room
+    //    for on a project too big to embed whole.
+    await file.until(METRICS, (value) => /layout \d+ ms/.test(value));
+    const functionId = await file.evaluate(tap('[kind = "Function"]'));
+    expect(functionId).not.toBe('');
+    expect(await file.until(CURRENT_VIEW, (value) => value === 'Call graph')).toBe('Call graph');
+
+    // 5. §11's code preview, from a source range the file carries: real
+    //    Solidity, highlighted, with no host to fetch it from.
+    const code = await file.until(
+      "document.querySelector('.ax-code')?.textContent ?? ''",
+      (value) => value.trim() !== '',
+    );
+    expect(code).toMatch(/function|contract/);
+
+    expect(file.consoleErrors.join('\n')).toBe('');
+  }, 300_000);
+
+  /**
+   * Payload v2, checked where it could only be checked here: the page's own
+   * payload holds *ids* in its views, and the canvas holds nodes with §10
+   * attributes on them. Between the two is `hydrateView`, running in a browser
+   * against a file the CLI wrote — the pair `serve-protocol.test.ts` pins in
+   * isolation, joined up.
+   */
+  it('draws nodes it reassembled from the file’s node table', async () => {
+    await file.goto(`file://${exported}`);
+    await file.until(METRICS, (value) => /layout \d+ ms/.test(value));
+
+    // The stored form: no node object anywhere in the embedded views.
+    const stored = await file.evaluate(`
+      (() => {
+        const payload = window.__AXIOMAP_PAYLOAD__;
+        const drawn = payload.views.flatMap((entry) =>
+          entry.view.nodes.filter((element) => element.type === 'node'));
+        return [
+          String(payload.payloadVersion),
+          String(drawn.length > 0),
+          String(drawn.every((element) => element.node === undefined)),
+          String(Object.keys(payload.nodeTable).length > 0),
+        ].join('|');
+      })()
+    `);
+    expect(stored).toBe('2|true|true|true');
+
+    // The drawn form: cytoscape was handed a whole node, kind and all.
+    const kinds = await file.evaluate(`
+      (() => {
+        const cy = document.querySelector('.ax-canvas')._cyreg.cy;
+        return [...new Set(cy.nodes().map((node) => String(node.data('kind'))))].sort().join(',');
+      })()
+    `);
+    expect(kinds).toContain('Contract');
+    expect(file.consoleErrors.join('\n')).toBe('');
   }, 120_000);
 });

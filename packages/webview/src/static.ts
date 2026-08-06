@@ -22,11 +22,15 @@
 import type {
   AggregatedView,
   AggregatedViewOptions,
+  DisplayNode,
+  GraphNode,
   NodeInspection,
   OverlayData,
   ProjectMeta,
   SearchResults,
   SourceSlice,
+  StaticAggregatedView,
+  StaticInspection,
   StaticPayload,
 } from '@axiomap/core';
 
@@ -34,6 +38,56 @@ import { BridgeError, type HostBridge } from './bridge.js';
 
 /** Where the exporter puts the payload. Read by the export entry, nowhere else. */
 export const PAYLOAD_GLOBAL = '__AXIOMAP_PAYLOAD__';
+
+/** The payload shape this reader understands. Core's exporter writes the same number. */
+export const READS_PAYLOAD_VERSION = 2;
+
+/**
+ * Put a view back together from the payload's node table.
+ *
+ * The exporter's `dehydrateView` is the other half, and this is written twice
+ * for §5's reason — this package may import core's *types* and not its
+ * functions, the same rule that makes `sameViewRequest` a pair. The repo-root
+ * suite pins the round trip, because a hydrator that dropped a field would draw
+ * a subtly wrong graph rather than raise anything: a lost `parent` puts a node
+ * outside the directory box it belongs in, and nothing about that looks like an
+ * error.
+ *
+ * A missing table entry is not one of those quiet failures — it means the file
+ * is internally inconsistent, so it is stated rather than drawn around.
+ */
+export function hydrateView(
+  view: StaticAggregatedView,
+  nodeTable: Record<string, GraphNode>,
+): AggregatedView {
+  const nodes: DisplayNode[] = view.nodes.map((element) => {
+    if (element.type === 'cluster') return element;
+    const node = nodeTable[element.id];
+    if (node === undefined) {
+      throw new BridgeError({
+        name: 'MalformedPayload',
+        message: `This exported file draws "${element.id}" but does not carry it.`,
+      });
+    }
+    return { type: 'node', id: element.id, node, parent: element.parent };
+  });
+  return { ...view, nodes };
+}
+
+/** As `hydrateView`, for §11's inspector. */
+export function hydrateInspection(
+  inspection: StaticInspection,
+  nodeTable: Record<string, GraphNode>,
+): NodeInspection {
+  const node = nodeTable[inspection.id];
+  if (node === undefined) {
+    throw new BridgeError({
+      name: 'MalformedPayload',
+      message: `This exported file has the relations of "${inspection.id}" but not the node.`,
+    });
+  }
+  return { ...inspection, node };
+}
 
 /**
  * Do two view requests ask for the same thing?
@@ -85,15 +139,39 @@ export class StaticBridge implements HostBridge {
     return Promise.resolve(this.payload.meta);
   }
 
+  /**
+   * What this file holds, in the terms the exporter's quota spends it in.
+   *
+   * The refusal below names the mix rather than one total, because "190 views"
+   * and "60 contract views and 129 call graphs" answer different questions, and
+   * the reader who has just been refused is asking the second one.
+   */
+  private held(): string {
+    const counts = new Map<string, number>();
+    for (const entry of this.payload.views) {
+      const kind = entry.request.view;
+      counts.set(kind, (counts.get(kind) ?? 0) + 1);
+    }
+    return [...counts]
+      .map(([kind, count]) => `${String(count)} ${kind}`)
+      .join(', ');
+  }
+
   view(request: AggregatedViewOptions): Promise<AggregatedView> {
     const found = this.payload.views.find((entry) => sameViewRequest(entry.request, request));
-    if (found !== undefined) return Promise.resolve(found.view);
+    if (found !== undefined) {
+      try {
+        return Promise.resolve(hydrateView(found.view, this.payload.nodeTable));
+      } catch (error) {
+        return Promise.reject(error as Error);
+      }
+    }
     return Promise.reject(
       new BridgeError({
         name: 'NotExported',
         message:
           `This is an exported file, and it holds ${String(this.payload.views.length)} view` +
-          `${this.payload.views.length === 1 ? '' : 's'} — not this one. ` +
+          `${this.payload.views.length === 1 ? '' : 's'} (${this.held()}) — not this one. ` +
           'Run axiomap serve on the project to go further than the export goes.',
       }),
     );
@@ -101,7 +179,13 @@ export class StaticBridge implements HostBridge {
 
   inspect(id: string): Promise<NodeInspection> {
     const found = this.payload.inspections[id];
-    if (found !== undefined) return Promise.resolve(found);
+    if (found !== undefined) {
+      try {
+        return Promise.resolve(hydrateInspection(found, this.payload.nodeTable));
+      } catch (error) {
+        return Promise.reject(error as Error);
+      }
+    }
     return Promise.reject(
       new BridgeError({
         name: 'NotExported',
@@ -132,22 +216,27 @@ export class StaticBridge implements HostBridge {
     }
 
     const matched = Object.values(this.payload.inspections)
+      // A node in the table with no inspection is not offered: the palette must
+      // not name something the panel would then refuse.
+      .flatMap((inspection) => {
+        const node = this.payload.nodeTable[inspection.id];
+        return node === undefined ? [] : [{ id: inspection.id, node }];
+      })
       .filter(
-        (inspection) =>
-          inspection.node.name.toLowerCase().includes(needle) ||
-          inspection.id.toLowerCase().includes(needle),
+        (entry) =>
+          entry.node.name.toLowerCase().includes(needle) || entry.id.toLowerCase().includes(needle),
       )
       .sort((a, b) => a.id.length - b.id.length || a.id.localeCompare(b.id));
 
     return Promise.resolve({
       query: query.trim(),
-      hits: matched.slice(0, cap).map((inspection) => ({
-        id: inspection.id,
-        name: inspection.node.name,
-        kind: inspection.node.kind,
-        scope: inspection.node.scope,
-        file: inspection.node.file,
-        line: inspection.node.src.line,
+      hits: matched.slice(0, cap).map((entry) => ({
+        id: entry.id,
+        name: entry.node.name,
+        kind: entry.node.kind,
+        scope: entry.node.scope,
+        file: entry.node.file,
+        line: entry.node.src.line,
         match: 'contains' as const,
       })),
       total: matched.length,
@@ -177,6 +266,8 @@ export function readEmbeddedPayload(): StaticPayload | null {
   const payload = value as StaticPayload;
   // A version mismatch is refused rather than half-read, for the reason §3
   // gives `graph.json` a `schemaVersion`: a file opened a year later should say
-  // it is from a different tool, not render most of itself.
-  return payload.payloadVersion === 1 ? payload : null;
+  // it is from a different tool, not render most of itself. v1 is a real case
+  // now rather than a hypothetical one — it embedded a whole node everywhere a
+  // node appeared, and half-reading one would draw views with no nodes in them.
+  return payload.payloadVersion === READS_PAYLOAD_VERSION ? payload : null;
 }

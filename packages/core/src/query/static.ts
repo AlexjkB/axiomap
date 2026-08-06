@@ -21,6 +21,26 @@
  * rather than a blank canvas, which is the distinction §4 insists on
  * everywhere else.
  *
+ * ### Nodes live in one table, and views point at it (payload v2)
+ *
+ * v1 embedded a whole `GraphNode` everywhere a node appeared: once per
+ * `AggregatedView` that drew it, and once more in its `NodeInspection`. Measured
+ * on a 298-contract project that was **2,073 distinct nodes carried as 4,421
+ * node objects** — 2.1x, and the duplication grows with the number of views,
+ * which is the axis an export is meant to grow along.
+ *
+ * So the payload carries `nodeTable`, and the views and inspections carry ids.
+ * `dehydrateView` and `dehydrateInspection` below split a host's answer into the
+ * two halves; the reader puts them back together before the UI sees anything,
+ * so nothing downstream of the bridge learns that the format has a table in it.
+ *
+ * **It is a table, not a graph.** §9 rule 1 is about the webview never receiving
+ * the graph, and the property that keeps this on the right side of that line is
+ * unchanged from v1: only nodes some embedded view actually *draws* are in it,
+ * there are no edges, and there is no adjacency to walk. The name is deliberate
+ * — a top-level `nodes` beside an `edges` would be a `graph.json` under another
+ * name, and `export-rendered.test.ts` asserts the absence of both.
+ *
  * ### Views are matched by request, not by a key
  *
  * `StaticView.request` is the `AggregatedViewOptions` the entry answers, and a
@@ -31,31 +51,59 @@
  * cannot drift, because it is the thing being compared.
  */
 
-import type { AggregatedView, AggregatedViewOptions } from './aggregate.js';
+import type { AggregatedView, AggregatedViewOptions, ClusterElement } from './aggregate.js';
 import type { NodeInspection } from './inspect.js';
 import type { OverlayData } from './overlays.js';
 import type { ProjectMeta } from './protocol.js';
+import type { GraphNode } from '../graph/schema.js';
 import type { SourceSlice } from '../source/slice.js';
+
+/** The version this build writes and reads. Bumped whenever the shape changes. */
+export const PAYLOAD_VERSION = 2;
+
+/** A drawn node, as the payload stores it: the id, and where it hangs. */
+export interface StaticNodeElement {
+  type: 'node';
+  id: string;
+  parent: string | null;
+}
+
+export type StaticDisplayNode = ClusterElement | StaticNodeElement;
+
+/** An `AggregatedView` with its node objects lifted into `nodeTable`. */
+export interface StaticAggregatedView extends Omit<AggregatedView, 'nodes'> {
+  nodes: readonly StaticDisplayNode[];
+}
+
+/** A `NodeInspection` with its node object lifted into `nodeTable`. */
+export type StaticInspection = Omit<NodeInspection, 'node'>;
 
 /** One answered view request. */
 export interface StaticView {
   request: AggregatedViewOptions;
-  view: AggregatedView;
+  view: StaticAggregatedView;
 }
 
 export interface StaticPayload {
   /** Bumped when the shape changes, so a stale exporter is refused rather than half-read. */
-  payloadVersion: 1;
+  payloadVersion: typeof PAYLOAD_VERSION;
   /** ISO 8601. A deliverable is read weeks later and should say when it was made. */
   generatedAt: string;
   /** The header §4 requires on screen: mode, its copy, the resolution score. */
   meta: ProjectMeta;
   /** §11's two file-backed overlays. Empty objects when the project had neither. */
   overlays: OverlayData;
+  /**
+   * Every node any embedded view draws, once, by id.
+   *
+   * Not a graph: no edges, no adjacency, and nothing in it that some view does
+   * not put on screen. See the header.
+   */
+  nodeTable: Record<string, GraphNode>;
   /** Every view this file can draw. The first is the one it opens on. */
   views: StaticView[];
   /** §11's inspector, per node id, for the nodes the embedded views draw. */
-  inspections: Record<string, NodeInspection>;
+  inspections: Record<string, StaticInspection>;
   /** §11's code preview, per node id. Absent for a node whose source was not embedded. */
   sources: Record<string, SourceSlice>;
   /**
@@ -72,6 +120,39 @@ export interface StaticPayload {
     sourceTruncated: boolean;
     bytes: number;
   };
+}
+
+/**
+ * Split a view into the part that is drawn and the nodes it draws.
+ *
+ * The exporter puts the second half in `nodeTable` and the first in a
+ * `StaticView`; `hydrateView` in `@axiomap/webview` is the inverse, and is
+ * written twice for §5's reason — that package may import these types and not
+ * these functions. `test/serve-protocol.test.ts` at the repo root pins the
+ * round trip, because this is a pair that drifts silently: a reader that lost a
+ * `parent` would draw a node outside the cluster it belongs to and raise
+ * nothing.
+ */
+export function dehydrateView(view: AggregatedView): {
+  view: StaticAggregatedView;
+  nodes: GraphNode[];
+} {
+  const nodes: GraphNode[] = [];
+  const elements: StaticDisplayNode[] = view.nodes.map((element) => {
+    if (element.type === 'cluster') return element;
+    nodes.push(element.node);
+    return { type: 'node', id: element.id, parent: element.parent };
+  });
+  return { view: { ...view, nodes: elements }, nodes };
+}
+
+/** As `dehydrateView`, for §11's inspector. */
+export function dehydrateInspection(inspection: NodeInspection): {
+  inspection: StaticInspection;
+  node: GraphNode;
+} {
+  const { node, ...rest } = inspection;
+  return { inspection: rest, node };
 }
 
 /**

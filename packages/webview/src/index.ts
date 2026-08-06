@@ -29,11 +29,19 @@ export {
 } from './protocol.js';
 
 /**
- * The third host (§12's `--format html`): a file. `sameViewRequest` is exported
- * because the pair it forms with core's copy is pinned at the repo root — see
- * `static.ts` for why there are two.
+ * The third host (§12's `--format html`): a file. `sameViewRequest` and the two
+ * hydrators are exported because each forms a pair with a function in core that
+ * is pinned at the repo root — see `static.ts` for why there are two of each.
  */
-export { PAYLOAD_GLOBAL, readEmbeddedPayload, sameViewRequest, StaticBridge } from './static.js';
+export {
+  hydrateInspection,
+  hydrateView,
+  PAYLOAD_GLOBAL,
+  READS_PAYLOAD_VERSION,
+  readEmbeddedPayload,
+  sameViewRequest,
+  StaticBridge,
+} from './static.js';
 
 /** Where `vite build` puts the bundle, relative to the package root. */
 export const WEB_DIST = 'dist/web';
