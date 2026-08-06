@@ -154,11 +154,21 @@ describe('axiomap export (§12)', () => {
     );
   }, 60_000);
 
-  it('names html and svg as deferred rather than unknown', async () => {
-    // §16 records why: both need the layout engine that arrives in Phase 7.
-    await expect(runExport({ path: defi, format: 'html' })).rejects.toThrow(/Phase 7/);
-    await expect(runExport({ path: defi, format: 'svg' })).rejects.toThrow(/Phase 7/);
+  /**
+   * Phase 6 asserted that `html` and `svg` were *deferred* — §16's reason being
+   * that both need the layout engine §7 puts in Phase 7. Phase 7d shipped them,
+   * so this now asserts the other half of that: §12's five formats are all
+   * there, and a sixth is still refused by name rather than guessed at.
+   * `export-rendered.test.ts` covers what the two of them produce.
+   */
+  it('accepts all five of §12’s formats, and refuses a sixth by name', async () => {
     await expect(runExport({ path: defi, format: 'pdf' })).rejects.toThrow(/Unknown format/);
+    // The message names what *is* available, so the refusal is actionable (§6).
+    await expect(runExport({ path: defi, format: 'pdf' })).rejects.toThrow(/dot, mermaid, json, html, svg/);
+
+    // `html` is a file rather than a stream, and says so instead of printing
+    // three megabytes into a terminal.
+    await expect(runExport({ path: defi, format: 'html' })).rejects.toThrow(/--out/);
   }, 60_000);
 
   it('writes to a file when asked', async () => {

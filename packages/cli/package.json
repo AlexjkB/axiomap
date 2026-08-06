@@ -22,6 +22,7 @@
     "@axiomap/core": "workspace:*",
     "@axiomap/webview": "workspace:^",
     "commander": "^15.0.0",
+    "elkjs": "^0.12.0",
     "ora": "^9.4.1",
     "picocolors": "^1.1.1"
   }

@@ -154,8 +154,8 @@ export function buildProgram(io: Io, sink: Sink): Command {
   common(
     program
       .command('export')
-      .description('write a view as dot, mermaid or json')
-      .option('-f, --format <format>', 'dot | mermaid | json', 'dot')
+      .description('write a view as dot, mermaid, json, svg or a self-contained html file')
+      .option('-f, --format <format>', 'dot | mermaid | json | svg | html', 'dot')
       .option(
         '-v, --view <view>',
         'protocol | contract | call | state-access | inheritance',

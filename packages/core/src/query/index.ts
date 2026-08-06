@@ -20,3 +20,4 @@ export * from './aggregate.js';
 export * from './protocol.js';
 export * from './overlays.js';
 export * from './search.js';
+export * from './static.js';
