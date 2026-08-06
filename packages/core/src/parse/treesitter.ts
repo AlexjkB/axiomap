@@ -37,6 +37,7 @@ import { fileURLToPath } from 'node:url';
 import { Language, Parser, type Node } from 'web-tree-sitter';
 
 import { hashBody, hashInterface } from '../graph/hash.js';
+import { runtimeAssets } from '../runtime.js';
 import { getHasher, type Hasher } from './cache.js';
 import { analyseBody } from './treesitter-bodies.js';
 import {
@@ -75,10 +76,25 @@ type TsNode = Node;
  * so one relative path works for the built CLI, for vitest running TypeScript
  * straight from source, and for anything importing the package — no build-time
  * copy step, and nothing to keep in sync. `vendor/` is listed in the package's
- * `files`, so it ships. Bundling it into a `.vsix` is Phase 8's problem, but
- * the path stays valid as long as `vendor/` sits beside `dist/`.
+ * `files`, so it ships. It stays valid as long as `vendor/` sits beside
+ * `dist/` — which a bundler is exactly the thing that breaks, so a host that
+ * has moved the file names it through `configureRuntime` (`runtime.ts`) and
+ * this default is not consulted. Settled in Phase 8b.
  */
-const GRAMMAR_WASM = new URL('../../vendor/tree-sitter-solidity.wasm', import.meta.url);
+const GRAMMAR_WASM = '../../vendor/tree-sitter-solidity.wasm';
+
+/**
+ * The configured grammar, or the one beside this module.
+ *
+ * Resolved on call rather than at module load. `import.meta.url` is not
+ * meaningful in a CommonJS bundle, and `new URL(path, undefined)` throws — at
+ * *import* time, which would take the whole extension down before anything had
+ * a chance to say where the grammar actually is. On call, a configured host
+ * never reaches it, and an unconfigured one gets the failure where it belongs.
+ */
+export function grammarWasmPath(): string {
+  return runtimeAssets().grammarWasm ?? fileURLToPath(new URL(GRAMMAR_WASM, import.meta.url));
+}
 
 /**
  * `Parser.init()` loads the tree-sitter runtime and `Language.load` compiles
@@ -92,7 +108,7 @@ let languagePromise: Promise<Language> | null = null;
 export async function loadSolidityLanguage(): Promise<Language> {
   languagePromise ??= (async () => {
     await Parser.init();
-    return Language.load(fs.readFileSync(fileURLToPath(GRAMMAR_WASM)));
+    return Language.load(fs.readFileSync(grammarWasmPath()));
   })();
   return languagePromise;
 }

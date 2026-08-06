@@ -15,6 +15,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { parentPort, workerData } from 'node:worker_threads';
 
+import { configureRuntime, type RuntimeAssets } from '../runtime.js';
 import { ParseCache } from './cache.js';
 import { createParser } from './index.js';
 import type { ParserId, ParseResult } from './interface.js';
@@ -23,6 +24,12 @@ export interface WorkerInput {
   root: string;
   parserId: ParserId;
   cacheDir: string | null;
+  /**
+   * Where the grammar is, when the default is wrong. Sent rather than
+   * inherited: `configureRuntime` is module state and this is a second module
+   * registry. Absent for a host that configured nothing.
+   */
+  assets?: RuntimeAssets;
 }
 
 export interface WorkerRequest {
@@ -40,6 +47,7 @@ async function main(): Promise<void> {
   if (parentPort === null) return;
 
   const input = workerData as WorkerInput;
+  if (input.assets !== undefined) configureRuntime(input.assets);
   // Both awaits finish before the ready handshake below, so the grammar
   // compile is never billed to the first file's parse time.
   const parser = await createParser(input.parserId);

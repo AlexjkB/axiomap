@@ -15,8 +15,10 @@
 import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
+import { pathToFileURL } from 'node:url';
 import { Worker } from 'node:worker_threads';
 
+import { runtimeAssets } from '../runtime.js';
 import { ParseCache } from './cache.js';
 import { createParser } from './index.js';
 import type { ParserId, ParseResult } from './interface.js';
@@ -52,8 +54,25 @@ function defaultWorkerCount(): number {
   return Math.max(1, Math.min(os.cpus().length - 1, 8));
 }
 
-function defaultWorkerEntry(): URL {
-  return new URL('./worker-entry.js', import.meta.url);
+/**
+ * The worker entry: what a host configured, else the file beside this module.
+ *
+ * A bundled host has neither — its worker is a second bundle somewhere of its
+ * own choosing — so `runtime.ts`'s override is checked first. Both forms are
+ * returned as a `URL` because that is what `new Worker` and `fs.existsSync`
+ * both take, and because the caller may still pass its own.
+ */
+function defaultWorkerEntry(): URL | null {
+  const configured = runtimeAssets().workerEntry;
+  if (configured !== undefined) return pathToFileURL(configured);
+  try {
+    return new URL('./worker-entry.js', import.meta.url);
+  } catch {
+    // A CommonJS bundle has no `import.meta.url`, so there is no file beside
+    // this module to find. That is not an error: the pool's answer to having no
+    // worker is to parse inline, which is slower and identical.
+    return null;
+  }
 }
 
 /** Round-robin so uneven file sizes even out across workers. */
@@ -72,9 +91,10 @@ export async function parseFiles(
   const started = performance.now();
   const cacheDir = options.cacheDir === undefined ? null : options.cacheDir;
   const entry = options.workerEntry ?? defaultWorkerEntry();
-  const canThread = files.length > 8 && fs.existsSync(entry);
 
-  if (!canThread) {
+  // Written as the negative so `entry` narrows to a `URL` for the threaded half
+  // below; a null entry is "no worker on disk", which is the inline case.
+  if (entry === null || files.length <= 8 || !fs.existsSync(entry)) {
     const run = await parseInline(files, options, cacheDir);
     return {
       results: run.results,
@@ -92,6 +112,9 @@ export async function parseFiles(
     root: options.root,
     parserId: options.parserId,
     cacheDir,
+    // A worker thread is a second module registry and does not inherit
+    // `configureRuntime`. Ship it, or a bundled host loads no grammar here.
+    assets: runtimeAssets(),
   };
 
   await Promise.all(

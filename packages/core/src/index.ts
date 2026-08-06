@@ -5,6 +5,8 @@ export {
   type EnsureAxiomapDirResult,
 } from './project/axiomap-dir.js';
 
+export { configureRuntime, runtimeAssets, type RuntimeAssets } from './runtime.js';
+
 export * from './parse/index.js';
 export { ParseCache, PARSE_SCHEMA_VERSION, getHasher, type ParseCacheStats } from './parse/cache.js';
 export {
