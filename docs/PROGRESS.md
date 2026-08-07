@@ -2900,6 +2900,40 @@ gets for free.
 - **NatSpec entry closed.** Both open questions answered and recorded above; the entry is now
   a record of what shipped rather than an open item.
 
+### Adversarial review, after the phase commit
+
+Requested as a review of this session's change rather than the whole codebase. Found one real
+bug, confirmed against the compiled grammar and fixed in a follow-up commit — worth recording
+here rather than only in the commit message, since it is exactly the class of defect the
+per-phase audits in Phases 2, 3, 5 and 6 exist to catch, and it slipped past this phase's own
+tests because none of the four fixtures happen to write a doc comment as a trailing remark.
+
+- **`precedingDocComment` attached a trailing comment to the wrong declaration.**
+  `function foo() {} /// about foo` sits one row above whatever comes next, and the adjacency
+  check only looked at the *following* node's distance — so `bar()` in
+  `function foo() {} /// about foo\nfunction bar() {}` inherited foo's remark as its own doc
+  comment. Confirmed with a throwaway build against a two-function fixture before touching the
+  code, and again after. This is a confidently wrong answer, not a missing one, which is the
+  one failure mode §6 refuses everywhere else — an `unresolved` or `null` would have been the
+  honest result. Fixed by also checking that a candidate comment does not share its start row
+  with whatever precedes *it*; a comment trailing something else breaks the backward walk
+  before it can be mistaken for a standalone leading line. The same fix also protects the more
+  common real-world shape — a trailing `///` after a state variable's declaration line, which
+  would otherwise have attached to the next function down.
+- **No golden file changed.** The bug never manifested in any committed fixture; it was
+  invisible to every test this phase shipped with. Eight tests were added to a new `NatSpec`
+  block in `parse.test.ts` — the module had none of its own before this — covering single-line,
+  multi-line, block-comment, no-comment, bare-`//`, blank-line, Contract, and the trailing-comment
+  regression directly.
+- **Not a bug, checked and left alone:** a `///`-prefixed banner/divider comment (OpenZeppelin's
+  `Math.sol` has one, `///////////////////////////////////////////////`) directly preceding a
+  declaration is picked up as NatSpec verbatim. This matches solc's own doc-comment
+  concatenation, which does not distinguish decorative `///` lines from meaningful ones — so
+  this is "correctly reproducing a real footgun," not a divergence to fix.
+- **Performance re-checked.** `pnpm bench:parser` after the change: 2,009 ms warm against the
+  5,000 ms budget, flat against Phase 4's 1,983 ms baseline. The added `Array.prototype.findIndex`
+  per declaration is bounded by a contract's own member count, not the project size.
+
 ### Notes for the next session
 
 - **Phase 9 is next.** This phase touched no dependencies, no packaging, and no public
