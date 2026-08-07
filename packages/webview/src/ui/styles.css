@@ -548,6 +548,18 @@ body {
   cursor: pointer;
 }
 
+.ax-natspec {
+  margin: 0 0 6px;
+  padding: 6px 8px;
+  font-family: var(--ax-mono);
+  font-size: 11px;
+  line-height: 1.4;
+  white-space: pre-wrap;
+  word-break: break-word;
+  background: color-mix(in srgb, var(--ax-border) 25%, transparent);
+  border-radius: 2px;
+}
+
 .ax-empty,
 .ax-inspect-error {
   margin: 4px 0;

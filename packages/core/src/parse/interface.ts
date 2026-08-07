@@ -238,6 +238,19 @@ export interface ParsedFunction {
    */
   bodyHash: string;
   interfaceHash: string;
+  /**
+   * The NatSpec doc comment immediately preceding this declaration, verbatim
+   * — comment markers and all, exactly as written. `null` when none is
+   * attached. §16's NatSpec entry settles two things this field depends on:
+   * `@inheritdoc` is stored as plain text inside it, never resolved here —
+   * resolving which base it names is a UI concern, and one that can fail
+   * visibly, rather than a derived value baked into a golden file. And
+   * verbatim rather than stripped of its `///`/`/**` markers, for the same
+   * reason the body walker records what was written and not what it means:
+   * `pathological/` already stresses non-ASCII text in comments, and a
+   * formatting pass here would be one more place for that to go subtly wrong.
+   */
+  natspec: string | null;
 }
 
 export interface ParsedStateVariable {
@@ -313,6 +326,8 @@ export interface ParsedContract {
   userDefinedValueTypes: ParsedUserDefinedValueType[];
   usingFor: ParsedUsingFor[];
   src: SourceRef;
+  /** See `ParsedFunction.natspec` — same rule, same reasons. */
+  natspec: string | null;
 }
 
 export interface ParsedImportSymbol {

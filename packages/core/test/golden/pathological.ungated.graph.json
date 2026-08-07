@@ -1,5 +1,5 @@
 {
-  "schemaVersion": 4,
+  "schemaVersion": 5,
   "generator": {
     "name": "axiomap",
     "parser": "treesitter",
@@ -137,7 +137,8 @@
       "linearizationCertainty": "certain",
       "linearizedBases": [
         "src/Assembly.sol:Assembly"
-      ]
+      ],
+      "natspec": "/// @notice Inline assembly, unchecked blocks, low-level ops.\n/// Comment with non-ASCII identifiers on purpose: naïve café — Ω ≈ 世界 — 🜁.\n/// Byte offsets after this line differ from character offsets. That is the point."
     },
     {
       "id": "src/Assembly.sol:Assembly.codeSize(address)",
@@ -307,6 +308,7 @@
         "maxDepth": 2
       },
       "modifiers": [],
+      "natspec": "/// @notice `résultat` and `Δ` appear only in comments — Solidity identifiers\n/// are ASCII-only, so a fixture using a non-ASCII one would be testing the\n/// parser's error path rather than its offset arithmetic.",
       "params": [
         {
           "name": "slot",
@@ -555,7 +557,8 @@
       "linearizationCertainty": "certain",
       "linearizedBases": [
         "src/Crlf.sol:Crlf"
-      ]
+      ],
+      "natspec": "/// @notice Every line ending in this file is CRLF, and the comment below\n/// contains multi-byte characters: ééé 世界 🔥. Both together are the classic\n/// source of off-by-N byte offsets that present as misplaced navigation."
     },
     {
       "id": "src/Crlf.sol:Crlf.get()",
@@ -630,6 +633,7 @@
         "maxDepth": 1
       },
       "modifiers": [],
+      "natspec": "/// @dev Café — the offset of `set` must be a BYTE offset, not a character one.",
       "params": [
         {
           "name": "v",
@@ -700,7 +704,8 @@
       "linearizationCertainty": "certain",
       "linearizedBases": [
         "src/DoesNotCompile.sol:DoesNotCompile"
-      ]
+      ],
+      "natspec": "/// @notice Syntactically valid, semantically rejected by solc. The tolerant\n/// parser must produce a complete AST for this file; only the semantic tier\n/// may ever notice something is wrong. This is decision #1 in one file."
     },
     {
       "id": "src/DoesNotCompile.sol:DoesNotCompile.alsoBroken()",
@@ -731,6 +736,7 @@
         "maxDepth": 1
       },
       "modifiers": [],
+      "natspec": "/// @dev Wrong argument count against a real function.",
       "params": [],
       "returns": [
         {
@@ -773,6 +779,7 @@
         "maxDepth": 1
       },
       "modifiers": [],
+      "natspec": "/// @dev Type error: assigning a string to a uint256.",
       "params": [],
       "returns": [],
       "stateMutability": "nonpayable",
@@ -876,6 +883,7 @@
         "maxDepth": 1
       },
       "modifiers": [],
+      "natspec": "/// @dev `undeclaredHelper` does not exist anywhere in the project.",
       "params": [],
       "returns": [],
       "stateMutability": "nonpayable",
@@ -911,6 +919,7 @@
         "maxDepth": 1
       },
       "modifiers": [],
+      "natspec": "/// @dev Missing return on a declared return type.",
       "params": [],
       "returns": [
         {
@@ -1029,7 +1038,8 @@
       "linearizationCertainty": "certain",
       "linearizedBases": [
         "src/Indirect.sol:Indirect"
-      ]
+      ],
+      "natspec": "/// @notice Every call target here is legitimately unresolvable without running\n/// the program. The resolver must emit `unresolved`, not a guess."
     },
     {
       "id": "src/Indirect.sol:Indirect!Failed(string)",
@@ -1080,6 +1090,7 @@
         "maxDepth": 1
       },
       "modifiers": [],
+      "natspec": "/// @notice Call through a function pointer — target unknowable statically.",
       "params": [
         {
           "name": "x",
@@ -1211,6 +1222,7 @@
         "maxDepth": 2
       },
       "modifiers": [],
+      "natspec": "/// @notice try/catch over an external call, with three catch clauses.",
       "params": [
         {
           "name": "x",
@@ -1301,6 +1313,7 @@
         "maxDepth": 1
       },
       "modifiers": [],
+      "natspec": "/// @notice Overload pair. Resolving a bare `pick(0)` needs type inference,\n/// so the resolver must emit `ambiguous` edges to both.",
       "params": [
         {
           "name": "a",
@@ -1349,6 +1362,7 @@
         "maxDepth": 1
       },
       "modifiers": [],
+      "natspec": "/// @notice Selector-based dispatch — `unresolved` until §16 lands literal\n/// selector matching.",
       "params": [
         {
           "name": "selector",
@@ -1511,7 +1525,8 @@
       "linearizationCertainty": "certain",
       "linearizedBases": [
         "src/Legacy.sol:Legacy"
-      ]
+      ],
+      "natspec": "/// @notice Below the 0.8 support floor but above the 0.5 hard floor (§4).\n/// Parsed and graphed, excluded from the resolution score, reported as\n/// unsupported in the build summary. Must not cause an exit."
     },
     {
       "id": "src/Legacy.sol:Legacy#onlyOwner",
@@ -1718,7 +1733,8 @@
       "linearizationCertainty": "certain",
       "linearizedBases": [
         "src/Proxy.sol:Implementation"
-      ]
+      ],
+      "natspec": "/// @notice DELIBERATE STORAGE COLLISION. Slot 0 here is `totalSupply`, but the\n/// proxy's slot 0 is `implementation`. Any delegatecall into this contract\n/// overwrites the implementation pointer. Seam for the Tier 1 proxy analysis\n/// in §16 — the fixture exists now so the analysis has something to find later."
     },
     {
       "id": "src/Proxy.sol:Implementation.balances",
@@ -1824,7 +1840,8 @@
       "linearizationCertainty": "certain",
       "linearizedBases": [
         "src/Proxy.sol:Proxy"
-      ]
+      ],
+      "natspec": "/// @notice Storage layout: slot 0 = implementation, slot 1 = admin."
     },
     {
       "id": "src/Proxy.sol:Proxy.admin",
@@ -2128,7 +2145,8 @@
       "linearizationCertainty": "certain",
       "linearizedBases": [
         "src/SyntaxError.sol:BeforeTheError"
-      ]
+      ],
+      "natspec": "/// @notice A genuine syntax error, mid-file. Everything before it is valid and\n/// must survive; a parser that returns nothing for this file fails Phase 1.\n/// The recovery quality on this file is a bake-off criterion."
     },
     {
       "id": "src/SyntaxError.sol:BeforeTheError.fine()",
@@ -2355,7 +2373,8 @@
       "linearizationCertainty": "certain",
       "linearizedBases": [
         "src/dup-a/Duplicate.sol:Duplicate"
-      ]
+      ],
+      "natspec": "/// @notice One of two contracts named `Duplicate`. See ../dup-b/Duplicate.sol.\n/// A symbol table keyed by bare name loses one of these."
     },
     {
       "id": "src/dup-a/Duplicate.sol:Duplicate.which",
@@ -2457,7 +2476,8 @@
       "linearizationCertainty": "certain",
       "linearizedBases": [
         "src/dup-b/Duplicate.sol:Duplicate"
-      ]
+      ],
+      "natspec": "/// @notice The other `Duplicate`. Same name, different file, different members."
     },
     {
       "id": "src/dup-b/Duplicate.sol:Duplicate.claim()",

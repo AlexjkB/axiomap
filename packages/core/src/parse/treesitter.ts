@@ -138,6 +138,57 @@ function identifierText(node: TsNode | null): string | null {
   return node === null ? null : node.text;
 }
 
+/**
+ * The doc comment immediately preceding `node`, verbatim — see
+ * `ParsedFunction.natspec`. Comments are `extras` in this grammar, so they
+ * turn up as ordinary siblings wherever they lexically sit (§'s worth of
+ * detail confirmed against the compiled grammar rather than assumed).
+ *
+ * A double-star block comment stands alone: only the one immediately before
+ * `node` counts. A triple-slash line comment instead walks backward
+ * collecting every immediately-preceding triple-slash line — no blank line,
+ * no other kind of comment in between — because that is the only shape in
+ * which several separate comment tokens are one doc comment. A bare `//` (or
+ * a block comment that is not double-star) immediately before a declaration
+ * is not NatSpec and yields `null`, matching solc's own recognition rule.
+ */
+function precedingDocComment(node: TsNode): string | null {
+  const parent = node.parent;
+  if (parent === null) return null;
+
+  const siblings = parent.children;
+  const index = siblings.findIndex(
+    (s) => s.startIndex === node.startIndex && s.endIndex === node.endIndex,
+  );
+  if (index <= 0) return null;
+
+  // The maximal run of comment nodes immediately preceding `node`, each
+  // adjacent to the next: no blank line between any two, nor between the
+  // last of them and `node` itself.
+  const run: TsNode[] = [];
+  let boundaryRow = node.startPosition.row;
+  for (let i = index - 1; i >= 0; i--) {
+    const sib = siblings[i];
+    if (sib === undefined || sib.type !== 'comment') break;
+    if (boundaryRow - sib.endPosition.row > 1) break;
+    run.unshift(sib);
+    boundaryRow = sib.startPosition.row;
+  }
+  const last = run[run.length - 1];
+  if (last === undefined) return null;
+
+  if (last.text.startsWith('/**')) return last.text;
+  if (!last.text.startsWith('///')) return null;
+
+  const docLines: TsNode[] = [];
+  for (let i = run.length - 1; i >= 0; i--) {
+    const line = run[i];
+    if (line === undefined || !line.text.startsWith('///')) break;
+    docLines.unshift(line);
+  }
+  return docLines.map((line) => line.text).join('\n');
+}
+
 class TreeSitterConverter {
   readonly #positions: PositionIndex;
   readonly #hasher: Hasher;
@@ -271,6 +322,7 @@ class TreeSitterConverter {
         returns: returns.map((p) => p.typeName),
         modifiers: modifiers.map((m) => m.name),
       }),
+      natspec: precedingDocComment(node),
     };
   }
 
@@ -397,6 +449,7 @@ class TreeSitterConverter {
       userDefinedValueTypes: [],
       usingFor: [],
       src: this.ref(node),
+      natspec: precedingDocComment(node),
     };
 
     const body = node.childForFieldName('body') ?? firstOfType(node, 'contract_body');

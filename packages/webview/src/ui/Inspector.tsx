@@ -21,6 +21,7 @@
 
 import type {
   FunctionNode,
+  GraphNode,
   NodeInspection,
   NodeRelation,
   OverlayData,
@@ -138,6 +139,64 @@ function StateVariableAttributes({ node }: { node: StateVariableNode }): JSX.Ele
       {/* Absent rather than null when the compiler reported no layout (§10). */}
       <Row label="slot" value={node.slot === undefined ? 'unknown — no artifacts' : node.slot} />
     </>
+  );
+}
+
+/**
+ * §16 (Phase 8c): `@inheritdoc` is stored verbatim in `natspec`, never
+ * resolved by the parser — resolving which base it names is a UI concern,
+ * and this is where it happens. The candidate is whatever this function's
+ * `overrides`/`implements` edges already point at, so there is nothing left
+ * to parse: the base a doc comment inherits from is exactly the relation the
+ * resolver already drew. Fails visibly, per §6, rather than guessing — a
+ * function that writes `@inheritdoc` without overriding or implementing
+ * anything in this graph says so, instead of silently showing nothing.
+ */
+function NatSpec({
+  node,
+  outgoing,
+  onInspect,
+}: {
+  node: GraphNode;
+  outgoing: readonly NodeRelation[];
+  onInspect: (id: string) => void;
+}): JSX.Element | null {
+  const text = 'natspec' in node ? node.natspec : undefined;
+  if (text === undefined) return null;
+
+  const hasInheritdoc = /@inheritdoc\b/.test(text);
+  const bases = hasInheritdoc
+    ? outgoing.filter((r) => r.edgeKind === 'overrides' || r.edgeKind === 'implements')
+    : [];
+
+  return (
+    <section className="ax-inspect-section">
+      <h3>NatSpec</h3>
+      <pre className="ax-natspec">{text}</pre>
+      {!hasInheritdoc ? null : bases.length === 0 ? (
+        <p className="ax-empty">
+          @inheritdoc found, but this function does not override or implement anything in this
+          graph — nothing to resolve it against.
+        </p>
+      ) : (
+        <ul className="ax-relations">
+          {bases.map((relation) => (
+            <li key={`inheritdoc:${relation.edgeKind}:${relation.id}`}>
+              <button
+                type="button"
+                className="ax-relation"
+                onClick={() => {
+                  onInspect(relation.id);
+                }}
+              >
+                <span className="ax-relation-name">{relation.name}</span>
+                <span className="ax-relation-meta">@inheritdoc → {relation.edgeKind}</span>
+              </button>
+            </li>
+          ))}
+        </ul>
+      )}
+    </section>
   );
 }
 
@@ -315,6 +374,8 @@ export function Inspector({
             ) : null}
           </div>
         </section>
+
+        <NatSpec node={node} outgoing={inspection.outgoing} onInspect={onInspect} />
 
         {/* §11's preview sits directly under the attributes: the question a
             click on a function asks is "what does it do", and the answer is the

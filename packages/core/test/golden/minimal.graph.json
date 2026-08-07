@@ -1,5 +1,5 @@
 {
-  "schemaVersion": 4,
+  "schemaVersion": 5,
   "generator": {
     "name": "axiomap",
     "parser": "treesitter",
@@ -111,7 +111,8 @@
       "linearizationCertainty": "certain",
       "linearizedBases": [
         "src/Base.sol:Base"
-      ]
+      ],
+      "natspec": "/// @notice Abstract base. Source of the `inherits`, `super` and `modifiedBy` edges."
     },
     {
       "id": "src/Base.sol:Base#onlyOwner",
@@ -239,6 +240,7 @@
         "maxDepth": 1
       },
       "modifiers": [],
+      "natspec": "/// @notice Overridden by Vault, which calls back into it via `super`.",
       "params": [],
       "returns": [
         {
@@ -290,7 +292,8 @@
       "linearizationCertainty": "certain",
       "linearizedBases": [
         "src/IVault.sol:IVault"
-      ]
+      ],
+      "natspec": "/// @notice The interface Vault implements."
     },
     {
       "id": "src/IVault.sol:IVault.deposit(uint256)",
@@ -429,7 +432,8 @@
       "linearizationCertainty": "certain",
       "linearizedBases": [
         "src/Token.sol:Token"
-      ]
+      ],
+      "natspec": "/// @notice Target of the `creates` edge and of an external call."
     },
     {
       "id": "src/Token.sol:Token.balanceOf",
@@ -578,7 +582,8 @@
       "linearizationCertainty": "certain",
       "linearizedBases": [
         "src/Types.sol:MathLib"
-      ]
+      ],
+      "natspec": "/// @notice The library, target of the `using ... for` edge."
     },
     {
       "id": "src/Types.sol:MathLib.half(uint256)",
@@ -654,6 +659,7 @@
         "maxDepth": 1
       },
       "modifiers": [],
+      "natspec": "/// @notice A file-level free function.",
       "params": [
         {
           "name": "amount",
@@ -760,7 +766,8 @@
         "src/Vault.sol:Vault",
         "src/IVault.sol:IVault",
         "src/Base.sol:Base"
-      ]
+      ],
+      "natspec": "/// @notice The one contract that exercises every remaining node and edge kind."
     },
     {
       "id": "src/Vault.sol:Vault!DepositTooLarge(uint256)",
@@ -915,6 +922,7 @@
         "maxDepth": 2
       },
       "modifiers": [],
+      "natspec": "/// @inheritdoc IVault",
       "params": [
         {
           "name": "amount",
@@ -1133,6 +1141,7 @@
         "maxDepth": 1
       },
       "modifiers": [],
+      "natspec": "/// @inheritdoc IVault",
       "params": [],
       "returns": [
         {

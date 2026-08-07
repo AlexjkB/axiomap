@@ -1,5 +1,5 @@
 {
-  "schemaVersion": 4,
+  "schemaVersion": 5,
   "generator": {
     "name": "axiomap",
     "parser": "treesitter",
@@ -292,6 +292,7 @@
         "maxDepth": 1
       },
       "modifiers": [],
+      "natspec": "/// @notice `create2` with a deterministic salt — the `creates` edge.",
       "params": [
         {
           "name": "tokenA",
@@ -1146,7 +1147,8 @@
       "linearizationCertainty": "certain",
       "linearizedBases": [
         "src/Pair.sol:Shares"
-      ]
+      ],
+      "natspec": "/// @notice Minimal LP share accounting. Kept in the Pair to stay under 300 lines."
     },
     {
       "id": "src/Pair.sol:Shares._burnShares(address,uint256)",
@@ -1354,7 +1356,8 @@
       "linearizationCertainty": "certain",
       "linearizedBases": [
         "src/Router.sol:Router"
-      ]
+      ],
+      "natspec": "/// @notice The external entrypoint. Every call from here crosses a trust\n/// boundary via an interface, which is the edge kind auditors care about most."
     },
     {
       "id": "src/Router.sol:Router!Expired()",
@@ -2618,7 +2621,8 @@
       "linearizationCertainty": "certain",
       "linearizedBases": [
         "src/libraries/AmmMath.sol:AmmMath"
-      ]
+      ],
+      "natspec": "/// @notice Pure helpers. Exercises `using ... for` and internal library calls."
     },
     {
       "id": "src/libraries/AmmMath.sol:AmmMath!InsufficientInput()",
@@ -2722,6 +2726,7 @@
         "maxDepth": 1
       },
       "modifiers": [],
+      "natspec": "/// @notice Constant-product output with a 0.3% fee.",
       "params": [
         {
           "name": "amountIn",
@@ -2971,7 +2976,8 @@
       "linearizationCertainty": "certain",
       "linearizedBases": [
         "src/libraries/AmmMath.sol:SafeTransfer"
-      ]
+      ],
+      "natspec": "/// @notice Library attached with `using SafeTransfer for address` in Pair."
     },
     {
       "id": "src/libraries/AmmMath.sol:SafeTransfer!TransferFailed()",

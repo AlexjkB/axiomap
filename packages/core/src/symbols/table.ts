@@ -67,6 +67,8 @@ export interface ContractSymbol extends SymbolBase {
   /** §10: inherits `Test`/`DSTest`, or lives under a test directory. */
   isTest: boolean;
   isMock: boolean;
+  /** Verbatim doc comment, or `null`. See `ParsedContract.natspec`. */
+  natspec: string | null;
 }
 
 export interface FunctionSymbol extends SymbolBase {
@@ -96,6 +98,8 @@ export interface FunctionSymbol extends SymbolBase {
   metrics: ParsedFunctionMetrics;
   bodyHash: string;
   interfaceHash: string;
+  /** Verbatim doc comment, or `null`. See `ParsedFunction.natspec`. */
+  natspec: string | null;
 }
 
 export interface StateVariableSymbol extends SymbolBase {

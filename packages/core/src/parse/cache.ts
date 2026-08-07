@@ -34,8 +34,14 @@ import type { ParserId, ParseResult } from './interface.js';
  * with the field absent and report every inline `msg.sender` guard as no guard
  * at all, which is the wrong direction for an access-control overlay to fail
  * in.
+ *
+ * 4 — Phase 8c added `natspec` to `ParsedContract` and `ParsedFunction`. A
+ * cached v3 entry would deserialise with the field absent (`undefined`, not
+ * `null`), which the schema does not accept — every doc comment in the
+ * project would either be missing or fail to load, neither of which is the
+ * point of adding it.
  */
-export const PARSE_SCHEMA_VERSION = 3;
+export const PARSE_SCHEMA_VERSION = 4;
 
 export interface Hasher {
   h64ToString(input: string): string;

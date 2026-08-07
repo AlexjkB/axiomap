@@ -235,6 +235,7 @@ function nodeFor(symbol: AnySymbol, scope: ProjectScope): GraphNode | null {
         isFullyImplemented: isFullyImplemented(scope, symbol),
         isTest: symbol.isTest,
         isMock: symbol.isMock,
+        ...(symbol.natspec !== null ? { natspec: symbol.natspec } : {}),
       };
     }
     case 'function':
@@ -276,6 +277,7 @@ function nodeFor(symbol: AnySymbol, scope: ProjectScope): GraphNode | null {
         entrypoints: [],
         accessControl: { modifiers: [], confidence: 'none' },
         reentrancy: { externalCallThenWrite: false, guarded: false },
+        ...(symbol.natspec !== null ? { natspec: symbol.natspec } : {}),
       };
     case 'stateVariable':
       return {

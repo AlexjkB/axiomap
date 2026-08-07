@@ -51,8 +51,14 @@ import { z } from 'zod';
  *   indistinguishable from one built without, and `axiomap query` will happily
  *   answer a question about a guard list it was not built with. The version
  *   exists to refuse exactly that kind of silent mismatch.
+ * - **5** — Phase 8c. `natspec` on Contract and Function nodes: the doc
+ *   comment immediately preceding the declaration, verbatim. Optional and
+ *   absent wherever there is none, so an uncompiled project's graph gains
+ *   only the lines where a comment was actually found — but a v4 reader would
+ *   drop the field silently, which defeats the one thing Phase 8c's inspector
+ *   was built to show.
  */
-export const GRAPH_SCHEMA_VERSION = 4;
+export const GRAPH_SCHEMA_VERSION = 5;
 
 export const sourceRefSchema = z.object({
   file: z.string(),
@@ -204,6 +210,8 @@ export const contractNodeSchema = z.object({
   isFullyImplemented: z.boolean(),
   isTest: z.boolean(),
   isMock: z.boolean(),
+  /** Verbatim doc comment immediately preceding the declaration (§16). */
+  natspec: z.string().optional(),
 });
 
 export const functionNodeSchema = z.object({
@@ -237,6 +245,8 @@ export const functionNodeSchema = z.object({
   entrypoints: z.array(z.string()).default([]),
   accessControl: accessControlSchema.default({ modifiers: [], confidence: 'none' }),
   reentrancy: reentrancySchema.default({ externalCallThenWrite: false, guarded: false }),
+  /** Verbatim doc comment immediately preceding the declaration (§16). */
+  natspec: z.string().optional(),
 });
 
 export const stateVariableNodeSchema = z.object({

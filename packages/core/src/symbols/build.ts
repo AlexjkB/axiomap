@@ -108,6 +108,7 @@ function functionBody(fn: ParsedFunction): Omit<FunctionSymbol, keyof SymbolBase
     metrics: fn.metrics,
     bodyHash: fn.bodyHash,
     interfaceHash: fn.interfaceHash,
+    natspec: fn.natspec,
   };
 }
 
@@ -368,6 +369,7 @@ function indexContract(
     })),
     isTest: contract.bases.some((b) => TEST_BASES.has(b.name)) || TEST_DIR.test(file),
     isMock: /mock/i.test(contract.name) || MOCK_HINT.test(file),
+    natspec: contract.natspec,
   };
 
   index(symbol, fileSymbols, true);
