@@ -151,6 +151,15 @@ function identifierText(node: TsNode | null): string | null {
  * which several separate comment tokens are one doc comment. A bare `//` (or
  * a block comment that is not double-star) immediately before a declaration
  * is not NatSpec and yields `null`, matching solc's own recognition rule.
+ *
+ * One more condition guards the walk: a comment sharing its *start* row with
+ * whatever precedes it is trailing that thing, not leading `node`. Without
+ * this, `function foo() {} /// about foo\nfunction bar() {}` attaches foo's
+ * trailing remark to `bar` as its doc comment — confidently wrong, which is
+ * the one failure mode this project refuses everywhere else (§6). Confirmed
+ * against the compiled grammar rather than assumed: a same-line trailing
+ * comment is otherwise indistinguishable from a standalone leading one using
+ * only row adjacency to the *following* node.
  */
 function precedingDocComment(node: TsNode): string | null {
   const parent = node.parent;
@@ -164,13 +173,16 @@ function precedingDocComment(node: TsNode): string | null {
 
   // The maximal run of comment nodes immediately preceding `node`, each
   // adjacent to the next: no blank line between any two, nor between the
-  // last of them and `node` itself.
+  // last of them and `node` itself, and none of them trailing something
+  // else on its own start line.
   const run: TsNode[] = [];
   let boundaryRow = node.startPosition.row;
   for (let i = index - 1; i >= 0; i--) {
     const sib = siblings[i];
     if (sib === undefined || sib.type !== 'comment') break;
     if (boundaryRow - sib.endPosition.row > 1) break;
+    const before = siblings[i - 1];
+    if (before !== undefined && before.endPosition.row === sib.startPosition.row) break;
     run.unshift(sib);
     boundaryRow = sib.startPosition.row;
   }
