@@ -3221,3 +3221,107 @@ of things that might still be built.
 - **The screenshot harness lost most of what it screenshotted.** Four images per theme
   instead of fourteen. If a future session wants richer visual coverage, the interesting
   remaining surfaces are the five views under three themes, not the deleted layers.
+
+---
+
+## Follow-up to the scope reduction: the names, the comments, and three standing rules
+
+**Date:** 2026-08-07
+**Status:** complete. `pnpm check` green. Two commits, in the order the risks were ranked.
+
+The removal commit was correct in its code and left two things behind, both found by
+asking what makes sense long term rather than by a test failing.
+
+### 1. The doc-comment drift — the actual defect
+
+**~40 comments across `core`, `cli`, `webview` and `vscode` cited a §11 that now says the
+opposite.** `§11's fill channel`, `§11's eight overlays`, `§11's eighth overlay`, `§11's
+attack-surface overlay`, `§11's channel budget`. The removal commit changed the spec and
+the renderer and left every comment that pointed at them.
+
+This repo's files carry unusually heavy explanatory headers on purpose, which makes the
+drift worse rather than cosmetic: a contributor who opens `query/overlays.ts`, reads "as
+§11's fill channel needs it", then opens §11 and finds the cut, has learned that the
+comments lie. That is the mechanism by which a removed system gets rebuilt.
+
+Every one now describes what the code does — an analysis pass writing a node attribute, or
+a file the host reads. `SemanticOverlay` in `enrich/` was left alone throughout: it is a
+pure name collision and always was.
+
+### 2. The rename — done now, deliberately, rather than "with the next format change"
+
+The previous entry's note said to defer `OverlayData` → `AuditState` until a payload change
+came along to ride with. **That was the weaker call and it is reversed here.** Two reasons:
+Phase 9 is the end of §7's roadmap, so there may never *be* a next format change to ride;
+and the name is a lure — a file called `query/overlays.ts` exporting `OverlayData` is an
+invitation to write a renderer for it.
+
+| Was | Now |
+|---|---|
+| `OverlayData` | `AuditState` |
+| `overlayData` | `auditState` |
+| `OverlayReview` / `OverlayFinding` / `OverlaySummary` | `AuditReview` / `AuditFinding` / `AuditSummary` |
+| `OverlaySources` / `OverlayFiles` / `readOverlayFiles` | `AuditSources` / `AuditFiles` / `readAuditFiles` |
+| `core/src/query/overlays.ts` | `core/src/query/audit-state.ts` |
+| `core/src/project/overlay-sources.ts` | `core/src/project/audit-sources.ts` |
+| `HostBridge.overlays()`, `BridgeMethod` `'overlays'` | `.auditState()`, `'auditState'` |
+| `/api/overlays` | `/api/audit-state` |
+| `StaticPayload.overlays`, `HostSources.overlays`, `SessionState.overlays` | `.auditState` |
+
+**This crosses the wire on purpose.** The bridge method, the `BridgeMethod` union, the
+serve endpoint and the export payload's field name are all format, and `payloadVersion`
+stays at **2** because Phase 9 prepared the release without publishing it — so the format
+is still free. This is the last cheap moment; after a publish the field name is frozen for
+every reader that exists. Phase 7e made exactly this argument for the payload's *shape*,
+and it applies unchanged to its *names*.
+
+No behaviour change, no golden file touched, and test counts are identical to the previous
+entry's after-column: **440** core, **120** webview, **101** cli, **51** vscode, **57**
+repo-level.
+
+### 3. Three standing rules written into `AXIOMAP.md`
+
+Each exists because the alternative is re-deciding it under pressure later.
+
+- **§11's channel budget is now a gate with its enforcement named.** The table survived the
+  cut with one rule — nothing may claim a channel another owns — and it now says where that
+  bites: `packages/webview/test/style.test.ts` enumerates every selector allowed to write
+  node fill, opacity, border style and background image. Adding a signal to the graph means
+  either widening that test deliberately or, the usual answer, putting the signal in the
+  inspector, the CodeLens line or `query`, where there is no channel to contend for. The
+  failure guarded against is incremental: one border, then one tint, and the overlay system
+  is back without the budget that made it legible.
+- **§16 gained a working rule for removals**, the mirror of its existing rule for
+  deferrals. §16 is a list of things that might still be built, so a *deleted* feature does
+  not belong in it — but it needs the same discipline, and a cut is harder to justify later
+  than a deferral, because a deferral leaves code that explains itself and a cut leaves
+  nothing. The rule: a scope cut gets a `PROGRESS.md` entry recording what went, what was
+  kept, what was given up and why, and `AXIOMAP.md` is amended in the same change.
+- **§16 gained "A review worklist — what is left to look at"** (Tier 2), which is where the
+  one real loss from the cut goes if it comes back. Written now, while the reasoning is
+  fresh, specifically to pre-empt the obvious wrong move: **restoring the node-fill tint.**
+  The question — "what is left, and what did v2 invalidate" — wants sorting, counting,
+  grouping and exporting, and it wants to include nodes that are *not currently drawn*,
+  which a channel on a drawn view cannot do by construction (§9 rule 1 and the render cap).
+  Its seam already exists: `AuditSummary` carries the counts and the per-node maps are
+  right there. Trigger: the first real multi-day engagement where somebody asks, or the
+  first upgrade audit where `diff` names a dozen invalidated reviews and the editor has
+  nowhere to put them.
+
+### §16 changes
+
+One entry appended — the review worklist above, Tier 2 — plus the removal working rule in
+the preamble. Nothing deferred; this session finished what it started.
+
+### Notes for the next session
+
+- **Nothing from the Phase 9 release prep was touched**, again. The rename stayed inside
+  `src`/`test`; no `package.json`, workflow, notices file or `RELEASING.md` changed.
+- **The `payloadVersion: 2` window is still open and is now the only thing of its kind
+  left.** If anything else about the export format is worth changing, it is worth deciding
+  *before* the first publish, not after. There is nothing outstanding that needs it — this
+  is a note about the window, not a to-do.
+- **`docs/PROGRESS.md`'s older entries still say `overlays.ts` and `OverlayData`**, and
+  should. They are records of what was true in Phases 7c–8c, not live pointers; the two
+  living documents (`AXIOMAP.md`, `docs/architecture/extension-seams.md`) are the ones that
+  were updated.

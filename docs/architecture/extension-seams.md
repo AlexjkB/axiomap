@@ -66,7 +66,7 @@ Slither directly, managing its Python environment, and auto-refreshing findings 
   graph nodes **by byte offset** (the same join Phase 3's semantic enrichment uses, for
   the same reason — no name/signature canonicalisation needed on either side), and
   reports anything it cannot map rather than dropping it silently.
-- `overlayData` in `packages/core/src/query/overlays.ts` is how imported findings reach a
+- `auditState` in `packages/core/src/query/audit-state.ts` is how imported findings reach a
   host: one map keyed by node id, carrying each finding's own words and whether it has
   gone stale. The webview's inspector and the CodeLens line both read it, and a second
   producer would not change either.
@@ -114,7 +114,7 @@ rendering path:
   `packages/core/src/analysis/` writing an attribute onto the node, and every consumer
   (`query`, the inspector, `fileLenses`) reads it from there.
 - **If it comes from a file the user brought**, like `review.json` or a Slither export, it
-  joins `overlayData` in `packages/core/src/query/overlays.ts` — one map per file, keyed
+  joins `auditState` in `packages/core/src/query/audit-state.ts` — one map per file, keyed
   by node id, with its own staleness rule beside it. That is deliberately *not* the graph
   (§9 rule 1): no source, no edges, no attributes.
 
