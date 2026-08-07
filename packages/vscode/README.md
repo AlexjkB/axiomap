@@ -15,8 +15,8 @@ repositories worth reading are in.
 - **Honest confidence.** Every edge is `semantic`, `heuristic`, `ambiguous` or
   `unresolved`, drawn distinctly and filterable. "Show me every unresolved external call"
   is a query, not a gap.
-- **Overlays** for attack surface, access control, reentrancy shape, danger ops, review
-  state and imported Slither findings.
+- **An inspector** on every node: attributes, callers and callees, access control,
+  reentrancy shape, review state, imported Slither findings, and an inline source preview.
 - **CodeLens** above every contract and function: callers, external calls, writes, whether
   anything guards it, and whether your review of it is stale.
 - **Review state** in `.axiomap/review.json`, designed to be committed and shared across an

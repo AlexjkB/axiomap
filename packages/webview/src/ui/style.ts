@@ -17,21 +17,13 @@
  *
  * ### Channels are allocated, not chosen per rule
  *
- * §11's channel budget is a contract. The view-level half is **edge colour is
- * edge kind**, **edge style is resolution confidence**, **edge weight is
- * call-site count**; Phase 7b left the overlay channels neutral so that an
- * overlay arriving later would find its channel free, and Phase 7c is that
- * arrival. The rules below are grouped by channel rather than by overlay, and
- * every class in them is produced by exactly one overlay in `overlays.ts`,
- * which is where the allocation is written down.
+ * Colour is semantic, never decorative (§11). **Edge colour is edge kind**,
+ * **edge style is resolution confidence**, **edge weight is call-site count**,
+ * and node border colour is the node's kind. Each rule below owns one channel,
+ * so a node carries at most one class per channel and they do not race.
  *
- * A node carries at most one class per channel, so these rules do not race:
- * `decorate` decides the border colour once, including the precedence between
- * §11's two tenants on it, rather than leaving the answer to paint order.
- *
- * The one exception is §11's own words for the state-access map: "reads blue /
- * writes orange". That is the view, not an overlay, and it is spelled out in
- * §11's numbered list rather than in its overlay list.
+ * §11's own words for the state-access map — "reads blue / writes orange" — are
+ * the view's, and come out of the edge-kind allocation above.
  */
 
 import type { StylesheetJson } from 'cytoscape';
@@ -265,9 +257,7 @@ export function stylesheet(palette: Palette, preset: ViewPreset): StylesheetJson
         'border-color': palette.border,
         width: 'label',
         height: 'label',
-        // §11's size channel is the complexity heatmap's, and a node's size is
-        // its label plus its padding — so padding is where that overlay lands.
-        // `BASE_PADDING` with the overlay off.
+        // A node's size is its label plus its padding (`BASE_PADDING`).
         padding: 'data(pad)',
         // `display` is the two lines already joined (see `elements.ts`): one
         // cytoscape label holds them both, because there is no rich text.
@@ -335,59 +325,6 @@ export function stylesheet(palette: Palette, preset: ViewPreset): StylesheetJson
       },
     },
     { selector: 'node.focusable', style: { 'font-weight': 'bold' } },
-
-    // --- §11 channel: node fill — review state ---------------------------
-    // Low saturation, as §11 asks: the tone at low opacity over the canvas,
-    // rather than a solid block that would fight the label on top of it.
-    { selector: 'node.rv-reviewed', style: { 'background-color': palette.library, 'background-opacity': 0.22 } },
-    { selector: 'node.rv-flagged', style: { 'background-color': palette.error, 'background-opacity': 0.24 } },
-    { selector: 'node.rv-follow-up', style: { 'background-color': palette.contract, 'background-opacity': 0.22 } },
-    { selector: 'node.rv-ignored', style: { 'background-color': palette.dim, 'background-opacity': 0.18 } },
-    // §8: a stale review is `needs-re-review`, and it overrides what the entry
-    // claimed — a green "reviewed" node whose body has since changed is the one
-    // picture this feature exists to prevent.
-    { selector: 'node.rv-stale', style: { 'background-color': palette.warning, 'background-opacity': 0.3 } },
-
-    // --- §11 channel: node border colour — access control, attack surface --
-    { selector: 'node.surf-entry', style: { 'border-color': palette.selection, 'border-width': 3 } },
-    { selector: 'node.ac-high', style: { 'border-color': palette.library, 'border-width': 3 } },
-    { selector: 'node.ac-low', style: { 'border-color': palette.warning, 'border-width': 3 } },
-    { selector: 'node.ac-none', style: { 'border-color': palette.error, 'border-width': 3 } },
-
-    // --- §11 channel: node opacity — reachability dimming -----------------
-    { selector: 'node.surf-unreachable', style: { opacity: 0.35 } },
-
-    // --- §11 channel: node border style — resolution confidence -----------
-    { selector: 'node.res-node-ambiguous', style: { 'border-style': 'dashed' } },
-    { selector: 'node.res-node-unresolved', style: { 'border-style': 'dotted' } },
-
-    // --- §11 channel: node badges — danger ops, findings, reentrancy ------
-    // One strip image per node (see `badges.ts`), pinned to the top-right
-    // corner and allowed outside the box, so a badge never covers the label
-    // §11's density target is about.
-    {
-      selector: 'node[badges]',
-      style: {
-        'background-image': 'data(badges)',
-        'background-image-containment': 'over',
-        'background-clip': 'none',
-        'background-fit': 'none',
-        'background-width': 'data(badgeWidth)',
-        'background-height': 'data(badgeHeight)',
-        'background-position-x': '100%',
-        'background-position-y': '0%',
-        // Clear of the node body, not straddling its top border: the chip fill
-        // is the same panel colour as the node, so an overlapping half of it
-        // vanished into the node and every badge read as half a badge.
-        'background-offset-x': 10,
-        'background-offset-y': -14,
-        // …and the node's bounding box has to grow to match, or the renderer
-        // culls what now sits outside it — which drew the notch the strip had
-        // erased from the border and nothing else.
-        'bounds-expansion': 24,
-        'background-image-opacity': 1,
-      },
-    },
 
     {
       selector: 'node:selected',

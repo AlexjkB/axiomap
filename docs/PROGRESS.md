@@ -3081,3 +3081,143 @@ discovering something new to defer.
   `package.json`'s `repository`/`homepage`/`bugs` fields, and
   `.github/ISSUE_TEMPLATE/config.yml`'s security link — so fixing it later is a single find
   and replace, not a hunt.
+
+---
+
+## Scope reduction — the overlay system and the navigation history
+
+**Date:** 2026-08-07
+**Status:** complete. `pnpm check` green before and after, and this is a dedicated session
+rather than part of a phase — there is no phase after 9, and folding a removal into one
+would have put an unread deletion diff in a commit whose reviewer was looking at something
+else, which is the failure §6 names.
+
+Not a phase, not a bug fix, and not a deferral: two shipped MVP features were **removed at
+the user's direction as feature bloat**, and `AXIOMAP.md` was amended to stop describing
+them. §16 records deferrals with a reason; this is the same discipline applied to a cut, so
+that "why is this gone" has an answer that is not `git log`.
+
+### What was removed
+
+**§11's eight overlays** — attack surface, access control, reentrancy surface, danger ops,
+resolution confidence, complexity heatmap, review state, imported findings — together with
+the toggle bar, the legend, the badge glyph strips, and the channel-budget allocation that
+kept them from colliding.
+
+**§11's breadcrumb and back/forward history**, including `Alt+←`/`Alt+→`.
+
+Seven files deleted (~1,475 lines): `webview/src/ui/{overlays.ts, OverlayBar.tsx,
+badges.ts, history.ts, Breadcrumb.tsx}` and `webview/test/{overlays.test.ts,
+history.test.ts}`. Net **−750 lines** across the tree.
+
+### What was deliberately *not* removed, and why
+
+The word "overlay" meant three unrelated things in this repo, and only one of them was in
+scope. Scoped explicitly with the user before anything was deleted:
+
+- **The Phase 4 analysis passes and §12's `query` surface over them are untouched.** Six of
+  the eight overlays only *rendered* attributes the graph already carries
+  (`externallyReachable`, `accessControl`, `reentrancy`, `flags`, `metrics.cyclomatic`,
+  `resolution`). `axiomap query externals --unprotected`, `unresolved`, `stale-reviews` and
+  the rest answer the same questions and always did, with no UI involved. The queryable data
+  was never the bloat.
+- **`core/src/query/overlays.ts` and `project/overlay-sources.ts` stay.** The name is
+  misleading now, but `OverlayData` is not the visual layer — it is the projection of
+  `.axiomap/review.json` and `.axiomap/findings.json` onto node ids, and it has two
+  consumers besides the deleted renderer: `query/lenses.ts`, which is what puts `reviewed`
+  on the CodeLens line, and the webview's inspector. Renaming it was considered and rejected
+  as churn with no reader.
+- **`core/src/enrich/`'s `SemanticOverlay` is a pure name collision.** Untouched.
+- **The HTML export payload did not change**, so `payloadVersion` stays at **2**. Its
+  `overlays` field carries `OverlayData` for the inspector, which still shows it; nothing
+  overlay-specific beyond that was ever embedded. Checked rather than assumed, since Phase
+  7e's whole argument was that the format is free to change only until Phase 9 publishes it.
+
+### The flagship feature, flagged explicitly rather than cut by implication
+
+§8 says review invalidation is the flagship feature and "do not cut it", and review state
+was rendered as one of the eight overlays — the node-fill channel. **This was raised with
+the user as its own decision before any code was touched**, with three options: accept the
+loss, keep a non-toggleable review tint, or keep review as a single toggleable layer. The
+user chose to accept the loss.
+
+So, stated plainly: **the feature is intact, its glanceability is not.** Review state and
+staleness still surface in the inspector (status, `stale, the body changed since`,
+reviewer, note), on the CodeLens line above every function (`reviewed — body changed, needs
+re-review`), and from `axiomap query stale-reviews` and `axiomap review`. What is gone is
+scanning a drawn graph and seeing at a glance which nodes are unreviewed or stale; that is
+now a click, a CodeLens, or a CLI call. The one-off exception was judged worse than the
+loss — a channel system with a single tenant is the system, with a smaller name.
+
+### Touchpoints
+
+| Area | Change |
+|---|---|
+| `webview/src/ui/App.tsx` | `reduceHistory` → plain `reduce`; `initialOverlays`, `active`, `toggleOverlay`, `overlayCoverage` and the `Alt`+arrow handler gone. `overlayData` state kept — it now feeds only the inspector |
+| `webview/src/ui/elements.ts` | `ElementOverlays`, `applyOverlays`, the four `badge*` fields and the per-node `pad` variation gone; `toElements(view, preset)` is two arguments. `BASE_PADDING` relocated here from `overlays.ts`, since one number for every node belongs beside its only reader |
+| `webview/src/ui/style.ts` | the `rv-*`, `ac-*`, `surf-*`, `res-node-*` and `node[badges]` rules gone. Edge colour/style/weight and the node-kind border rules stay — those are the view's, not an overlay's |
+| `webview/src/ui/styles.css` | the overlay bar, legend, badge, swatch and breadcrumb blocks gone (227 lines). `.ax-chip` stays: the toolbar and inspector use it |
+| `webview/src/ui/Inspector.tsx` | **unchanged.** It read `OverlayData` directly and still does |
+| `vscode/src/codelens.ts`, `core/src/query/lenses.ts` | **unchanged.** The `reviewed` wording never depended on overlay-state plumbing — it reads `OverlayData` through `fileLenses` |
+| `vscode/src/panel.ts` | the `retainContextWhenHidden` comment no longer claims to preserve a navigation history |
+| `webview/test/style.test.ts` | the channel-budget assertions rewritten as the check that survives the overlays: node fill, opacity, border style and background-image are written by the view's own vocabulary and nothing else. This is the 7b check restored, and it is what would catch a future rule reaching for a channel that is not its own |
+| `webview/test/app.test.tsx` | four tests deleted (overlay toggle + legend, silent-overlay coverage, missing-audit-file message, breadcrumb + back) |
+| `test/browser-smoke.test.ts` | the `toggleOverlay` helper, the `LEGEND` probe and the badge/coverage test deleted. The remaining nine still exercise layout, drill-down, theming, the inspector and both export paths |
+| `scripts/screenshots.mjs` | the eight per-overlay shots, the all-eight shot and the breadcrumb shot gone; the code-preview and search-palette shots renumbered `03`/`04` |
+| `README.md`, `packages/vscode/README.md` | the overlay bullets replaced by what the inspector actually shows |
+| `docs/architecture/extension-seams.md` | its "overlays in general" section described the pluggable layer being removed. Rewritten as "attaching new data to nodes", which names the two routes that still exist — an analysis pass writing a node attribute, or a file-backed map joining `overlayData` — and says the styling layer is gone so a future signal does not go looking for a channel |
+
+### `AXIOMAP.md` changes
+
+- **§11 retitled "Views"**, the overlay bullet list replaced by a section stating the cut,
+  what was kept, and what was given up. The **channel-budget table rewritten** to describe
+  the allocation that actually exists (node border colour is node kind; fill is neutral;
+  edge colour/style/weight unchanged), keeping the one rule worth keeping — nothing may
+  claim a channel another owns.
+- **The breadcrumb bullet removed** from §11's interaction list. `/` search, click-to-reveal,
+  edge-to-call-site, the inspector and the code preview all stay.
+- **§7's Phase 7 description** no longer lists overlays and history, with a note recording
+  that it shipped them and that they were removed after Phase 9.
+- **§16's "Test coverage overlay" renamed "Test coverage ingest"**, and its seam corrected:
+  it said "overlays are a pluggable styling layer; this is one more", which is now false. It
+  ships as a node fact and a `query` subcommand.
+- **§16's "Overlay rollup onto contracts and collapsed clusters" closed rather than
+  deleted.** The entry assumed a renderer that no longer exists, so it cannot be deferred on
+  its old terms; the underlying question is recorded as still open on its merits, to be
+  re-argued as an inspector field or a `query` subcommand if it returns.
+- **§16's "Webview state across an editor restart"** no longer names `history.ts` as its
+  seam — it is `navigation.ts` and one `NavState` now, which is a *smaller* item than before.
+- Decision #4, §2's Slither note, §4's version policy and §5's tree: "overlay" as a verb or
+  a directory name, corrected to what the code does. `SemanticOverlay` references left alone.
+
+### Test counts
+
+| Package | Before | After |
+|---|---|---|
+| `core` | 440 | 440 |
+| `webview` | 153 | 120 |
+| `cli` | 101 | 101 |
+| `vscode` | 51 | 51 |
+| repo-level | 58 | 57 |
+
+No golden file changed, and none should have: this touched no graph data. `core` is
+byte-identical.
+
+### §16 changes
+
+Nothing appended. This session *removed* two features rather than deferring anything, and
+neither is a backlog candidate — a cut is recorded here, not in §16, because §16 is a list
+of things that might still be built.
+
+### Notes for the next session
+
+- **Nothing from the Phase 9 release prep was touched.** No `package.json`, no workflow, no
+  `docs/RELEASING.md`, no notices file. The three README edits are prose about features, and
+  `packages/vscode/.vsix/` is a build output that regenerates.
+- **`OverlayData` is now a misleading name** with no overlay behind it. Renaming it means
+  touching `core`, both bridges, the serve endpoint, the export payload and `payloadVersion`,
+  and it buys clarity for a reader who does not exist yet. Left deliberately; if a rename
+  happens it should ride with the next payload-format change rather than on its own.
+- **The screenshot harness lost most of what it screenshotted.** Four images per theme
+  instead of fourteen. If a future session wants richer visual coverage, the interesting
+  remaining surfaces are the five views under three themes, not the deleted layers.

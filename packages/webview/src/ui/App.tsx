@@ -3,7 +3,8 @@
  *
  * Everything it knows about the graph arrived through `HostBridge` — `view` for
  * the drawn subgraph (§9 rule 1), `inspect` for one node's attributes and
- * relations (§11), `overlays` for the two audit-state files the host reads.
+ * relations (§11), `overlays` for the two audit-state files the host reads and
+ * the inspector shows.
  * There is no second door: no full graph in memory, no client-side filtering of
  * one, no second copy of the query API. When this component needs a different
  * subgraph, or anything about a node it is not drawing, it asks.
@@ -25,15 +26,11 @@ import { useCallback, useEffect, useMemo, useReducer, useRef, useState } from 'r
 
 import { BridgeError, type HostBridge } from '../bridge.js';
 import type { EditorLink } from '../editor.js';
-import { Breadcrumb } from './Breadcrumb.js';
 import { GraphCanvas } from './GraphCanvas.js';
-import { current, initialHistory, reduceHistory } from './history.js';
 import { Inspector } from './Inspector.js';
 import { toElements } from './elements.js';
 import { LayoutClient, browserEngine } from './layout/client.js';
-import { initialState, ready, toRequest } from './navigation.js';
-import { OverlayBar } from './OverlayBar.js';
-import { nodeUncertainty, overlayCoverage, type OverlayName } from './overlays.js';
+import { initialState, ready, reduce, toRequest } from './navigation.js';
 import { PRESETS } from './presets.js';
 import { SearchPalette } from './SearchPalette.js';
 import { readDocumentPalette } from './style.js';
@@ -43,8 +40,6 @@ export interface AppProps {
   bridge: HostBridge;
   /** Injected in a test; the browser gets the real ELK worker. */
   layoutClient?: LayoutClient;
-  /** Overlays on at startup. Empty by default: §11's overlays are opt-in layers. */
-  initialOverlays?: readonly OverlayName[];
   /**
    * The editor, when the host is one (§11's bidirectional navigation).
    *
@@ -55,21 +50,15 @@ export interface AppProps {
   editor?: EditorLink;
 }
 
-export function App({ bridge, layoutClient, initialOverlays = [], editor }: AppProps): JSX.Element {
+export function App({ bridge, layoutClient, editor }: AppProps): JSX.Element {
   const [meta, setMeta] = useState<ProjectMeta | null>(null);
   const [view, setView] = useState<AggregatedView | null>(null);
   const [error, setError] = useState<BridgeError | null>(null);
   const [busy, setBusy] = useState(true);
   const [layout, setLayout] = useState<number | null | { failed: string }>(null);
-  /*
-   * §11's history wraps the navigation reducer rather than replacing it: every
-   * event a click produces still goes through `reduce`, and `reduceHistory`
-   * decides whether the result is a new place. `state` below is the entry the
-   * index points at, so back/forward and the breadcrumb are the same thing seen
-   * twice rather than two things kept in step.
-   */
-  const [history, dispatch] = useReducer(reduceHistory, initialHistory(initialState({ up: 2, down: 3 })));
-  const state = current(history);
+  // Where the user is. `reduce` is the only thing that decides what a click
+  // means (see `navigation.ts`), and this is the state it produces.
+  const [state, dispatch] = useReducer(reduce, initialState({ up: 2, down: 3 }));
   const [paletteOpen, setPaletteOpen] = useState(false);
   /*
    * Phase 8's artifact watch, as one number.
@@ -85,7 +74,6 @@ export function App({ bridge, layoutClient, initialOverlays = [], editor }: AppP
   const generation = refreshed === null ? 0 : refreshed.at;
 
   const [overlayData, setOverlayData] = useState<OverlayData | null>(null);
-  const [active, setActive] = useState<ReadonlySet<OverlayName>>(() => new Set(initialOverlays));
   const [selected, setSelected] = useState<string | null>(null);
   const [inspection, setInspection] = useState<NodeInspection | null>(null);
   const [inspectError, setInspectError] = useState<string | null>(null);
@@ -98,8 +86,8 @@ export function App({ bridge, layoutClient, initialOverlays = [], editor }: AppP
   useEffect(() => () => { client.dispose(); }, [client]);
 
   /*
-   * The one palette in the app: the canvas, the badge strips and the code
-   * preview's syntax theme all take this (§11: no hard-coded hex, anywhere).
+   * The one palette in the app: the canvas and the code preview's syntax theme
+   * both take this (§11: no hard-coded hex, anywhere).
    *
    * It is state rather than a `useMemo([])` because **a host can change its
    * theme while this is open**. Phase 8's exit criterion is legibility in
@@ -107,17 +95,17 @@ export function App({ bridge, layoutClient, initialOverlays = [], editor }: AppP
    * anyone would check that — VS Code rewrites the `--vscode-*` variables on
    * the document element and swaps a class on the body, without reloading the
    * webview. Read once, the graph would repaint from the new theme on its next
-   * update while the badges kept the old one: a half-themed UI, which is the
-   * same class of defect as 7c's "nobody had ever run this with the variables
-   * set" and much harder to spot.
+   * update while the code preview kept the old one: a half-themed UI, which is
+   * the same class of defect as 7c's "nobody had ever run this with the
+   * variables set" and much harder to spot.
    */
   const [palette, setPalette] = useState(readDocumentPalette);
   useEffect(() => {
     const observer = new MutationObserver(() => {
       const next = readDocumentPalette();
       // Replaced only when something actually changed: every mutation of the
-      // document element would otherwise rebuild the stylesheet, the badge
-      // strips and the shiki grammar.
+      // document element would otherwise rebuild the stylesheet and the shiki
+      // grammar.
       setPalette((previous) =>
         JSON.stringify(previous) === JSON.stringify(next) ? previous : next,
       );
@@ -154,8 +142,9 @@ export function App({ bridge, layoutClient, initialOverlays = [], editor }: AppP
     };
   }, [bridge, generation]);
 
-  // Review state and imported findings: two small files, read once. They are
-  // not the graph (§9 rule 1) — they are keyed by node id and carry no source.
+  // Review state and imported findings: two small files, read once, shown in
+  // the inspector. They are not the graph (§9 rule 1) — they are keyed by node
+  // id and carry no source.
   useEffect(() => {
     let cancelled = false;
     void bridge
@@ -164,7 +153,7 @@ export function App({ bridge, layoutClient, initialOverlays = [], editor }: AppP
         if (!cancelled) setOverlayData(loaded);
       })
       .catch(() => {
-        // An overlay that cannot load is an overlay with nothing to say. The
+        // Audit state that cannot load is audit state with nothing to say. The
         // graph is what the user asked for and it is already on screen.
         if (!cancelled) setOverlayData(null);
       });
@@ -275,28 +264,9 @@ export function App({ bridge, layoutClient, initialOverlays = [], editor }: AppP
     () =>
       view === null || view.view !== state.view
         ? { nodes: [], edges: [] }
-        : toElements(view, preset, { active, data: overlayData, palette }),
-    [view, preset, state.view, active, overlayData, palette],
+        : toElements(view, preset),
+    [view, preset, state.view],
   );
-
-  // What each active overlay actually marked in what is on screen. An overlay
-  // with nothing to say here says so rather than reading as a clean result.
-  const coverage = useMemo(() => {
-    if (view === null || active.size === 0) return {};
-    const drawn = view.nodes.flatMap((node) => (node.type === 'node' ? [node.node] : []));
-    return overlayCoverage(
-      drawn,
-      active,
-      overlayData,
-      nodeUncertainty(
-        view.edges.map((edge) => ({
-          from: edge.from,
-          to: edge.to,
-          resolution: edge.type === 'aggregate' ? edge.resolution : edge.edge.resolution,
-        })),
-      ),
-    );
-  }, [view, active, overlayData]);
 
   // The clusters the *engine* opened, which is not the same as the ones the
   // user asked for while auto-expansion is still on. The reducer needs it to
@@ -372,18 +342,10 @@ export function App({ bridge, layoutClient, initialOverlays = [], editor }: AppP
     };
   }, [editor]);
 
-  const toggleOverlay = useCallback((name: OverlayName) => {
-    setActive((on) => {
-      const next = new Set(on);
-      if (!next.delete(name)) next.add(name);
-      return next;
-    });
-  }, []);
-
   const search = useCallback((query: string, limit?: number) => bridge.search(query, limit), [bridge]);
 
   /*
-   * §11's `/`, plus back and forward.
+   * §11's `/`.
    *
    * On `document` rather than on a focused element, because the thing the user
    * is looking at is a canvas that cannot hold focus. Guarded against firing
@@ -405,16 +367,6 @@ export function App({ bridge, layoutClient, initialOverlays = [], editor }: AppP
       }
       if (event.key === 'Escape' && !typing) {
         setPaletteOpen(false);
-        return;
-      }
-      // Alt+arrow, which is what a browser uses and therefore what a hand
-      // already knows. Not the bare arrows: those pan a graph.
-      if (event.altKey && event.key === 'ArrowLeft') {
-        event.preventDefault();
-        dispatch({ type: 'back' });
-      } else if (event.altKey && event.key === 'ArrowRight') {
-        event.preventDefault();
-        dispatch({ type: 'forward' });
       }
     };
     document.addEventListener('keydown', onKey);
@@ -440,29 +392,6 @@ export function App({ bridge, layoutClient, initialOverlays = [], editor }: AppP
         }}
         onClearFocus={() => {
           dispatch({ type: 'focus', focus: null });
-        }}
-      />
-
-      <OverlayBar
-        active={active}
-        data={overlayData}
-        coverage={coverage}
-        onToggle={toggleOverlay}
-        onClear={() => {
-          setActive(new Set());
-        }}
-      />
-
-      <Breadcrumb
-        history={history}
-        onBack={() => {
-          dispatch({ type: 'back' });
-        }}
-        onForward={() => {
-          dispatch({ type: 'forward' });
-        }}
-        onJump={(index) => {
-          dispatch({ type: 'jump', index });
         }}
       />
 

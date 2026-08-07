@@ -3,7 +3,7 @@
  *
  * Two phases running, the worst defects in this package were invisible to a
  * green test suite and obvious in one image: Phase 7b shipped a layout engine
- * that threw on every view, and Phase 7c shipped six overlays that decorated
+ * that threw on every view, and Phase 7c shipped a styling layer that decorated
  * nothing on the default view and said nothing about it. Both times the harness
  * that found them was rebuilt from scratch and thrown away, so here it is.
  *
@@ -275,7 +275,6 @@ const tapKind = (kind) => `
 
 const CODE = "document.querySelector('.ax-code')?.textContent ?? ''";
 const PALETTE = "document.querySelector('.ax-palette')?.textContent ?? ''";
-const CRUMBS = "document.querySelector('.ax-crumbs')?.textContent ?? ''";
 
 const typeInPalette = (text) => `
   (() => {
@@ -295,27 +294,6 @@ const press = (key) => `
   })()
 `;
 
-const clickOverlay = (label) => `
-  (() => {
-    const chip = [...document.querySelectorAll('.ax-overlay-row .ax-chip')]
-      .find((button) => button.textContent.trim() === ${JSON.stringify(label)});
-    if (!chip) return 'missing';
-    chip.click();
-    return 'ok';
-  })()
-`;
-
-const OVERLAYS = [
-  'Attack surface',
-  'Access control',
-  'Reentrancy surface',
-  'Danger ops',
-  'Resolution confidence',
-  'Complexity',
-  'Review state',
-  'Imported findings',
-];
-
 async function run() {
   const options = parseArgs(process.argv.slice(2));
   const session = await startServe({ path: options.project, port: 0, open: false });
@@ -331,40 +309,25 @@ async function run() {
         await settled(page);
         console.log(await page.shot(path.join(out, '01-protocol-map.png')));
 
-        // Overlays are function-level, so they are shown where they apply.
         await page.evaluate(tapContract('Pair'));
         await page.until(CURRENT_VIEW, (value) => value === 'Contract detail');
         await settled(page);
         console.log(await page.shot(path.join(out, '02-contract-detail.png')));
 
-        for (const [index, label] of OVERLAYS.entries()) {
-          await page.evaluate(clickOverlay(label));
-          const slug = label.toLowerCase().replace(/[^a-z]+/g, '-');
-          console.log(await page.shot(path.join(out, `${String(index + 3).padStart(2, '0')}-${slug}.png`)));
-          await page.evaluate(clickOverlay(label));
-        }
-
-        for (const label of OVERLAYS) await page.evaluate(clickOverlay(label));
-        console.log(await page.shot(path.join(out, '11-all-eight.png')));
-        for (const label of OVERLAYS) await page.evaluate(clickOverlay(label));
-
-        // Phase 7d: the inspector's code preview, the search palette and the
-        // breadcrumb. Each is screenshotted where it has something to show —
-        // the lesson of 7b and 7c is that a green suite says nothing about
-        // whether a panel is legible.
+        // Phase 7d: the inspector's code preview and the search palette. Each
+        // is screenshotted where it has something to show — the lesson of 7b
+        // and 7c is that a green suite says nothing about whether a panel is
+        // legible.
         await page.evaluate(tapKind('Function'));
         await page.until(CODE, (value) => value.length > 0);
-        console.log(await page.shot(path.join(out, '12-code-preview.png')));
+        console.log(await page.shot(path.join(out, '03-code-preview.png')));
 
         await page.evaluate(press('/'));
         await page.until(PALETTE, (value) => value.length > 0);
         await page.evaluate(typeInPalette('mint'));
         await page.until(PALETTE, (value) => value.includes('mint'));
-        console.log(await page.shot(path.join(out, '13-search-palette.png')));
+        console.log(await page.shot(path.join(out, '04-search-palette.png')));
         await page.evaluate(press('Escape'));
-
-        await page.until(CRUMBS, (value) => value.length > 0);
-        console.log(await page.shot(path.join(out, '14-breadcrumb.png')));
 
         if (page.consoleErrors.length > 0) {
           console.error(`console errors under ${themeName}:`, page.consoleErrors);

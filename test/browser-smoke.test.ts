@@ -180,7 +180,6 @@ class Page {
 const METRICS = "document.querySelector('.ax-metrics')?.textContent ?? ''";
 const CURRENT_VIEW = "document.querySelector('.ax-view-current')?.textContent ?? ''";
 const INSPECTOR = "document.querySelector('.ax-inspector')?.textContent ?? ''";
-const LEGEND = "document.querySelector('.ax-legend')?.textContent ?? ''";
 
 /** Click a node the way a mouse would — cytoscape draws to a canvas. */
 function tap(selector: string): string {
@@ -191,19 +190,6 @@ function tap(selector: string): string {
       if (node.empty()) return '';
       node.emit('tap');
       return node.id();
-    })()
-  `;
-}
-
-/** Toggle an overlay by its label, as the toolbar spells it. */
-function toggleOverlay(label: string): string {
-  return `
-    (() => {
-      const chip = [...document.querySelectorAll('.ax-overlay-row .ax-chip')]
-        .find((button) => button.textContent.trim() === ${JSON.stringify(label)});
-      if (!chip) return 'missing';
-      chip.click();
-      return 'ok';
     })()
   `;
 }
@@ -357,41 +343,6 @@ describe.skipIf(CHROME === undefined)('the graph in a browser', () => {
     expect(page.consoleErrors.join('\n')).toBe('');
   }, 120_000);
 
-  /**
-   * An overlay that draws nothing looks exactly like an overlay with nothing to
-   * report, which is the failure this project cares about most. Both halves are
-   * here: a badge really reaches a node's computed style, and an overlay with
-   * nothing to mark says so instead of looking like a clean result.
-   */
-  it('draws badges where an overlay marks something, and says when it marks nothing', async () => {
-    await page.goto(session.handle.url);
-    await page.until(METRICS, (value) => /layout/.test(value));
-
-    // On the protocol map, danger ops is about functions and there are none.
-    expect(await page.evaluate(toggleOverlay('Danger ops'))).toBe('ok');
-    expect(await page.until(LEGEND, (value) => value.includes('nothing in this view'))).toContain(
-      'nothing in this view',
-    );
-
-    // Inside a contract there are, and the strip reaches cytoscape's style.
-    await page.evaluate(tap('[kind = "Contract"]'));
-    await page.until(CURRENT_VIEW, (value) => value === 'Contract detail');
-    await page.until(METRICS, (value) => /layout \d+ ms/.test(value));
-
-    const badged = await page.until(
-      `
-        (() => {
-          const cy = document.querySelector('.ax-canvas')._cyreg.cy;
-          const marked = cy.nodes().filter((node) => node.data('badges') !== undefined);
-          if (marked.length === 0) return '0';
-          return marked.length + ':' + String(marked.first().style('background-image')).slice(0, 24);
-        })()
-      `,
-      (value) => value !== '0',
-    );
-    expect(badged).toMatch(/^\d+:data:image\/svg\+xml/);
-    expect(page.consoleErrors.join('\n')).toBe('');
-  }, 120_000);
 });
 
 /**

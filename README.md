@@ -52,9 +52,9 @@ than one that admits what it doesn't know.
 ## Five views, one graph
 
 Protocol map, contract detail, call graph, state access map, inheritance tree — each a
-filter and a layout over the same underlying model, never a separate pipeline. Overlays
-(attack surface, access control, reentrancy shape, danger ops, resolution confidence,
-complexity, review state, imported Slither findings) combine on top of any of them.
+filter and a layout over the same underlying model, never a separate pipeline. Click any
+node for its full attributes, its callers and callees, its review state, any imported
+findings against it, and an inline preview of its source.
 
 ## The audit workflow nothing else does
 
@@ -117,7 +117,7 @@ property you can verify yourself before pointing the tool at client code; see
 ## What it doesn't do (yet)
 
 No Slither dependency (`axiomap import-findings` reads Slither's own JSON output — you
-run Slither, Axiomap overlays it), no LLM integration, no proxy/storage collision
+run Slither, Axiomap attaches the findings to the graph), no LLM integration, no proxy/storage collision
 detection, no taint analysis. All four are named gaps with a seam already in the
 architecture, not silent omissions — see
 [`docs/architecture/extension-seams.md`](docs/architecture/extension-seams.md) and

@@ -55,13 +55,12 @@ describe('stylesheet', () => {
   });
 
   /**
-   * §11's channel budget, as a test rather than as a comment.
+   * What each node channel is written by, as a test rather than as a comment.
    *
-   * 7b asserted that the overlay channels were *untouched*, which was the right
-   * check while no overlay existed. 7c fills them, so the check becomes the one
-   * the budget actually makes: each channel is written by exactly the overlay it
-   * was allocated to, and by nothing else. That is what stops the fifth overlay
-   * from quietly reaching for a channel the third already owns.
+   * With the overlay system removed, a node's appearance is decided by the view
+   * alone: its kind, and whether it is a cluster. These assertions are the ones
+   * that catch a rule reaching for a channel that is not its own — the same
+   * check 7b made before the overlays arrived, and the one that survives them.
    */
   const touching = (property: string): string[] =>
     sheet
@@ -75,43 +74,30 @@ describe('stylesheet', () => {
       .map((block) => String((block as { selector: string }).selector))
       .sort();
 
-  it('gives node fill to the review-state overlay and nothing else', () => {
-    // The bare `node` rule and the two cluster rules are the neutral defaults
-    // this overlay replaces — which is what "neutral" in §11's row means.
-    expect(touching('background-color')).toEqual([
-      'node',
-      'node.cluster',
-      'node.cluster.collapsed',
-      'node.rv-flagged',
-      'node.rv-follow-up',
-      'node.rv-ignored',
-      'node.rv-reviewed',
-      'node.rv-stale',
-    ]);
+  it('fills nodes from the neutral defaults and nothing else', () => {
+    expect(touching('background-color')).toEqual(['node', 'node.cluster', 'node.cluster.collapsed']);
   });
 
-  it('gives node opacity to reachability dimming and nothing else', () => {
-    expect(touching('opacity')).toEqual(['node.surf-unreachable']);
+  it('leaves node opacity alone — nothing dims a node', () => {
+    expect(touching('opacity')).toEqual([]);
   });
 
-  it('gives node border style to resolution confidence', () => {
-    // `contract-abstract` and the synthetic `?` node predate the overlay and are
-    // the view's own vocabulary; the overlay's own classes are the `res-node-*`
-    // pair, and nothing else in the sheet writes this property.
+  it('gives node border style to the view’s own vocabulary only', () => {
+    // An abstract contract and the synthetic `?` node are what a *view* says
+    // about a node; a collapsed cluster is a box standing for what is not
+    // drawn. Nothing else in the sheet writes this property.
     expect(touching('border-style')).toEqual([
       'node.cluster.collapsed',
       'node.contract-abstract',
-      'node.res-node-ambiguous',
-      'node.res-node-unresolved',
       'node[kind = "Unresolved"]',
     ]);
   });
 
-  it('gives the badge channel one rule, keyed on the node carrying badges', () => {
-    expect(touching('background-image')).toEqual(['node[badges]']);
+  it('draws no image on a node', () => {
+    expect(touching('background-image')).toEqual([]);
   });
 
-  it('sizes nodes from data, which is where the complexity overlay writes', () => {
+  it('sizes nodes from data', () => {
     const base = sheet.find((block) => 'selector' in block && block.selector === 'node');
     expect((base as { style: Record<string, unknown> }).style['padding']).toBe('data(pad)');
   });

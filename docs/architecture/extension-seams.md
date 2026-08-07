@@ -51,24 +51,25 @@ optional attributes without a schema-version bump forcing every consumer to chan
 that's the same mechanism `natspec` used to land in Phase 8c and `checksSender` used in
 Phase 4. A taint pass would be one more analysis module in `packages/core/src/analysis/`
 (one file per pass, pure function over the graph, per the existing convention) producing
-attributes the existing overlay machinery (below) can already render.
+attributes the CLI's `query` surface and the webview's inspector already read.
 
 ## Live Slither invocation
 
 **Not built.** `axiomap import-findings <slither.json>` ships today — the user runs
-Slither themselves and Axiomap overlays the result. Deferred: invoking Slither directly,
-managing its Python environment, and auto-refreshing findings on a watch.
+Slither themselves and Axiomap attaches the result to the graph. Deferred: invoking
+Slither directly, managing its Python environment, and auto-refreshing findings on a watch.
 
 **What already exists to build against:**
 
-- The import format and overlay renderer are the real seam and are already the MVP path:
+- The import format is the real seam and is already the MVP path:
   `packages/core/src/findings/slither.ts` reads Slither's own JSON, joins findings to
   graph nodes **by byte offset** (the same join Phase 3's semantic enrichment uses, for
   the same reason — no name/signature canonicalisation needed on either side), and
   reports anything it cannot map rather than dropping it silently.
-- `OverlayName = 'findings'` in `packages/webview/src/ui/overlays.ts` already renders
-  imported findings as badges, sharing the badge channel with danger-ops and the
-  reentrancy surface.
+- `overlayData` in `packages/core/src/query/overlays.ts` is how imported findings reach a
+  host: one map keyed by node id, carrying each finding's own words and whether it has
+  gone stale. The webview's inspector and the CodeLens line both read it, and a second
+  producer would not change either.
 - A "live" mode would add a second producer feeding the same `importSlitherFindings(graph,
   raw)` entry point that the CLI's `import-findings` command already calls — invoking
   Slither and handing its JSON `stdout` to the same function that reads a file today,
@@ -103,13 +104,21 @@ and caching the result.
   having a compilable project and no artifacts, and finding `forge build --build-info` an
   unreasonable thing to be asked for.
 
-## The one non-Tier-1 seam worth naming here: overlays in general
+## The one non-Tier-1 seam worth naming here: attaching new data to nodes
 
-Not a backlog item — the eight overlays already shipped (§11) all read one shared,
-pluggable styling layer (`packages/webview/src/ui/overlays.ts`), a pure function of a
-view, the overlay data and the active set. Any future overlay — the deferred test
-coverage overlay, for instance — is one more entry in that module and one more badge or
-channel allocation, not a new rendering path. Read the module's own header comment before
-adding one: the channel-budget rule ("an overlay with no free channel does not ship") is
-enforced by convention here, not by a type, so it's worth checking by eye which channels
-are still free.
+Not a backlog item. Anything that has something to say about a node — the deferred test
+coverage ingest, for instance — reaches a host by one of two routes, and neither is a new
+rendering path:
+
+- **If it is derivable from the graph**, it is an analysis pass in
+  `packages/core/src/analysis/` writing an attribute onto the node, and every consumer
+  (`query`, the inspector, `fileLenses`) reads it from there.
+- **If it comes from a file the user brought**, like `review.json` or a Slither export, it
+  joins `overlayData` in `packages/core/src/query/overlays.ts` — one map per file, keyed
+  by node id, with its own staleness rule beside it. That is deliberately *not* the graph
+  (§9 rule 1): no source, no edges, no attributes.
+
+There is no longer a toggleable styling layer between that data and the screen. **The
+eight-overlay system was removed as a deliberate scope cut** — see `docs/PROGRESS.md`'s
+scope-reduction entry — so a new signal shows up in the inspector, the CodeLens line and
+the CLI, and does not need a visual channel allocated to it.

@@ -18,10 +18,9 @@
  *
  * On, and it is a real trade. It costs memory for a hidden panel; what it buys
  * is that switching to another tab and back does not throw away the laid-out
- * graph, the navigation history and the drilled-into directory — i.e. everything
- * §11 says an auditor gets lost without. Rebuilding all of it on every tab
- * switch would also mean re-running ELK, which Phase 7b measured in seconds on a
- * dense map.
+ * graph, the current view or the drilled-into directory. Rebuilding all of it on
+ * every tab switch would also mean re-running ELK, which Phase 7b measured in
+ * seconds on a dense map.
  */
 
 import { isBridgeRequest, answer, type HostSources } from './host.js';

@@ -252,63 +252,6 @@ describe('App', () => {
     expect(screen.getByText('withdraw')).toBeDefined();
   });
 
-  it('turns an overlay on and off, and prints its legend while it is on', async () => {
-    const sweep = fn('src/Vault.sol:Vault.sweep()', {
-      flags: { ...fn('x').flags, hasDelegatecall: true },
-    });
-    const { bridge } = bridgeOf(() =>
-      Promise.resolve(
-        view({
-          view: 'contract',
-          nodes: [{ type: 'node', id: sweep.id, node: sweep, parent: null }],
-          elements: 1,
-        }),
-      ),
-    );
-
-    render(<App bridge={bridge} layoutClient={new LayoutClient(idleEngine)} />);
-    await waitFor(() => {
-      expect(canvasProps.length).toBeGreaterThan(0);
-    });
-
-    const toggle = screen.getByRole('button', { name: 'Danger ops' });
-    expect(screen.queryByText('delegatecall')).toBeNull();
-    act(() => {
-      toggle.click();
-    });
-    // A glyph nobody can decode is the same as no glyph, so the legend is part
-    // of the overlay rather than a nicety beside it.
-    expect(screen.getByText('delegatecall')).toBeDefined();
-    act(() => {
-      toggle.click();
-    });
-    expect(screen.queryByText('delegatecall')).toBeNull();
-  });
-
-  it('says so when an active overlay has nothing to mark in this view', async () => {
-    // The protocol map draws contracts and six of the eight overlays are about
-    // functions, so an overlay can be on and silent — which looked exactly like
-    // a clean result until it said this.
-    const { bridge } = bridgeOf(() =>
-      Promise.resolve(
-        view({ nodes: [{ type: 'node', id: vault.id, node: vault, parent: null }], elements: 1 }),
-      ),
-    );
-
-    render(
-      <App
-        bridge={bridge}
-        layoutClient={new LayoutClient(idleEngine)}
-        initialOverlays={['danger-ops']}
-      />,
-    );
-
-    await waitFor(() => {
-      expect(screen.getByText(/nothing in this view/)).toBeDefined();
-    });
-    expect(screen.queryByText('delegatecall')).toBeNull();
-  });
-
   it('says so when a view has nothing in it, rather than showing a blank canvas', async () => {
     const { bridge } = bridgeOf(() =>
       Promise.resolve(view({ elements: 0, note: '0 reads/writes involving src/Vault.sol:Vault' })),
@@ -320,22 +263,6 @@ describe('App', () => {
     });
     // Twice: in the notice, and in the status bar's `view.note`.
     expect(screen.getAllByText(/0 reads\/writes/).length).toBe(2);
-  });
-
-  it('says which audit-state file is missing rather than showing an empty overlay', async () => {
-    const { bridge } = bridgeOf(() => Promise.resolve(view()));
-    render(
-      <App
-        bridge={bridge}
-        layoutClient={new LayoutClient(idleEngine)}
-        initialOverlays={['review', 'findings']}
-      />,
-    );
-
-    await waitFor(() => {
-      expect(screen.getByText(/no \.axiomap\/review\.json/)).toBeDefined();
-    });
-    expect(screen.getByText(/axiomap import-findings/)).toBeDefined();
   });
 
   /**
@@ -419,45 +346,5 @@ describe('App', () => {
       expect(asked.some((request) => request.view === 'call' && request.focus === swap.id)).toBe(true);
     });
     expect(inspected).toContain(swap.id);
-  });
-
-  /**
-   * §11: "auditors get lost; give them undo." The breadcrumb and the arrows are
-   * one index into one trail, so this checks the trail exists and that going
-   * back re-requests the view you came from.
-   */
-  it('keeps a breadcrumb of where you have been, and goes back', async () => {
-    const { bridge, asked } = bridgeOf(() =>
-      Promise.resolve(
-        view({ nodes: [{ type: 'node', id: vault.id, node: vault, parent: null }], elements: 1 }),
-      ),
-    );
-    render(<App bridge={bridge} layoutClient={new LayoutClient(idleEngine)} />);
-
-    await waitFor(() => {
-      expect(canvasProps.length).toBeGreaterThan(0);
-    });
-    const onPick = canvasProps.at(-1)?.['onPick'] as (pick: { kind: string; id: string }) => void;
-    act(() => {
-      onPick({ kind: 'Contract', id: vault.id });
-    });
-
-    // Scoped to the trail: "Protocol map" is also the name of a view tab, and
-    // the crumb and the tab are different controls that happen to agree.
-    const trail = await screen.findByLabelText('History');
-    await waitFor(() => {
-      expect(trail.textContent).toContain('Contract detail: Vault');
-    });
-    expect(trail.textContent).toContain('Protocol map');
-
-    act(() => {
-      document.dispatchEvent(
-        new KeyboardEvent('keydown', { key: 'ArrowLeft', altKey: true, bubbles: true }),
-      );
-    });
-
-    await waitFor(() => {
-      expect(asked.at(-1)).toEqual({ view: 'protocol' });
-    });
   });
 });
