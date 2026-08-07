@@ -1,6 +1,6 @@
 /**
  * External-call classification, and the reentrancy *shape* that falls out of it
- * (§7 Phase 4, §10's `reentrancy`, §11's reentrancy-surface overlay).
+ * (§7 Phase 4, §10's `reentrancy`, and `query` over it).
  *
  * §11 is explicit that this is "a heuristic highlighter, not a detector", and
  * the UI copy has to say so. What it computes is narrow and checkable: control
@@ -13,7 +13,7 @@
  * contract by itself, since an internal library function is inlined and an
  * external one runs on this contract's storage under `delegatecall` — but
  * `SafeERC20.safeTransfer` most certainly reaches a foreign contract, and that
- * is the single most common shape of the bug this overlay is looking for.
+ * is the single most common shape of the bug this pass is looking for.
  *
  * So the classification is transitive: a call is external-reaching if it is
  * directly external, or if its callee is a function in this project that

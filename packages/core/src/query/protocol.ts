@@ -26,8 +26,8 @@ export const VIEW_ENDPOINT = '/api/view';
 export const META_ENDPOINT = '/api/meta';
 /** §11's inspector: one node, its attributes and its relations. */
 export const NODE_ENDPOINT = '/api/node';
-/** §11's review-state and imported-findings overlays, the two files the host reads. */
-export const OVERLAY_ENDPOINT = '/api/overlays';
+/** Review state and imported findings: the two audit-state files the host reads. */
+export const AUDIT_STATE_ENDPOINT = '/api/audit-state';
 /** §11's `/` fuzzy search palette. Matched and capped on this side (§9 rule 1). */
 export const SEARCH_ENDPOINT = '/api/search';
 /** §11's inline code preview: a byte range around one node's `src`. */

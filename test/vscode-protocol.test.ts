@@ -19,7 +19,7 @@ import { fileURLToPath } from 'node:url';
 
 import { beforeAll, describe, expect, it } from 'vitest';
 
-import { buildProjectGraph, overlayData } from '@axiomap/core';
+import { buildProjectGraph, auditState } from '@axiomap/core';
 import { CHANNEL, VsCodeBridge, VSCODE_DIST, type BridgeRequest } from '@axiomap/webview';
 import { answer, isBridgeRequest, type HostSources } from '@axiomap/vscode/host';
 
@@ -35,7 +35,7 @@ beforeAll(async () => {
     file: built.file,
     root: MINIMAL,
     renderCap: 1500,
-    overlays: overlayData(built.graph, { review: null, findings: null }),
+    auditState: auditState(built.graph, { review: null, findings: null }),
   };
 });
 
@@ -68,7 +68,7 @@ describe('the postMessage pair', () => {
       bridge.meta(),
       bridge.view({ view: 'protocol' }),
       bridge.inspect('src/Vault.sol:Vault.deposit(uint256)'),
-      bridge.overlays(),
+      bridge.auditState(),
       bridge.search('deposit'),
       bridge.source('src/Vault.sol:Vault.deposit(uint256)', 3),
     ].map((pending) => pending.catch(ignored));
@@ -94,9 +94,9 @@ describe('the postMessage pair', () => {
     }
 
     expect([...methods].sort()).toEqual([
+      'auditState',
       'inspect',
       'meta',
-      'overlays',
       'search',
       'source',
       'view',

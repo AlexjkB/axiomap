@@ -187,19 +187,19 @@ describe('axiomap serve', () => {
     expect(String((blank.body as { error: { message: string } }).error.message)).toContain('id');
   });
 
-  it('answers /api/overlays with the audit-state files, empty when there are none', async () => {
-    const { status, body } = await get('/api/overlays');
+  it('answers /api/audit-state with the audit-state files, empty when there are none', async () => {
+    const { status, body } = await get('/api/audit-state');
     expect(status).toBe(200);
-    const overlays = body as {
+    const state = body as {
       review: Record<string, unknown>;
       findings: Record<string, unknown>;
       sources: { review: boolean; findings: boolean };
     };
     // This fixture copy has neither file, and "absent" and "present but empty"
     // are the same picture and different sentences.
-    expect(overlays.review).toEqual({});
-    expect(overlays.findings).toEqual({});
-    expect(overlays.sources).toEqual({ review: false, findings: false });
+    expect(state.review).toEqual({});
+    expect(state.findings).toEqual({});
+    expect(state.sources).toEqual({ review: false, findings: false });
   });
 
   /**

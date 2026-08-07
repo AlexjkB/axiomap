@@ -2,8 +2,8 @@
  * The graph, in a VS Code webview.
  *
  * One panel per workspace folder, revealed rather than duplicated: two panels
- * over one graph would be two navigation histories claiming to be the same
- * session, and §11's back/forward is per-view state that lives in the UI.
+ * over one graph would be two navigation states claiming to be the same
+ * session, and where the user is lives in the UI rather than in the session.
  *
  * ### What crosses the boundary
  *
@@ -152,7 +152,7 @@ export class GraphPanel {
       file: state.file,
       root: this.#session.root,
       renderCap: this.#session.renderCap,
-      overlays: state.overlays,
+      auditState: state.auditState,
       buffer: (file) => {
         const uri = vscode.Uri.joinPath(vscode.Uri.file(this.#session.root), ...file.split('/'));
         const open = vscode.workspace.textDocuments.find(

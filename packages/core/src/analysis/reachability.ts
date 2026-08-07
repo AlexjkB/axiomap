@@ -2,7 +2,7 @@
  * Which functions an external actor can reach, and through which entrypoints
  * (§7 Phase 4, §10's `externallyReachable` and `entrypoints`).
  *
- * This is the pass behind §11's attack-surface overlay and §15's "identify
+ * This is the pass behind `query externals` and §15's "identify
  * every externally reachable state-mutating function with no access control".
  * It is a pure function over the graph: it reads the edges that are there and
  * derives nothing from the symbol table, the parse, or a compiler.

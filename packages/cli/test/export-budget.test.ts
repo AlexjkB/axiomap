@@ -60,7 +60,7 @@ function payload(budget: number) {
   return buildPayload({
     graph,
     meta,
-    overlays: { review: {}, findings: {} },
+    auditState: { review: {}, findings: {} },
     root: FIXTURE,
     initial: { view: 'protocol' },
     budget,

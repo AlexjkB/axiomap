@@ -24,7 +24,7 @@ import type {
   GraphNode,
   NodeInspection,
   NodeRelation,
-  OverlayData,
+  AuditState,
   SourceSlice,
   StateVariableNode,
 } from '@axiomap/core';
@@ -39,7 +39,7 @@ export interface InspectorProps {
   busy: boolean;
   error: string | null;
   /** The host's audit-state files, for this node's review entry and findings. */
-  overlays: OverlayData | null;
+  auditState: AuditState | null;
   /** §11's inline preview: the byte range the host cut around this node's `src`. */
   slice: SourceSlice | null;
   sliceBusy: boolean;
@@ -271,7 +271,7 @@ export function Inspector({
   inspection,
   busy,
   error,
-  overlays,
+  auditState,
   slice,
   sliceBusy,
   sliceError,
@@ -309,8 +309,8 @@ export function Inspector({
   }
 
   const node = inspection.node;
-  const review = overlays?.review[node.id];
-  const findings = overlays?.findings[node.id] ?? [];
+  const review = auditState?.review[node.id];
+  const findings = auditState?.findings[node.id] ?? [];
 
   return (
     <aside className="ax-inspector">

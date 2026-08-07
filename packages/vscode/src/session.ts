@@ -27,23 +27,23 @@ import {
   DEFAULT_RENDER_CAP,
   loadProjectGraph,
   openProject,
-  overlayData,
-  readOverlayFiles,
+  auditState,
+  readAuditFiles,
   type AxiomapGraph,
   type GraphFile,
-  type OverlayData,
+  type AuditState,
   type ProjectContext,
 } from '@axiomap/core';
 
 export interface SessionState {
   graph: AxiomapGraph;
   file: GraphFile;
-  overlays: OverlayData;
+  auditState: AuditState;
   /** Where it came from, for the status line. */
   origin: 'built' | 'artifact';
   /** Set when a stored artifact was rebuilt, and why (§13, §4). */
   reason: string | null;
-  /** Anything the config or the two overlay files had to say. */
+  /** Anything the config or the two audit-state files had to say. */
   warnings: string[];
 }
 
@@ -124,12 +124,12 @@ export class AxiomapSession {
    * it is keyed against has not moved. Rebuilding for that would put a
    * multi-second parse behind a keystroke in another window.
    */
-  refreshOverlays(): SessionState | null {
+  refreshAuditState(): SessionState | null {
     if (this.#state === null) return null;
-    const files = readOverlayFiles(this.root);
+    const files = readAuditFiles(this.root);
     this.#state = {
       ...this.#state,
-      overlays: overlayData(this.#state.graph, files),
+      auditState: auditState(this.#state.graph, files),
       warnings: [...this.context.warnings, ...files.warnings],
     };
     return this.#state;
@@ -144,11 +144,11 @@ export class AxiomapSession {
         onBuildEnd: () => hooks.onBuildEnd?.(),
       },
     );
-    const files = readOverlayFiles(this.root);
+    const files = readAuditFiles(this.root);
     this.#state = {
       graph: loaded.graph,
       file: loaded.file,
-      overlays: overlayData(loaded.graph, files),
+      auditState: auditState(loaded.graph, files),
       origin: loaded.origin,
       reason: loaded.reason,
       warnings: [...this.context.warnings, ...files.warnings],

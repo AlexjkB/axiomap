@@ -44,8 +44,8 @@ const MAX_FIT_ZOOM = 1.75;
  *
  * The other end of the same argument. A contract with twenty members lays out
  * several thousand pixels wide, and fitting all of it into the canvas puts the
- * whole view at about a quarter zoom — labels three pixels tall, and every
- * overlay in §11 reduced to a coloured smudge. §11's density target is what is
+ * whole view at about a quarter zoom — labels three pixels tall, and a node's
+ * kind no longer readable from its border. §11's density target is what is
  * legible "at default zoom", so the honest default is a legible part of the
  * graph rather than an illegible whole of it: below this the view is clamped
  * and anchored at the graph's top-left corner, and panning reaches the rest.
@@ -65,8 +65,8 @@ export interface GraphCanvasProps {
    * Passed in rather than read here, so there is exactly one palette in the
    * app. Two `readDocumentPalette()` call sites can disagree — and would, the
    * moment a host changes its theme while the view is open: the canvas repaints
-   * from the new one on its next update and the badge strips, which the app
-   * generated from the old one, do not.
+   * from the new one on its next update and the code preview, which the app
+   * highlighted against the old one, does not.
    */
   palette: Palette;
   /** A node was clicked: a cluster path to toggle, or a graph node to focus. */

@@ -99,7 +99,7 @@ const MUTATING_MEMBERS = new Set(['push', 'pop']);
  * modifier-based guard.
  *
  * `tx.origin` is in the list because it is *used* as a guard, not because it is
- * a good one. Reporting the check honestly is what lets an overlay flag it.
+ * a good one. Reporting the check honestly is what lets a consumer flag it.
  */
 const SENDER_EXPRESSIONS = new Set(['msg.sender', 'tx.origin']);
 

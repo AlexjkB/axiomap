@@ -3,9 +3,8 @@
  *
  * Everything it knows about the graph arrived through `HostBridge` — `view` for
  * the drawn subgraph (§9 rule 1), `inspect` for one node's attributes and
- * relations (§11), `overlays` for the two audit-state files the host reads and
- * the inspector shows.
- * There is no second door: no full graph in memory, no client-side filtering of
+ * relations (§11), `auditState` for the two files the host reads and the
+ * inspector shows. There is no second door: no full graph in memory, no client-side filtering of
  * one, no second copy of the query API. When this component needs a different
  * subgraph, or anything about a node it is not drawing, it asks.
  *
@@ -18,7 +17,7 @@
 import type {
   AggregatedView,
   NodeInspection,
-  OverlayData,
+  AuditState,
   ProjectMeta,
   SourceSlice,
 } from '@axiomap/core';
@@ -73,7 +72,7 @@ export function App({ bridge, layoutClient, editor }: AppProps): JSX.Element {
   const [refreshed, setRefreshed] = useState<{ at: number; reason: string } | null>(null);
   const generation = refreshed === null ? 0 : refreshed.at;
 
-  const [overlayData, setOverlayData] = useState<OverlayData | null>(null);
+  const [auditState, setAuditState] = useState<AuditState | null>(null);
   const [selected, setSelected] = useState<string | null>(null);
   const [inspection, setInspection] = useState<NodeInspection | null>(null);
   const [inspectError, setInspectError] = useState<string | null>(null);
@@ -148,14 +147,14 @@ export function App({ bridge, layoutClient, editor }: AppProps): JSX.Element {
   useEffect(() => {
     let cancelled = false;
     void bridge
-      .overlays()
+      .auditState()
       .then((loaded) => {
-        if (!cancelled) setOverlayData(loaded);
+        if (!cancelled) setAuditState(loaded);
       })
       .catch(() => {
         // Audit state that cannot load is audit state with nothing to say. The
         // graph is what the user asked for and it is already on screen.
-        if (!cancelled) setOverlayData(null);
+        if (!cancelled) setAuditState(null);
       });
     return () => {
       cancelled = true;
@@ -442,7 +441,7 @@ export function App({ bridge, layoutClient, editor }: AppProps): JSX.Element {
             inspection={inspection}
             busy={inspecting}
             error={inspectError}
-            overlays={overlayData}
+            auditState={auditState}
             slice={slice}
             sliceBusy={slicing}
             sliceError={sliceError}

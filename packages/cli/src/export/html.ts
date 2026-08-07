@@ -61,7 +61,7 @@ import {
   type AggregatedViewOptions,
   type AxiomapGraph,
   type GraphNode,
-  type OverlayData,
+  type AuditState,
   type ProjectMeta,
   type SourceSlice,
   type StaticAggregatedView,
@@ -136,7 +136,7 @@ const QUOTA_ORDER: readonly ViewQuotaKind[] = ['map', 'contract', 'call'];
 export interface HtmlExportOptions {
   graph: AxiomapGraph;
   meta: ProjectMeta;
-  overlays: OverlayData;
+  auditState: AuditState;
   /** Project root, for the source slices. */
   root: string;
   /** The view the file opens on — everything else is reached from it. */
@@ -396,7 +396,7 @@ export function buildPayload(options: HtmlExportOptions): StaticPayload {
     payloadVersion: PAYLOAD_VERSION,
     generatedAt: new Date().toISOString(),
     meta: options.meta,
-    overlays: options.overlays,
+    auditState: options.auditState,
     nodeTable,
     views,
     inspections,

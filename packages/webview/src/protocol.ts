@@ -21,7 +21,7 @@ import type { AggregatedViewOptions } from '@axiomap/core';
 export const VIEW_ENDPOINT = '/api/view';
 export const META_ENDPOINT = '/api/meta';
 export const NODE_ENDPOINT = '/api/node';
-export const OVERLAY_ENDPOINT = '/api/overlays';
+export const AUDIT_STATE_ENDPOINT = '/api/audit-state';
 export const SEARCH_ENDPOINT = '/api/search';
 export const SOURCE_ENDPOINT = '/api/source';
 

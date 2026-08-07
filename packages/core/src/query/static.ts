@@ -53,7 +53,7 @@
 
 import type { AggregatedView, AggregatedViewOptions, ClusterElement } from './aggregate.js';
 import type { NodeInspection } from './inspect.js';
-import type { OverlayData } from './overlays.js';
+import type { AuditState } from './audit-state.js';
 import type { ProjectMeta } from './protocol.js';
 import type { GraphNode } from '../graph/schema.js';
 import type { SourceSlice } from '../source/slice.js';
@@ -91,8 +91,8 @@ export interface StaticPayload {
   generatedAt: string;
   /** The header §4 requires on screen: mode, its copy, the resolution score. */
   meta: ProjectMeta;
-  /** §11's two file-backed overlays. Empty objects when the project had neither. */
-  overlays: OverlayData;
+  /** The two audit-state files. Empty objects when the project had neither. */
+  auditState: AuditState;
   /**
    * Every node any embedded view draws, once, by id.
    *

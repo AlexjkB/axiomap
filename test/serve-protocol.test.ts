@@ -34,7 +34,7 @@ import {
   PAYLOAD_VERSION,
   META_ENDPOINT,
   NODE_ENDPOINT,
-  OVERLAY_ENDPOINT,
+  AUDIT_STATE_ENDPOINT,
   SEARCH_ENDPOINT,
   SOURCE_ENDPOINT,
   VIEW_ENDPOINT,
@@ -54,7 +54,7 @@ import {
   sameViewRequest as webviewSameRequest,
   META_ENDPOINT as WEBVIEW_META,
   NODE_ENDPOINT as WEBVIEW_NODE,
-  OVERLAY_ENDPOINT as WEBVIEW_OVERLAY,
+  AUDIT_STATE_ENDPOINT as WEBVIEW_AUDIT_STATE,
   SEARCH_ENDPOINT as WEBVIEW_SEARCH,
   SOURCE_ENDPOINT as WEBVIEW_SOURCE,
   VIEW_ENDPOINT as WEBVIEW_VIEW,
@@ -186,7 +186,7 @@ describe('the serve protocol', () => {
    * types and not code. The failure is quieter than the request pair's: a
    * hydrator that dropped `parent` would draw a node *outside* the directory box
    * it belongs to, which looks like a layout quirk rather than an error, and one
-   * that dropped a `GraphNode` field would silently unstyle an overlay.
+   * that dropped a `GraphNode` field would silently unstyle a node.
    *
    * So this asserts identity over a view with every element shape in it, rather
    * than field by field — the fields that matter are the ones nobody thought to
@@ -279,7 +279,7 @@ describe('the serve protocol', () => {
     expect(WEBVIEW_VIEW).toBe(VIEW_ENDPOINT);
     expect(WEBVIEW_META).toBe(META_ENDPOINT);
     expect(WEBVIEW_NODE).toBe(NODE_ENDPOINT);
-    expect(WEBVIEW_OVERLAY).toBe(OVERLAY_ENDPOINT);
+    expect(WEBVIEW_AUDIT_STATE).toBe(AUDIT_STATE_ENDPOINT);
     expect(WEBVIEW_SEARCH).toBe(SEARCH_ENDPOINT);
     expect(WEBVIEW_SOURCE).toBe(SOURCE_ENDPOINT);
   });

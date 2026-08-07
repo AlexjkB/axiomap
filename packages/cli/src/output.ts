@@ -10,8 +10,8 @@
  * when `NO_COLOR` is set. Nothing in this file is load-bearing for meaning: a
  * pipe into `grep` gets the same words, and every column that carries a
  * judgement carries it as text as well as a colour. §11's channel budget is
- * about a graph renderer; the terminal equivalent of that discipline is that
- * colour is never the only thing saying something.
+ * about a graph renderer; the terminal equivalent of that discipline is the
+ * same — colour is never the only thing saying something.
  */
 
 import pc from 'picocolors';

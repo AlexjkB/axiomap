@@ -1,6 +1,5 @@
 /**
- * `slither --json` import (§12's `axiomap import-findings`, §11's "imported
- * findings" overlay).
+ * `slither --json` import (§12's `axiomap import-findings`).
  *
  * Decision #4 in one file. Slither's detectors are genuinely valuable and
  * Axiomap does not try to rebuild them; it also does not depend on Slither,
@@ -45,8 +44,8 @@ export type SlitherImpact = 'High' | 'Medium' | 'Low' | 'Informational' | 'Optim
  * `bodyHash` so a review goes stale the moment the body differs (§8), and an
  * imported finding needs exactly the same thing for exactly the same reason: it
  * is a claim about a specific piece of code, made by a tool that ran at a
- * specific moment. Without it, §11's overlay draws a High-severity reentrancy
- * badge on a function that was rewritten after Slither last saw it — which is
+ * specific moment. Without it, a host reports a High-severity reentrancy
+ * finding against a function rewritten after Slither last saw it — which is
  * the same failure §8 exists to prevent, wearing a different hat.
  *
  * A node with no body (an interface declaration) hashes to the empty string,

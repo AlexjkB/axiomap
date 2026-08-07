@@ -5,7 +5,7 @@
  * invoke it — §2's reasoning is that Slither needs a successful compile, which
  * is unavailable in exactly the case decision #1 exists for — but Slither's
  * detectors are valuable and the auditor is already running them. This maps
- * their output onto graph nodes so §11's imported-findings overlay has
+ * their output onto graph nodes so every host that shows findings has
  * something to draw and `axiomap query findings` has something to list.
  *
  * The mapping itself, and why it joins on byte offsets rather than names, is in

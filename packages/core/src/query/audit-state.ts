@@ -1,19 +1,20 @@
 /**
- * The two overlays whose data is not in the graph (§11).
+ * The audit state that is not in the graph.
  *
- * Six of §11's eight overlays read attributes the graph already carries —
- * `externallyReachable`, `accessControl`, `reentrancy`, `flags`,
- * `metrics.cyclomatic`, and every edge's `resolution`. The other two,
- * **review state** and **imported findings**, live in files the host reads:
- * `.axiomap/review.json` (§8, committed) and `.axiomap/findings.json`
- * (derived from a Slither run the user did themselves, decision #4).
+ * Almost everything a host wants to say about a node is an attribute the graph
+ * already carries — `externallyReachable`, `accessControl`, `reentrancy`,
+ * `flags`, `metrics.cyclomatic`, and every edge's `resolution`. Two things are
+ * not, because a human authored them: **review state** and **imported
+ * findings**, which live in files the host reads — `.axiomap/review.json` (§8,
+ * committed) and `.axiomap/findings.json` (derived from a Slither run the user
+ * did themselves, decision #4).
  *
  * So this is the projection of those two files onto node ids, and nothing more.
  * It is in `query/` rather than in the webview for the reason every other query
  * is (§5: "the API both CLI and webview consume"), and because the staleness
  * rule that decides what an entry is *worth* is already written twice in this
  * package — `stalenessOf` and `findingStaleness` — and must not acquire a third
- * implementation in a renderer.
+ * implementation in a consumer.
  *
  * ### Why this may leave the host at all, given §9 rule 1
  *
@@ -26,11 +27,11 @@
  *
  * ### Staleness is carried, never flattened away
  *
- * §8 makes review invalidation the flagship feature, and a badge that says
- * `reviewed` on a body that has changed since the review is the exact failure
- * it exists to prevent. `staleness` therefore travels beside `status` rather
- * than being folded into it, so the renderer shows both what was claimed and
- * whether the claim still stands.
+ * §8 makes review invalidation the flagship feature, and reporting `reviewed`
+ * on a body that has changed since the review is the exact failure it exists to
+ * prevent. `staleness` therefore travels beside `status` rather than being
+ * folded into it, so a consumer shows both what was claimed and whether the
+ * claim still stands.
  */
 
 import type { AxiomapGraph } from '../graph/build.js';
@@ -39,8 +40,8 @@ import { findingStaleness } from '../findings/store.js';
 import type { ReviewStaleness, ReviewState, ReviewStatus } from '../review/state.js';
 import { stalenessOf } from '../review/state.js';
 
-/** One node's review state, as §11's fill channel needs it. */
-export interface OverlayReview {
+/** One node's review state, as the inspector and the CodeLens line need it. */
+export interface AuditReview {
   status: ReviewStatus;
   staleness: ReviewStaleness;
   /** ISO 8601, from the entry. */
@@ -50,7 +51,7 @@ export interface OverlayReview {
 }
 
 /** One finding on one node. Slither's words are kept verbatim — they are its claim. */
-export interface OverlayFinding {
+export interface AuditFinding {
   id: string;
   check: string;
   impact: string;
@@ -59,7 +60,7 @@ export interface OverlayFinding {
   staleness: FindingStaleness;
 }
 
-export interface OverlaySummary {
+export interface AuditSummary {
   reviewed: number;
   flagged: number;
   followUp: number;
@@ -72,17 +73,17 @@ export interface OverlaySummary {
   findingsStale: number;
 }
 
-export interface OverlayData {
+export interface AuditState {
   /** Node id → review state. Only ids somebody has reviewed appear. */
-  review: Record<string, OverlayReview>;
+  review: Record<string, AuditReview>;
   /** Node id → findings landing on it, worst impact first. */
-  findings: Record<string, OverlayFinding[]>;
-  summary: OverlaySummary;
-  /** Whether each file was present at all — an empty overlay and a missing one differ. */
+  findings: Record<string, AuditFinding[]>;
+  summary: AuditSummary;
+  /** Whether each file was present at all — empty and absent are different facts. */
   sources: { review: boolean; findings: boolean };
 }
 
-export interface OverlaySources {
+export interface AuditSources {
   /** `.axiomap/review.json`, already parsed. Null when the file is absent. */
   review?: ReviewState | null;
   /** `.axiomap/findings.json`, already parsed. Null when the file is absent. */
@@ -107,10 +108,10 @@ export function impactRank(impact: string): number {
   return IMPACT_ORDER[impact] ?? UNKNOWN_IMPACT;
 }
 
-export function overlayData(graph: AxiomapGraph, sources: OverlaySources = {}): OverlayData {
-  const review: Record<string, OverlayReview> = {};
-  const findings: Record<string, OverlayFinding[]> = {};
-  const summary: OverlaySummary = {
+export function auditState(graph: AxiomapGraph, sources: AuditSources = {}): AuditState {
+  const review: Record<string, AuditReview> = {};
+  const findings: Record<string, AuditFinding[]> = {};
+  const summary: AuditSummary = {
     reviewed: 0,
     flagged: 0,
     followUp: 0,
@@ -132,7 +133,7 @@ export function overlayData(graph: AxiomapGraph, sources: OverlaySources = {}): 
       if (report.staleness === 'stale') summary.stale += 1;
       if (report.staleness === 'orphaned') {
         // Nothing to paint: the node is gone. Counted so the UI can say so
-        // rather than quietly showing fewer badges than the file has entries.
+        // rather than quietly reporting fewer entries than the file holds.
         summary.orphaned += 1;
         continue;
       }
@@ -156,7 +157,7 @@ export function overlayData(graph: AxiomapGraph, sources: OverlaySources = {}): 
 
       for (const node of report.finding.nodes) {
         if (!graph.hasNode(node.id)) continue;
-        const entry: OverlayFinding = {
+        const entry: AuditFinding = {
           id: report.finding.id,
           check: report.finding.check,
           impact: report.finding.impact,

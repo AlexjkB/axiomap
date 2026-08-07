@@ -140,7 +140,7 @@ export function readPalette(read: (variable: string) => string): Palette {
   return readPaletteFrom(read);
 }
 
-/** The palette this document resolves to. One place, so the canvas and the badges agree. */
+/** The palette this document resolves to. One place, so the canvas and the code preview agree. */
 export function readDocumentPalette(): Palette {
   return readPalette((variable) =>
     getComputedStyle(document.documentElement).getPropertyValue(variable),
@@ -166,9 +166,8 @@ const KEEPS_ITS_ALPHA = new Set<keyof Palette>(['dim']);
  *
  * A third of an opacity is the right choice for the thing VS Code uses it for —
  * a filled area behind a chart line. It is the wrong choice for a 2px border on
- * a small node. And §11's channel budget has already spent node opacity on
- * reachability dimming, so a hue that arrives pre-faded is not just faint, it is
- * quietly claiming a channel that belongs to something else.
+ * a small node — a hue that arrives pre-faded is not a hue, it is a hue and an
+ * opacity, and only one of the two was asked for.
  *
  * So the **hue** is the host's, as §11 requires, and the **opacity** stays ours.
  */

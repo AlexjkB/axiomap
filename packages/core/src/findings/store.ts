@@ -8,15 +8,15 @@
  * derived — it is a projection of the Slither run the user already has — so it
  * is ignored, and `ensureAxiomapDir` writes it into `.axiomap/.gitignore`.
  *
- * It is persisted at all because §11's imported-findings overlay needs a source
+ * It is persisted at all because a host showing imported findings needs a source
  * that does not require re-running Slither every time the graph is opened, and
  * because `import-findings` should mean something after the process exits.
  *
  * Node ids are the join, the same as `review.json`, and so is the mechanism
  * that keeps a stored finding honest: each mapped node carries the `bodyHash`
  * it had when Slither's result was imported, and `findingStaleness` reports one
- * whose body has since changed. Without that, §11's overlay would draw a
- * High-severity badge on a function rewritten after the scan — which is the
+ * whose body has since changed. Without that, the inspector would report a
+ * High-severity finding on a function rewritten after the scan — which is the
  * failure §8's review invalidation exists to prevent, in a different file.
  */
 

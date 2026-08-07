@@ -27,7 +27,7 @@ import type { AddressInfo } from 'node:net';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 
 import { runExport, startServe, type ServeSession } from '@axiomap/cli';
-import { buildProjectGraph, overlayData } from '@axiomap/core';
+import { buildProjectGraph, auditState } from '@axiomap/core';
 import { CHANNEL } from '@axiomap/webview';
 import { answer, isBridgeRequest, type HostSources } from '@axiomap/vscode/host';
 import { webviewBundle } from '@axiomap/vscode/assets';
@@ -496,7 +496,7 @@ describe.skipIf(CHROME === undefined)('the graph in a VS Code webview', () => {
       file: built.file,
       root: path.resolve('fixtures/defi'),
       renderCap: 1500,
-      overlays: overlayData(built.graph, { review: null, findings: null }),
+      auditState: auditState(built.graph, { review: null, findings: null }),
     };
 
     const bundle = webviewBundle('/nonexistent-extension');

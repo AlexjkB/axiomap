@@ -228,8 +228,8 @@ export function activate(context: vscode.ExtensionContext): void {
    *
    * - **`.axiomap/graph.json`** — somebody ran `axiomap build` in a terminal, so
    *   the artifact the session may be holding is superseded. Reload it.
-   * - **`.axiomap/review.json` and `findings.json`** — §11's two file-backed
-   *   overlays. The graph has not moved; re-reading two small files is the whole
+   * - **`.axiomap/review.json` and `findings.json`** — the two audit-state
+   *   files. The graph has not moved; re-reading them is the whole
    *   update, and rebuilding for it would put a multi-second parse behind
    *   somebody else marking a function reviewed.
    * - **`.sol` files** are deliberately *not* watched. Core's freshness rule
@@ -251,7 +251,7 @@ export function activate(context: vscode.ExtensionContext): void {
       });
       return;
     }
-    session.refreshOverlays();
+    session.refreshAuditState();
     lenses.refresh();
     panel?.refresh('review state reloaded');
   };

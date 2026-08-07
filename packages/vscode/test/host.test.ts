@@ -12,7 +12,7 @@ import { beforeAll, describe, expect, it } from 'vitest';
 
 import {
   buildProjectGraph,
-  overlayData,
+  auditState,
   type AxiomapGraph,
   type GraphFile,
 } from '@axiomap/core';
@@ -40,7 +40,7 @@ beforeAll(async () => {
     file,
     root: fixture('minimal'),
     renderCap: 1500,
-    overlays: overlayData(graph, { review: null, findings: null }),
+    auditState: auditState(graph, { review: null, findings: null }),
   };
 });
 
@@ -119,7 +119,7 @@ describe('answer', () => {
   });
 
   it('sends the two audit-state files as the host read them', () => {
-    expect(answer(sources, request('overlays')).result).toBe(sources.overlays);
+    expect(answer(sources, request('auditState')).result).toBe(sources.auditState);
   });
 
   it('searches on this side, capped here (§9 rule 1)', () => {

@@ -40,7 +40,7 @@ import {
   decodeViewRequest,
   describeProtocolError,
   inspectNode,
-  overlayData,
+  auditState,
   projectMeta,
   searchNodes,
   selectAggregatedView,
@@ -48,7 +48,7 @@ import {
   type AxiomapGraph,
   type FindingsFile,
   type GraphFile,
-  type OverlayData,
+  type AuditState,
   type ProjectMeta,
   type ProtocolError,
   type ReviewState,
@@ -57,7 +57,7 @@ import {
 const VIEW_ENDPOINT = '/api/view';
 const META_ENDPOINT = '/api/meta';
 const NODE_ENDPOINT = '/api/node';
-const OVERLAY_ENDPOINT = '/api/overlays';
+const AUDIT_STATE_ENDPOINT = '/api/audit-state';
 const SEARCH_ENDPOINT = '/api/search';
 const SOURCE_ENDPOINT = '/api/source';
 
@@ -82,8 +82,8 @@ export interface ServerOptions {
   /** §13's `renderCap`, already resolved by the caller. */
   renderCap?: number;
   /**
-   * `.axiomap/review.json` and `.axiomap/findings.json`, already read (§11's
-   * two file-backed overlays). Absent means the file was not there, which the
+   * `.axiomap/review.json` and `.axiomap/findings.json`, already read (the two
+   * audit-state files). Absent means the file was not there, which the
    * UI distinguishes from present-and-empty: "nobody has reviewed anything" and
    * "everything is unreviewed" are the same picture and different sentences.
    */
@@ -185,12 +185,12 @@ function sendAsset(response: http.ServerResponse, assets: string, pathname: stri
 /**
  * The two audit-state files, projected onto node ids.
  *
- * Computed once: both are read at startup like the graph, and `overlayData` is
+ * Computed once: both are read at startup like the graph, and `auditState` is
  * a pure function of them, so recomputing per request would spend the staleness
  * pass over every entry to produce the same bytes.
  */
-function overlaysOf(options: ServerOptions): OverlayData {
-  return overlayData(options.graph, {
+function auditStateOf(options: ServerOptions): AuditState {
+  return auditState(options.graph, {
     review: options.review ?? null,
     findings: options.findings ?? null,
   });
@@ -203,7 +203,7 @@ function queryParams(url: URL): Record<string, string> {
 }
 
 export function createServer(options: ServerOptions): http.Server {
-  const overlays = overlaysOf(options);
+  const audit = auditStateOf(options);
 
   return http.createServer((request, response) => {
     const url = new URL(request.url ?? '/', 'http://localhost');
@@ -245,8 +245,8 @@ export function createServer(options: ServerOptions): http.Server {
       return;
     }
 
-    if (url.pathname === OVERLAY_ENDPOINT) {
-      sendJson(response, 200, overlays);
+    if (url.pathname === AUDIT_STATE_ENDPOINT) {
+      sendJson(response, 200, audit);
       return;
     }
 

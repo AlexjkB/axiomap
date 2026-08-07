@@ -13,7 +13,7 @@
  *   — three graph objects that can drift apart.
  * - **`reload` replaces the state without emptying it first**, so a rebuild
  *   triggered by a save does not blank the panel for the seconds it takes.
- * - **`refreshOverlays` moves the overlays and nothing else**, which is the
+ * - **`refreshAuditState` moves the audit state and nothing else**, which is the
  *   whole reason `review.json` is watched separately from `graph.json`.
  */
 
@@ -82,11 +82,11 @@ describe('the session, and what it refuses to do twice', () => {
     expect(reloaded.graph.nodes().sort()).toEqual(first.graph.nodes().sort());
   });
 
-  it('moves the overlays and nothing else when the audit files change', async () => {
+  it('moves the audit state and nothing else when the audit files change', async () => {
     const session = AxiomapSession.open(MINIMAL);
     const before = await session.ready();
 
-    const after = session.refreshOverlays();
+    const after = session.refreshAuditState();
     expect(after).not.toBeNull();
     // Same graph object — re-reading `review.json` must never cost a parse.
     expect(after?.graph).toBe(before.graph);
@@ -94,8 +94,8 @@ describe('the session, and what it refuses to do twice', () => {
     expect(after?.origin).toBe(before.origin);
   });
 
-  it('has no overlays to refresh before the graph is loaded', () => {
-    expect(AxiomapSession.open(MINIMAL).refreshOverlays()).toBeNull();
+  it('has no audit state to refresh before the graph is loaded', () => {
+    expect(AxiomapSession.open(MINIMAL).refreshAuditState()).toBeNull();
   });
 
   it('resolves §13’s render cap the way every other host does', () => {

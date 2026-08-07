@@ -32,7 +32,7 @@ import type { ParserId, ParseResult } from './interface.js';
  *
  * 3 — Phase 4 added `flags.checksSender`. A cached v2 entry would deserialise
  * with the field absent and report every inline `msg.sender` guard as no guard
- * at all, which is the wrong direction for an access-control overlay to fail
+ * at all, which is the wrong direction for an access-control verdict to fail
  * in.
  *
  * 4 — Phase 8c added `natspec` to `ParsedContract` and `ParsedFunction`. A

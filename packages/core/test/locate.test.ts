@@ -15,7 +15,7 @@ import path from 'node:path';
 
 import { describe, expect, it } from 'vitest';
 
-import { fileLenses, nodeAtOffset, nodesInFile, overlayData, PositionIndex } from '../src/index.js';
+import { fileLenses, nodeAtOffset, nodesInFile, auditState, PositionIndex } from '../src/index.js';
 import { fixture } from './fixtures.js';
 import { graphOf, graphWithoutModeGating } from './graphs.js';
 
@@ -180,7 +180,7 @@ describe('fileLenses', () => {
     const node = graph.getNodeAttributes(id);
     expect(node.kind).toBe('Function');
 
-    const overlays = overlayData(graph, {
+    const state = auditState(graph, {
       review: {
         [id]: {
           status: 'reviewed',
@@ -194,10 +194,10 @@ describe('fileLenses', () => {
       findings: null,
     });
 
-    const lens = fileLenses(graph, VAULT, { overlays }).find((entry) => entry.id === id);
+    const lens = fileLenses(graph, VAULT, { auditState: state }).find((entry) => entry.id === id);
     expect(lens?.review).toMatchObject({ status: 'reviewed', staleness: 'stale' });
 
-    // Without the overlay the same function says nothing about review state,
+    // Without the audit state the same function says nothing about review state,
     // which is not the same as saying it is unreviewed.
     expect(fileLenses(graph, VAULT).find((entry) => entry.id === id)?.review).toBeNull();
   });

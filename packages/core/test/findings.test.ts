@@ -206,8 +206,8 @@ describe('findings.json', () => {
 
 describe('a stored finding is a claim about a body, and can go stale', () => {
   /**
-   * The gap this closes: without a recorded `bodyHash`, §11's overlay draws a
-   * High-severity badge on a function that was rewritten after Slither ran.
+   * The gap this closes: without a recorded `bodyHash`, a host reports a
+   * High-severity finding against a function rewritten after Slither ran.
    * `review.json` has solved this since Phase 5 and findings had not.
    */
   async function imported(): Promise<{ file: FindingsFile; graph: AxiomapGraph }> {

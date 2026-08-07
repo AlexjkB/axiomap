@@ -12,7 +12,7 @@
 
 import { spawn } from 'node:child_process';
 
-import { describeScore, DEFAULT_RENDER_CAP, readOverlayFiles } from '@axiomap/core';
+import { describeScore, DEFAULT_RENDER_CAP, readAuditFiles } from '@axiomap/core';
 
 import { loadGraph, openProject, type CommonOptions } from '../context.js';
 import { colour, definitions, paintMode } from '../output.js';
@@ -60,15 +60,15 @@ export async function startServe(options: ServeOptions = {}): Promise<ServeSessi
   const { file, graph, origin, reason } = await loadGraph(context, options);
 
   const renderCap = context.config.renderCap ?? DEFAULT_RENDER_CAP;
-  const overlays = readOverlayFiles(context.root);
+  const auditFiles = readAuditFiles(context.root);
   const handle = await startServer({
     graph,
     file,
     root: context.root,
     assets,
     renderCap,
-    review: overlays.review,
-    findings: overlays.findings,
+    review: auditFiles.review,
+    findings: auditFiles.findings,
     ...(options.host === undefined ? {} : { host: options.host }),
     ...(options.port === undefined ? {} : { port: options.port }),
   });
@@ -83,21 +83,21 @@ export async function startServe(options: ServeOptions = {}): Promise<ServeSessi
       ['resolution', describeScore(file)],
       ['render cap', `${renderCap.toLocaleString('en-US')} elements (AXIOMAP.md §9)`],
       [
-        'overlays',
+        'auditState',
         [
-          overlays.review === null
+          auditFiles.review === null
             ? 'no review state'
-            : `${Object.keys(overlays.review).length.toLocaleString('en-US')} reviewed nodes`,
-          overlays.findings === null
+            : `${Object.keys(auditFiles.review).length.toLocaleString('en-US')} reviewed nodes`,
+          auditFiles.findings === null
             ? 'no imported findings'
-            : `${overlays.findings.findings.length.toLocaleString('en-US')} imported findings`,
+            : `${auditFiles.findings.findings.length.toLocaleString('en-US')} imported findings`,
         ].join(', '),
       ],
     ]),
   ];
 
   if (reason !== null) lines.push(colour.dim(`rebuilt: ${reason}`));
-  for (const warning of [...context.warnings, ...overlays.warnings]) {
+  for (const warning of [...context.warnings, ...auditFiles.warnings]) {
     lines.push(colour.yellow(warning));
   }
   if (handle.host !== '127.0.0.1' && handle.host !== 'localhost') {

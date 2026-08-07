@@ -58,7 +58,7 @@ export {
   type SessionHooks,
   type SessionOptions,
 } from './project/session.js';
-export { readOverlayFiles, type OverlayFiles } from './project/overlay-sources.js';
+export { readAuditFiles, type AuditFiles } from './project/audit-sources.js';
 
 export * from './symbols/index.js';
 

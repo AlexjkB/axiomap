@@ -26,7 +26,7 @@ import {
   loadProjectGraph,
   newestInput,
   openProject,
-  readOverlayFiles,
+  readAuditFiles,
   writeGraph,
 } from '../src/index.js';
 
@@ -228,9 +228,9 @@ describe('the artifact round trip', () => {
   });
 });
 
-describe('the two file-backed overlays', () => {
+describe('the two audit-state files', () => {
   it('is absent rather than empty when neither file exists', () => {
-    const files = readOverlayFiles(project());
+    const files = readAuditFiles(project());
     // Absent and empty stay distinguishable: "nobody has reviewed anything" and
     // "everything is unreviewed" are the same picture and different sentences.
     expect(files.review).toBeNull();
@@ -244,7 +244,7 @@ describe('the two file-backed overlays', () => {
     fs.writeFileSync(path.join(root, '.axiomap/review.json'), 'not json at all');
 
     // A hand-edited `review.json` must not cost somebody the tool.
-    const files = readOverlayFiles(root);
+    const files = readAuditFiles(root);
     expect(files.review).toBeNull();
     expect(files.warnings).toHaveLength(1);
     expect(files.warnings[0]).toContain('Review state not loaded');
@@ -264,7 +264,7 @@ describe('the two file-backed overlays', () => {
       }),
     );
 
-    const files = readOverlayFiles(root);
+    const files = readAuditFiles(root);
     expect(files.warnings).toEqual([]);
     expect(Object.keys(files.review ?? {})).toEqual(['src/Vault.sol:Vault.deposit(uint256)']);
   });

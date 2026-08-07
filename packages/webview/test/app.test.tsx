@@ -22,7 +22,7 @@ import type {
   AggregatedView,
   AggregatedViewOptions,
   NodeInspection,
-  OverlayData,
+  AuditState,
   ProjectMeta,
   SearchResults,
   SourceSlice,
@@ -66,7 +66,7 @@ function bridgeOf(
   answer: (request: AggregatedViewOptions) => Promise<AggregatedView>,
   extra: {
     inspect?: (id: string) => Promise<NodeInspection>;
-    overlays?: () => Promise<OverlayData>;
+    auditState?: () => Promise<AuditState>;
     search?: (query: string, limit?: number) => Promise<SearchResults>;
     source?: (id: string) => Promise<SourceSlice>;
   } = {},
@@ -98,7 +98,7 @@ function bridgeOf(
           })
         );
       },
-      overlays: () => extra.overlays?.() ?? Promise.resolve(emptyOverlays),
+      auditState: () => extra.auditState?.() ?? Promise.resolve(emptyAuditState),
       search: (query, limit) =>
         extra.search?.(query, limit) ??
         Promise.resolve({ query, hits: [], total: 0, capped: false, limit: limit ?? 20 }),
@@ -110,7 +110,7 @@ function bridgeOf(
   };
 }
 
-const emptyOverlays: OverlayData = {
+const emptyAuditState: AuditState = {
   review: {},
   findings: {},
   summary: {

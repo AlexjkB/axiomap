@@ -30,12 +30,12 @@
  *   variable.
  * - **review** — the status and whether it still stands (§8). A stale
  *   `reviewed` is the one thing this feature exists to surface, so the two
- *   travel separately here as they do in `overlays.ts`.
+ *   travel separately here as they do in `audit-state.ts`.
  */
 
 import type { AxiomapGraph } from '../graph/build.js';
 import type { FunctionNode, GraphNode, SourceRefRecord } from '../graph/schema.js';
-import type { OverlayData, OverlayReview } from './overlays.js';
+import type { AuditState, AuditReview } from './audit-state.js';
 
 /** Call subkinds that leave the contract (§10). */
 const EXTERNAL_SUBKINDS = new Set(['external', 'delegatecall', 'lowlevel']);
@@ -59,19 +59,19 @@ export interface FileLens {
   /** §4's transitive answer, as the analysis pass computed it. */
   externallyReachable: boolean;
   accessControl: FunctionNode['accessControl'];
-  /** §11's review overlay for this node, when a `review.json` was loaded. */
-  review: OverlayReview | null;
-  /** Imported findings landing on it (§11's eighth overlay). */
+  /** This node's review state, when a `review.json` was loaded. */
+  review: AuditReview | null;
+  /** How many imported findings land on it (decision #4). */
   findings: number;
 }
 
 export interface FileLensOptions {
   /**
-   * The two audit-state files, already projected (`overlayData`). Absent means
+   * The two audit-state files, already projected (`auditState`). Absent means
    * no review state was loaded, which a lens says nothing about — an absent
    * file and an unreviewed function are different facts (§11).
    */
-  overlays?: OverlayData | null;
+  auditState?: AuditState | null;
 }
 
 function isFunction(node: GraphNode): node is FunctionNode {
@@ -125,7 +125,7 @@ export function fileLenses(
     if (edge.kind === 'reads' && wanted.has(edge.from)) add(reads, edge.from, edge.to);
   });
 
-  const overlays = options.overlays ?? null;
+  const state = options.auditState ?? null;
 
   return [...wanted.values()]
     .map((node) => ({
@@ -141,8 +141,8 @@ export function fileLenses(
       reads: reads.get(node.id)?.size ?? 0,
       externallyReachable: node.externallyReachable,
       accessControl: node.accessControl,
-      review: overlays?.review[node.id] ?? null,
-      findings: overlays?.findings[node.id]?.length ?? 0,
+      review: state?.review[node.id] ?? null,
+      findings: state?.findings[node.id]?.length ?? 0,
     }))
     .sort((a, b) => a.src.offset - b.src.offset || a.id.localeCompare(b.id));
 }

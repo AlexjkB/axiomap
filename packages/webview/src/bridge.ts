@@ -17,7 +17,7 @@ import type {
   AggregatedView,
   AggregatedViewOptions,
   NodeInspection,
-  OverlayData,
+  AuditState,
   ProjectMeta,
   ProtocolError,
   SearchResults,
@@ -27,7 +27,7 @@ import type {
 import {
   META_ENDPOINT,
   NODE_ENDPOINT,
-  OVERLAY_ENDPOINT,
+  AUDIT_STATE_ENDPOINT,
   SEARCH_ENDPOINT,
   SOURCE_ENDPOINT,
   VIEW_ENDPOINT,
@@ -53,8 +53,8 @@ export interface HostBridge {
    * question §11 asks it.
    */
   inspect(id: string): Promise<NodeInspection>;
-  /** §11's review-state and imported-findings overlays. Two files, not the graph. */
-  overlays(): Promise<OverlayData>;
+  /** Review state and imported findings. Two files, not the graph. */
+  auditState(): Promise<AuditState>;
   /**
    * §11's `/` fuzzy search palette.
    *
@@ -177,8 +177,8 @@ export class HttpBridge implements HostBridge {
     return (await this.fetchJson(this.url(NODE_ENDPOINT, encodeNodeRequest(id)))) as NodeInspection;
   }
 
-  async overlays(): Promise<OverlayData> {
-    return (await this.fetchJson(this.url(OVERLAY_ENDPOINT))) as OverlayData;
+  async auditState(): Promise<AuditState> {
+    return (await this.fetchJson(this.url(AUDIT_STATE_ENDPOINT))) as AuditState;
   }
 
   async search(query: string, limit?: number): Promise<SearchResults> {

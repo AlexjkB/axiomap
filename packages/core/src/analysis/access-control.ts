@@ -1,6 +1,7 @@
 /**
  * Which functions are guarded, and how sure we are (§7 Phase 4, §10's
- * `accessControl`, §11's access-control overlay).
+ * `accessControl`, and §15's "identify every externally reachable
+ * state-mutating function with no access control").
  *
  * Three levels, and the middle one is the point:
  *

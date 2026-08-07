@@ -37,7 +37,7 @@ import type {
   AggregatedView,
   AggregatedViewOptions,
   NodeInspection,
-  OverlayData,
+  AuditState,
   ProjectMeta,
   ProtocolError,
   SearchResults,
@@ -56,7 +56,7 @@ import {
 export const CHANNEL = 'axiomap';
 
 /** The six `HostBridge` methods, as they travel. */
-export type BridgeMethod = 'meta' | 'view' | 'inspect' | 'overlays' | 'search' | 'source';
+export type BridgeMethod = 'meta' | 'view' | 'inspect' | 'auditState' | 'search' | 'source';
 
 /**
  * A request in flight.
@@ -221,8 +221,8 @@ export class VsCodeBridge implements HostBridge {
     return this.#call<NodeInspection>('inspect', encodeNodeRequest(id));
   }
 
-  overlays(): Promise<OverlayData> {
-    return this.#call<OverlayData>('overlays', {});
+  auditState(): Promise<AuditState> {
+    return this.#call<AuditState>('auditState', {});
   }
 
   search(query: string, limit?: number): Promise<SearchResults> {

@@ -119,7 +119,7 @@ export class AxiomapLensProvider implements vscode.CodeLensProvider {
     if (state === null) return [];
 
     const relative = vscode.workspace.asRelativePath(document.uri, false);
-    const lenses = fileLenses(state.graph, relative, { overlays: state.overlays });
+    const lenses = fileLenses(state.graph, relative, { auditState: state.auditState });
     const text = document.getText();
 
     return lenses.map((lens) => {

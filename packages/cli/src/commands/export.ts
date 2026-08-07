@@ -29,7 +29,7 @@ import {
   callDefaults,
   DEFAULT_RENDER_CAP,
   findingsPath,
-  overlayData,
+  auditState,
   readFindings,
   readReview,
   requireNode,
@@ -70,8 +70,8 @@ export interface ExportResult {
   exitCode: number;
 }
 
-/** §11's two file-backed overlays, so a deliverable carries the audit state too. */
-function readOverlaySources(root: string): {
+/** The two audit-state files, so a deliverable carries them too. */
+function readAuditSources(root: string): {
   review: ReviewState | null;
   findings: FindingsFile | null;
 } {
@@ -80,7 +80,7 @@ function readOverlaySources(root: string): {
     const file = reviewPath(root);
     review = fs.existsSync(file) ? readReview(file) : null;
   } catch {
-    // A malformed audit-state file is a missing overlay, not a failed export —
+    // A malformed audit-state file means that file is absent, not a failed export —
     // the same call `serve` makes, for the same reason.
   }
   let findings: FindingsFile | null = null;
@@ -175,7 +175,7 @@ async function exportHtml(
   }
 
   const bundle = exportBundle();
-  const overlaySources = readOverlaySources(root);
+  const auditSources = readAuditSources(root);
 
   /*
    * The hop limits this file was made with become its *defaults*.
@@ -219,9 +219,9 @@ async function exportHtml(
   const exportOptions = {
     graph: loaded.graph,
     meta,
-    overlays: overlayData(loaded.graph, {
-      review: overlaySources.review,
-      findings: overlaySources.findings,
+    auditState: auditState(loaded.graph, {
+      review: auditSources.review,
+      findings: auditSources.findings,
     }),
     root,
     initial,

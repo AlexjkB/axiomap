@@ -35,7 +35,7 @@ import {
   sliceNode,
   type AxiomapGraph,
   type GraphFile,
-  type OverlayData,
+  type AuditState,
 } from '@axiomap/core';
 import { CHANNEL, type BridgeRequest, type BridgeResponse } from '@axiomap/webview';
 
@@ -44,7 +44,7 @@ export interface HostSources {
   file: GraphFile;
   root: string;
   renderCap: number;
-  overlays: OverlayData;
+  auditState: AuditState;
   /**
    * The source of a node, when the editor has a better copy than the disk does.
    *
@@ -107,8 +107,8 @@ export function answer(sources: HostSources, request: BridgeRequest): BridgeResp
         return result(request.id, inspectNode(sources.graph, id));
       }
 
-      case 'overlays':
-        return result(request.id, sources.overlays);
+      case 'auditState':
+        return result(request.id, sources.auditState);
 
       case 'search': {
         const { query, limit } = decodeSearchRequest(request.params);

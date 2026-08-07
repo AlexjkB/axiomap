@@ -29,7 +29,7 @@ import type {
   AggregatedView,
   GraphNode,
   NodeInspection,
-  OverlayData,
+  AuditState,
   ProjectMeta,
   StaticInspection,
   StaticPayload,
@@ -65,7 +65,7 @@ const meta: ProjectMeta = {
   callDefaults: { up: 2, down: 3 },
 };
 
-const overlays: OverlayData = {
+const auditState: AuditState = {
   review: {},
   findings: {},
   summary: {
@@ -95,7 +95,7 @@ function payloadOf(over: Partial<StaticPayload> = {}): StaticPayload {
     payloadVersion: READS_PAYLOAD_VERSION,
     generatedAt: '2026-08-05T00:00:00.000Z',
     meta,
-    overlays,
+    auditState,
     nodeTable: { [vault.id]: vault, [deposit.id]: deposit, [withdraw.id]: withdraw },
     views: [
       {
@@ -158,9 +158,9 @@ describe('StaticBridge: what an export can answer', () => {
     expect(new StaticBridge(payloadOf({ views: [] })).initial).toBeNull();
   });
 
-  it('answers meta and overlays from the payload', async () => {
+  it('answers meta and audit state from the payload', async () => {
     expect(await bridge.meta()).toBe(meta);
-    expect(await bridge.overlays()).toBe(overlays);
+    expect(await bridge.auditState()).toBe(auditState);
   });
 
   /**

@@ -42,8 +42,8 @@ import { z } from 'zod';
  *   (`externallyReachable`, `entrypoints`, `accessControl`, `reentrancy`) and
  *   `flags.checksSender`. All defaulted, so an uncompiled project's graph gains
  *   only the lines where the analysis found something — but a v2 reader would
- *   drop them silently, and the whole point of the attack-surface and
- *   access-control overlays is that they are there.
+ *   drop them silently, and the whole point of the reachability and
+ *   access-control passes is that their answers are there.
  * - **4** — Phase 6. `generator.settings`: the §13 configuration that decided
  *   what is *in* this graph. Absent for a project with no config, so an
  *   uncompiled project's graph gains one number and nothing else — but without
@@ -145,7 +145,7 @@ export const functionFlagsSchema = z.object({
 });
 
 /**
- * §11's access-control overlay, computed by `analysis/access-control.ts`.
+ * The access-control verdict, computed by `analysis/access-control.ts`.
  *
  * `high` means a modifier whose name is in the configured list (§13's
  * `accessControlModifiers`) — the tool recognises the guard. `low` means there

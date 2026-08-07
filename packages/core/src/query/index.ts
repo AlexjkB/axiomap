@@ -20,6 +20,6 @@ export * from './lenses.js';
 export * from './views.js';
 export * from './aggregate.js';
 export * from './protocol.js';
-export * from './overlays.js';
+export * from './audit-state.js';
 export * from './search.js';
 export * from './static.js';

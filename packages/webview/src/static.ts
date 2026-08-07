@@ -25,7 +25,7 @@ import type {
   DisplayNode,
   GraphNode,
   NodeInspection,
-  OverlayData,
+  AuditState,
   ProjectMeta,
   SearchResults,
   SourceSlice,
@@ -194,8 +194,8 @@ export class StaticBridge implements HostBridge {
     );
   }
 
-  overlays(): Promise<OverlayData> {
-    return Promise.resolve(this.payload.overlays);
+  auditState(): Promise<AuditState> {
+    return Promise.resolve(this.payload.auditState);
   }
 
   /**

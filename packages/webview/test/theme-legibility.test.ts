@@ -18,7 +18,7 @@
  * And one that is not WCAG's: the hues that carry *meaning* must be
  * distinguishable **from each other**, because §11's channel budget spends node
  * hue on what a node is and edge hue on what an edge is. A theme where `reads`
- * and `writes` resolve to the same blue has an overlay that says nothing, and
+ * and `writes` resolve to the same blue has a state-access map that says nothing, and
  * every ratio above would still pass.
  *
  * ### The values are dumped from a real editor, not transcribed

@@ -5,7 +5,7 @@
  * working out what the answer has to be, then written down here — not by
  * running the pass and recording what it said. A test written the other way
  * round pins the bug along with the behaviour, and these three passes are the
- * ones §11's overlays and §15's definition of done are built on.
+ * ones §12's `query` surface and §15's definition of done are built on.
  *
  * `pathological/` is asserted twice, because it is the one fixture that falls
  * below §4's mode threshold: once ungated, where the call edges exist, and once

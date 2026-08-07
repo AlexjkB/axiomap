@@ -56,7 +56,7 @@ function renderInspector(
       inspection={node}
       busy={false}
       error={null}
-      overlays={null}
+      auditState={null}
       slice={null}
       sliceBusy={false}
       sliceError={null}

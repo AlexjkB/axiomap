@@ -17,7 +17,7 @@ import { describe, expect, it } from 'vitest';
 import {
   inspectNode,
   NodeNotFoundError,
-  overlayData,
+  auditState,
   selectAggregatedView,
   type FindingsFile,
   type ReviewState,
@@ -99,7 +99,7 @@ describe('inspectNode', () => {
   });
 });
 
-describe('overlayData', () => {
+describe('auditState', () => {
   const reviewOf = (bodyHash: string): ReviewState => ({
     [SWAP]: { status: 'reviewed', bodyHash, reviewer: 'alice', at: '2026-08-05T00:00:00Z' },
     'src/Gone.sol:Gone.f()': {
@@ -111,7 +111,7 @@ describe('overlayData', () => {
 
   it('marks a review stale when the body has changed, and counts the orphan', async () => {
     const { graph } = await graphOf('defi');
-    const data = overlayData(graph, { review: reviewOf('b1:not-the-current-body') });
+    const data = auditState(graph, { review: reviewOf('b1:not-the-current-body') });
 
     // §8's flagship feature, projected onto a node id for §11's fill channel.
     expect(data.review[SWAP]?.staleness).toBe('stale');
@@ -127,7 +127,7 @@ describe('overlayData', () => {
     const { graph } = await graphOf('defi');
     const attributes = graph.getNodeAttributes(SWAP);
     const bodyHash = attributes.kind === 'Function' ? attributes.bodyHash : '';
-    const data = overlayData(graph, { review: reviewOf(bodyHash) });
+    const data = auditState(graph, { review: reviewOf(bodyHash) });
     expect(data.review[SWAP]?.staleness).toBe('current');
     expect(data.summary.stale).toBe(0);
   });
@@ -159,7 +159,7 @@ describe('overlayData', () => {
       ],
     };
 
-    const data = overlayData(graph, { findings });
+    const data = auditState(graph, { findings });
     // A finding spanning a caller and a callee is stale *on the body that
     // changed*; painting the other one stale would send an auditor to re-read
     // code nobody touched.
@@ -171,7 +171,7 @@ describe('overlayData', () => {
 
   it('is two empty maps when neither file exists', async () => {
     const { graph } = await graphOf('defi');
-    const data = overlayData(graph);
+    const data = auditState(graph);
     expect(data.review).toEqual({});
     expect(data.findings).toEqual({});
     expect(data.sources).toEqual({ review: false, findings: false });
