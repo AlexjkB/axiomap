@@ -2813,3 +2813,101 @@ callers rather than handing three features three graphs that can drift.
 - **`pnpm test:host` is the harness for anything editor-shaped from here on.** It took about
   an hour to build and found a wrong assumption in its first run. Adding a case to it is now
   cheap, which was the whole point.
+
+---
+
+## Phase 8c — NatSpec on nodes
+
+**Date:** 2026-08-06
+**Status:** complete. `pnpm check`, `pnpm check:network` and `pnpm check:licences` all
+green.
+
+### Exit criteria
+
+| Criterion | Result |
+|---|---|
+| Answer §16's two open questions before implementing | pass — recorded in §16. `natspec` lands on Function as well as Contract, because the inspector's most-clicked node is a function and doing Contract alone now would only defer a second schema bump and a second four-golden regeneration to whenever Function's turn came. `@inheritdoc` is stored verbatim and resolved in the inspector at display time, never baked into `graph.json` |
+| Parse-layer change: collect doc comments in `parse/` | pass — `parse/treesitter.ts`'s `precedingDocComment`, confirmed against the compiled grammar rather than assumed: comments are `extras` in this grammar and turn up as ordinary siblings wherever they lexically sit, so no special-casing was needed to find them |
+| `GRAPH_SCHEMA_VERSION` 4 → 5 | pass — `graph/schema.ts`. `PARSE_SCHEMA_VERSION` also bumped 3 → 4, since the neutral AST shape changed too |
+| Regenerate the four goldens, in a commit whose reviewer is looking at exactly that | pass — read before accepting, per §6: every changed line is either the version bump or an added `natspec` field on a Contract or Function that already had a doc comment in the fixture source. No node, edge, hash, count or resolution changed |
+| Show it in the inspector | pass — `packages/webview/src/ui/Inspector.tsx`, a "NatSpec" section under the attributes, verbatim text in a `<pre>`. `@inheritdoc` resolution is a small piece of UI logic, not a query: the candidate is whatever `overrides`/`implements` relation the function's own `NodeInspection.outgoing` already carries, so there is nothing left to parse out of the tag text. `packages/webview/test/inspector.test.tsx`, 5 tests, covers all four shapes: no doc comment, a plain doc comment on a Function, the same on a Contract, and `@inheritdoc` both resolved and — deliberately — not |
+
+`pnpm check` is green: **432** tests in `core` (unchanged count, golden content changed),
+**153** in `webview` (148 + 5), **101** in `cli` (unchanged), **51** in `vscode` (unchanged),
+and **58** repo-level (unchanged).
+
+### The two open questions, answered
+
+Both were named in §16 as blocking this phase and are settled here rather than re-litigated
+per session:
+
+- **Function as well as Contract.** §10 always listed `natspec` on Contract only. The
+  inspector — the one thing that would show it — is clicked on functions far more than on
+  contracts, and the schema-bump-plus-four-goldens cost of adding the field is identical
+  whether it covers one node kind or two. Paying it once for both was cheaper than paying it
+  twice.
+- **`@inheritdoc` stays unresolved in the graph.** The parser records what the source says,
+  never what it means — the same rule that keeps a call site syntactic in `parse/interface.ts`
+  and non-ASCII text verbatim in `pathological/`'s comments. Resolving which base a doc
+  comment inherits from is a display concern, and one whose failure mode should be visible:
+  a UI state that says "nothing to resolve this against" is honest in a way a golden file
+  silently recording a guess would not be.
+
+### What was built
+
+- **`parse/treesitter.ts`**, `precedingDocComment` — walks a declaration's preceding siblings
+  for a contiguous run of comment nodes with no blank line in between, then decides what
+  counts as NatSpec: a single `/**`-block stands alone; a `///`-line walks backward collecting
+  every immediately-preceding `///` line and stops at the first comment that is not one. A
+  bare `//` or a plain `/*` block immediately before a declaration is not NatSpec, matching
+  solc's own recognition rule. Verified against the compiled grammar with a throwaway probe
+  script before writing the walker, rather than assumed from the grammar's source (which was
+  not available locally, only the vendored `.wasm`).
+- **`parse/interface.ts`** — `natspec: string | null` on `ParsedContract` and `ParsedFunction`.
+- **`symbols/table.ts` and `symbols/build.ts`** — the same field carried through
+  `ContractSymbol` and `FunctionSymbol`, via `functionBody()`'s single copy point so all three
+  call sites (file-level function, contract function, contract modifier) get it for free.
+- **`graph/schema.ts` and `graph/build.ts`** — `natspec?: string` on `contractNodeSchema` and
+  `functionNodeSchema`, following the same "optional, absent rather than null" convention as
+  `selector`. `nodeFor()` spreads it in conditionally, so a node with no doc comment costs
+  nothing on disk.
+- **`packages/webview/src/ui/Inspector.tsx`** — a `NatSpec` component rendering the verbatim
+  text and, when it contains `@inheritdoc`, either a clickable link to the resolved
+  `overrides`/`implements` relation or an explicit "nothing to resolve it against" message.
+  `styles.css` gained `.ax-natspec` (`white-space: pre-wrap`, monospace, on the theme's own
+  colours per §11).
+
+### Verbatim was the right call, confirmed by the fixture
+
+`pathological/` already stresses non-ASCII identifiers in comments and a CRLF-terminated
+file, and both came through the regenerated goldens exactly as written — "naïve café — Ω ≈
+世界 — 🜁" intact, and the CRLF file's line comments joined with a plain `\n` and no stray `\r`,
+because tree-sitter's line-comment token does not include the line terminator. Storing
+anything less than verbatim (stripping markers, reflowing whitespace) would have been one
+more place for that class of bug to hide, for a formatting benefit the inspector's `<pre>`
+gets for free.
+
+### Deviations from the spec
+
+- **None beyond what §16 already named as the plan.** No other module changed shape;
+  `diff/classify.ts`'s explicit per-kind attribute allowlist already excludes any field not
+  named in it, so `natspec` needed no change there to keep a doc-comment edit from reading as
+  a modification — the risk §16's entry flagged as already handled, verified rather than
+  assumed.
+
+### §16 changes
+
+- **NatSpec entry closed.** Both open questions answered and recorded above; the entry is now
+  a record of what shipped rather than an open item.
+
+### Notes for the next session
+
+- **Phase 9 is next.** This phase touched no dependencies, no packaging, and no public
+  surface, so none of Phase 8b's prerequisites changed.
+- **`.axiomap/graph.json` schemaVersion 5 invalidates every stored artifact from Phase 8b or
+  earlier**, same as every prior schema bump — `axiomap build` regenerates on the next run,
+  nothing to migrate by hand.
+- **`@inheritdoc` resolution reads only `NodeInspection.outgoing`.** If a future phase adds a
+  way to inspect a node without its relations (a lighter-weight query, say), that path would
+  need to carry `overrides`/`implements` too or the inspector's resolution silently degrades
+  to "nothing to resolve it against" for a function that really does override something.
