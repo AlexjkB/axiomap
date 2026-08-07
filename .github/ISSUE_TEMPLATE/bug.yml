@@ -1,0 +1,92 @@
+name: Bug report
+description: The graph looks wrong, or Axiomap crashed
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for the report. Axiomap builds a graph in one of three degradation
+        modes (full / heuristic / structural) depending on the resolution score and
+        whether build artifacts were present — the three fields below are what
+        distinguish those modes, and without them "the graph is wrong" usually
+        can't be diagnosed.
+
+  - type: input
+    id: version
+    attributes:
+      label: Axiomap version
+      description: Output of `axiomap --version`, or the extension version, or a commit hash.
+      placeholder: "0.1.0"
+    validations:
+      required: true
+
+  - type: input
+    id: resolution-score
+    attributes:
+      label: Resolution score
+      description: >
+        The line `axiomap build` prints, e.g. "1,847 edges — 71% semantic, 22%
+        heuristic, 4% ambiguous, 3% unresolved". Run `axiomap stats --json` if you
+        no longer have it.
+      placeholder: "1,847 edges — 71% semantic, 22% heuristic, 4% ambiguous, 3% unresolved"
+    validations:
+      required: true
+
+  - type: dropdown
+    id: project-type
+    attributes:
+      label: Project type
+      description: How is the project structured/built?
+      options:
+        - Foundry
+        - Hardhat
+        - Bare (no build tool)
+        - Other / mixed
+    validations:
+      required: true
+
+  - type: dropdown
+    id: build-artifacts
+    attributes:
+      label: Were build artifacts present?
+      description: >
+        Foundry `out/` with `--build-info`, or Hardhat `artifacts/build-info/`.
+        This decides whether edges could reach the semantic tier.
+      options:
+        - "Yes — the project compiled and artifacts were present"
+        - "No — the project doesn't currently compile"
+        - "No — it compiles but I hadn't built it / had no build-info"
+        - Not sure
+    validations:
+      required: true
+
+  - type: textarea
+    id: what-happened
+    attributes:
+      label: What happened
+      description: What you expected the graph to show, and what it showed instead.
+    validations:
+      required: true
+
+  - type: textarea
+    id: repro
+    attributes:
+      label: Reproduction
+      description: >
+        A minimal `.sol` snippet that reproduces it, or a public repo + commit. If
+        the code is confidential, a hand-reduced fixture that reproduces the same
+        shape is far more useful than a description — Axiomap makes no network
+        requests and never will, but that's a separate question from what's safe to
+        paste into a public issue.
+      render: solidity
+    validations:
+      required: false
+
+  - type: textarea
+    id: logs
+    attributes:
+      label: Relevant output
+      description: The command you ran and its full output, including any warnings.
+      render: shell
+    validations:
+      required: false

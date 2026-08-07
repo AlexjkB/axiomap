@@ -1,0 +1,21 @@
+root = true
+
+[*]
+charset = utf-8
+end_of_line = lf
+insert_final_newline = true
+trim_trailing_whitespace = true
+indent_style = space
+indent_size = 2
+
+[*.md]
+trim_trailing_whitespace = false
+
+# Vendored/generated content keeps whatever line endings it arrived with —
+# fixtures/pathological deliberately includes a CRLF file to test byte-offset
+# handling, and normalizing it here would defeat the fixture.
+[fixtures/**]
+end_of_line = unset
+
+[*.sol]
+indent_size = 4

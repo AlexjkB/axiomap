@@ -1,0 +1,8 @@
+# Default owner for everything not matched below.
+* @AlexjkB
+
+# Decision #2 and #5 live here: the network-invariant and licence-compliance
+# gates. Changes touching them get a second look.
+/scripts/check-no-network-deps.mjs @AlexjkB
+/scripts/check-licences.mjs @AlexjkB
+/.github/workflows/ci.yml @AlexjkB

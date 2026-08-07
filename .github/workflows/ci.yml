@@ -88,3 +88,24 @@ jobs:
         with:
           name: axiomap-vsix
           path: dist/*.vsix
+
+  # §7's Phase 9 exit criterion: "a stranger can `npm i -g @axiomap/cli`, run it
+  # on their protocol, and understand what they are looking at without asking
+  # you." Nothing here has actually published anything, so this is the npm
+  # sibling of the `vsix` job above — pack the three publishable packages for
+  # real, install them into a directory with no workspace above it and no
+  # `workspace:*` protocol, and run the CLI end to end.
+  npm-pack:
+    name: packaged npm tarballs
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm notices:check
+      - run: pnpm build
+      - run: pnpm verify:npm-pack

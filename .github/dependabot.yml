@@ -1,0 +1,28 @@
+version: 2
+updates:
+  # A single root entry covers the whole pnpm workspace — Dependabot resolves
+  # the workspace and opens one PR per bump across `core`, `webview`, `cli`
+  # and `vscode` rather than duplicating this block per package.
+  - package-ecosystem: "npm"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+    open-pull-requests-limit: 10
+    labels:
+      - "dependencies"
+    # `check:network` and `check:licences` (§3, §7 Phase 9) run in CI on every
+    # PR Dependabot opens, same as a human's — a bump that adds a
+    # network-capable import or an unreviewed licence fails there rather than
+    # merging quietly.
+    commit-message:
+      prefix: "chore(deps)"
+
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+    labels:
+      - "dependencies"
+      - "ci"
+    commit-message:
+      prefix: "chore(ci)"

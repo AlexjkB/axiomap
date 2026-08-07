@@ -45,6 +45,17 @@ fixtures/*/cache/
 # is the fixture, not its output.
 fixtures/large/generated/
 
+# `scripts/copy-release-files.mjs` copies these into a publishable package's own
+# directory as its `prepack` step, right before `npm pack`/`npm publish`. The
+# repo root's copies are the source of truth; a package-local copy is packaging
+# output, not something to review twice.
+packages/core/LICENSE
+packages/core/THIRD-PARTY-NOTICES.md
+packages/webview/LICENSE
+packages/webview/THIRD-PARTY-NOTICES.md
+packages/cli/LICENSE
+packages/cli/THIRD-PARTY-NOTICES.md
+
 # Never
 fixtures/client/
 *.sol.private

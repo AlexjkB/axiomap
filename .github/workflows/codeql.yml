@@ -1,0 +1,44 @@
+name: CodeQL
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  schedule:
+    # Catches a new CodeQL query finding something in code nothing has
+    # touched recently — the push/PR triggers alone only ever look at diffs.
+    - cron: "23 4 * * 1"
+
+jobs:
+  analyze:
+    name: analyze
+    runs-on: ubuntu-latest
+    permissions:
+      security-events: write
+      packages: read
+      actions: read
+      contents: read
+
+    strategy:
+      fail-fast: false
+      matrix:
+        language: ["javascript-typescript"]
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: github/codeql-action/init@v3
+        with:
+          languages: ${{ matrix.language }}
+          # `security-and-quality` over the default `security-extended`: this
+          # is a tool meant to be run against confidential client code, and
+          # the quality queries catch the class of bug (unused parameter,
+          # unreachable branch) that has twice already turned out to be a
+          # real defect here rather than noise — see docs/PROGRESS.md's
+          # per-phase audits.
+          queries: security-and-quality
+
+      - uses: github/codeql-action/analyze@v3
+        with:
+          category: "/language:${{ matrix.language }}"

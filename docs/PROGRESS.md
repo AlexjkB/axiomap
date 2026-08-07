@@ -2945,3 +2945,139 @@ tests because none of the four fixtures happen to write a doc comment as a trail
   way to inspect a node without its relations (a lighter-weight query, say), that path would
   need to carry `overrides`/`implements` too or the inspector's resolution silently degrades
   to "nothing to resolve it against" for a function that really does override something.
+
+---
+
+## Phase 9 — Open source release: prepared, not published
+
+**Date:** 2026-08-06
+**Status:** complete. `pnpm check`, `pnpm check:network`, `pnpm check:licences` and
+`pnpm notices:check` all green, plus two new checks this phase adds (below). **Nothing was
+published and the repository was not made public** — both are explicitly out of scope for
+this session; a human runs `docs/RELEASING.md` when ready.
+
+### Exit criteria
+
+§7's Phase 9 exit criterion is "a stranger can `npm i -g @axiomap/cli`, run it on their
+protocol, and understand what they are looking at without asking you." Nothing has actually
+been published, so the honest check is the one below rather than a real install.
+
+| Criterion | Result |
+|---|---|
+| Seams (not implementations) for the Tier 1 backlog | pass — `docs/architecture/extension-seams.md`. All four (proxy/storage, taint, live Slither, direct-solc) already had their accommodation point built by an earlier phase; this phase documents where each one is with file-level pointers rather than adding code, which is what §7 asks for ("seams, not implementations") |
+| README.md — "this is the product" | pass — root `README.md`. No animated GIF: producing one honestly needs a real recorded interaction, which this session has no way to capture, so it is not faked. Flagged in the notes below rather than silently skipped |
+| SECURITY.md | pass — threat model naming the zero-network invariant, the source-slice bridge's file-parameter absence, and what Axiomap does *not* protect against; private disclosure via GitHub's advisory flow |
+| CONTRIBUTING.md | pass — phase discipline pointer, golden-file workflow, the "never invent a resolution" rule, fixture licensing rule, bug-template requirement |
+| CODE_OF_CONDUCT.md | pass — Contributor Covenant 2.1, unmodified attribution |
+| CODEOWNERS, .editorconfig, .nvmrc | pass |
+| `.github/ISSUE_TEMPLATE/bug.yml` requiring resolution score, project type, build-artifact presence | pass — all three are required fields, plus a project-type dropdown and a rendered-Solidity repro box |
+| Licence compliance CI job | pass — already shipped in Phase 7e (`check-licences.mjs`); this phase's job was only §7's remaining half, below |
+| Publishing: npm with provenance, Marketplace + Open VSX, Changesets | pass — prepared and verified end to end without publishing anything; see below |
+| Repo settings: branch protection, Dependabot, CodeQL | **partial, and correctly so** — `dependabot.yml` and `codeql.yml` are committed and will activate the moment Actions runs against a real repository. Branch protection is a GitHub API/admin-console action against an actual repository, which does not exist yet in the sense this criterion means (the repo is not public and has no remote) — it is written up as the first step in `docs/RELEASING.md` instead of attempted here |
+
+`pnpm check` is green: unchanged test counts everywhere (this phase touched no application
+code) — **440** in `core`, **153** in `webview`, **101** in `cli`, **51** in `vscode`, and
+**58** repo-level, plus two new verification scripts run separately (below) because, like
+`verify:vsix`, they launch real subprocesses outside the vitest sandbox rather than asserting
+in-process.
+
+### The two things this phase couldn't take on faith
+
+Both `.vsix` and npm packaging failed silently the first time something tried to bundle them
+in earlier phases (7d's export hop mismatch, 8b's six-file `.vsix`) — "it built" was never
+evidence that it *worked* once moved outside this repo. The same doubt applies to a package
+about to be published to npm, so it got the same treatment rather than being taken on faith
+because `pnpm pack` didn't error.
+
+- **`scripts/verify-npm-pack.mjs`** — packs `core`, `webview` and `cli` for real with
+  `pnpm pack`, installs the three tarballs into a directory with no workspace above it and no
+  `workspace:*` protocol, and runs `axiomap build`, `axiomap stats` and `axiomap export
+  --format dot` against a copy of `fixtures/minimal`. The one thing this needed that
+  `verify-vsix.mjs` didn't: `pnpm pack` rewrites a workspace dependency to a bare version
+  (`@axiomap/core: "0.0.0"`, not a path), so a plain `npm install` of the `cli` tarball alone
+  would try to fetch `@axiomap/core` from the real npm registry — wrong today (unpublished)
+  and still the wrong thing to test once it's real (this should prove *this build* works, not
+  whatever happens to be live). `overrides` in the scratch project's `package.json` pins both
+  transitive names to their own freshly built tarballs at every depth. New CI job `npm-pack`,
+  sibling to the existing `vsix` job.
+- **Versions were deliberately left at `0.0.0` rather than hand-bumped to `0.1.0`.** The
+  temptation was to set the "first public version" by hand; the correct owner of that number
+  is Changesets, and the queued changeset (`.changeset/first-public-release.md`) already
+  computes `0.1.0` for all three (`pnpm changeset status` confirms it) via the ordinary minor
+  bump. Hand-setting it first would have meant either overwriting a version Changesets was
+  about to assign, or the queued changeset silently double-bumping to `0.2.0` on the first
+  real release — an easy mistake to make once and never notice, since nothing here runs it.
+
+### What actually is a Tier 1 seam, and what needed re-checking to say so
+
+§16's four Tier 1 entries (proxy/storage, taint, live Slither, direct-solc) each already name
+their own seam — Phase 3, Phase 4 and Phase 6 built the accommodation point as a side effect
+of shipping something else, which is the entire point of Tier 1 versus Tier 2. Writing
+`docs/architecture/extension-seams.md` meant checking each claim against the current code
+rather than copying the backlog prose forward, and one needed a correction: the doc's first
+draft named a `SlitherOutput` type that does not exist — `findings/slither.ts` takes `raw:
+unknown` into `importSlitherFindings(graph, raw)` directly, with no named input type to point
+a second producer at. Fixed to name the function instead of a type that was never there.
+
+### Community files, and the one thing this session could not honestly produce
+
+§7 says "the README and a short animated GIF of click-to-navigate decide adoption more than
+any feature. Lead with the demo." The README leads with what the tool does and a copyable
+quick start; there is no GIF. Recording one needs a real running interaction — `pnpm
+screenshots` exists for static images and nothing in this repo captures screen video — and a
+placeholder or a description of a GIF that does not exist would be exactly the kind of
+confident-wrong answer §6 refuses everywhere else. Left as a known gap rather than faked.
+
+`AXIOMAP.md` itself is deliberately **not** part of the repository (excluded via `.git/info/exclude`,
+a decision that predates this phase), which matters for a public-facing doc written this
+session: the README and `CONTRIBUTING.md` cannot point at it as "the spec," the way earlier
+phases' internal notes sometimes did. Both instead point at `docs/PROGRESS.md` and
+`docs/decisions/`, which are the actual tracked closest-thing-to-a-design-doc a stranger
+cloning the repo will find.
+
+### Deviations from the spec
+
+- **The publisher id, the repository URL, and the branch-protection step are placeholders
+  pending real GitHub coordinates.** Every publishable `package.json`'s `repository.url` and
+  `.github/ISSUE_TEMPLATE/config.yml`'s security-advisory link use
+  `github.com/AlexjkB/axiomap` — a reasonable guess from the git author on this repo, not a
+  confirmed destination. `docs/RELEASING.md` names this as the first thing to check before
+  publishing, deliberately, rather than silently assuming it's right.
+- **`@axiomap/vscode` is excluded from Changesets** (`.changeset/config.json`'s `ignore`). Its
+  version was already decoupled from the workspace `package.json` in Phase 8b — `VERSION` in
+  `scripts/package-vsix.mjs` is the number that actually ships — so letting Changesets manage
+  a version number nothing reads would be two systems disagreeing about the one thing a
+  version is for.
+- **`packages/{core,webview,cli}/LICENSE` and `THIRD-PARTY-NOTICES.md` are gitignored.**
+  `scripts/copy-release-files.mjs` runs as each package's `prepack` step and copies the repo
+  root's copies in immediately before `npm pack`/`npm publish` — one source of truth for each
+  file rather than three copies to keep in sync, the same reasoning `notices.mjs` already
+  uses for generating the notices file itself instead of hand-maintaining it.
+- **`.github/workflows/release.yml` is committed and will not do anything** against this
+  repository as it stands — no npm trusted-publisher configured, no `VSCE_PAT`/`OVSX_PAT`
+  secrets, and pushes to `main` only happen locally right now. `changesets/action` no-ops with
+  nothing to do rather than failing, which is why it's safe to commit ahead of the
+  infrastructure it depends on; `docs/RELEASING.md` is the one-time setup checklist for making
+  it live.
+
+### §16 changes
+
+Nothing appended. All four Tier 1 items this phase touched already had a §16 entry
+accurately describing their seam; this phase confirmed and documented, rather than
+discovering something new to defer.
+
+### Notes for the next session
+
+- **Before publishing anything**, read `docs/RELEASING.md` start to finish — it names the
+  publisher-registration race condition (§7 Phase 8b already flagged that `axiomap` might be
+  taken on either marketplace) and the exact secrets the release workflow needs.
+- **The GIF is still missing.** If a future session has a way to record one (a real terminal
+  and a real VS Code window, not synthesized), §7's README guidance specifically asks for it.
+- **`pnpm verify:npm-pack` takes about 10 seconds** (dominated by `npm install`'s resolution,
+  not by Axiomap) and is now part of `pnpm check`'s neighborhood the way `verify:vsix` is —
+  run after `pnpm build`, not as part of `pnpm check` itself, for the same reason: it launches
+  real subprocesses outside the vitest sandbox.
+- **The repository URL placeholder appears in exactly two kinds of place** — publishable
+  `package.json`'s `repository`/`homepage`/`bugs` fields, and
+  `.github/ISSUE_TEMPLATE/config.yml`'s security link — so fixing it later is a single find
+  and replace, not a hunt.

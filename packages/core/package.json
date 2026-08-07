@@ -1,9 +1,19 @@
 {
   "name": "@axiomap/core",
   "version": "0.0.0",
-  "private": true,
+  "private": false,
   "description": "Axiomap engine: parsing, symbols, resolution, graph. No UI, no network, fs only.",
   "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/AlexjkB/axiomap.git",
+    "directory": "packages/core"
+  },
+  "homepage": "https://github.com/AlexjkB/axiomap#readme",
+  "bugs": "https://github.com/AlexjkB/axiomap/issues",
+  "publishConfig": {
+    "access": "public"
+  },
   "type": "module",
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
@@ -15,12 +25,15 @@
   },
   "files": [
     "dist",
-    "vendor"
+    "vendor",
+    "LICENSE",
+    "THIRD-PARTY-NOTICES.md"
   ],
   "scripts": {
     "build": "tsc -b",
     "test": "vitest run --passWithNoTests",
-    "clean": "rm -rf dist tsconfig.tsbuildinfo"
+    "clean": "rm -rf dist tsconfig.tsbuildinfo",
+    "prepack": "node ../../scripts/copy-release-files.mjs"
   },
   "dependencies": {
     "graphology": "^0.26.0",

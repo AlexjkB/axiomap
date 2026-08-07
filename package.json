@@ -24,13 +24,17 @@
     "verify:vsix": "node scripts/verify-vsix.mjs",
     "notices": "node scripts/notices.mjs",
     "test:host": "node scripts/test-extension-host.mjs",
-    "notices:check": "node scripts/notices.mjs --check"
+    "notices:check": "node scripts/notices.mjs --check",
+    "changeset": "changeset",
+    "version-packages": "changeset version",
+    "verify:npm-pack": "node scripts/verify-npm-pack.mjs"
   },
   "devDependencies": {
     "@axiomap/cli": "workspace:^",
     "@axiomap/core": "workspace:^",
     "@axiomap/vscode": "workspace:^",
     "@axiomap/webview": "workspace:^",
+    "@changesets/cli": "^2.31.1",
     "@eslint/js": "^9.18.0",
     "@openzeppelin/contracts": "^5.6.1",
     "@types/mocha": "^10.0.10",
