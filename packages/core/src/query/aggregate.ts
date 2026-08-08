@@ -198,6 +198,11 @@ function depthOf(dir: string): number {
 }
 
 function label(dir: string): string {
+  // A project whose sources sit at its own root has one directory, and its
+  // path is `ROOT_DIR`. Drawn verbatim that is a box labelled with a full stop,
+  // which reads as a rendering artifact rather than as a name — seen the first
+  // time this was pointed at a single-directory project.
+  if (dir === ROOT_DIR) return '(project root)';
   const cut = dir.lastIndexOf('/');
   return cut < 0 ? dir : dir.slice(cut + 1);
 }

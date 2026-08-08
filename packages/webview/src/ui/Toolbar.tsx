@@ -132,7 +132,11 @@ export function Toolbar({
       </div>
 
       <div className="ax-toolbar-row ax-subrow">
-        <span className="ax-hint">{preset.hint}</span>
+        {/* Ellipsized when the panel is narrow, so the full sentence has to be
+            reachable somehow — a hint nobody can finish reading is not a hint. */}
+        <span className="ax-hint" title={preset.hint}>
+          {preset.hint}
+        </span>
         {meta === null ? null : <span className="ax-score">{scoreLine(meta.score)}</span>}
       </div>
     </header>

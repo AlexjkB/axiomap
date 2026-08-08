@@ -188,12 +188,18 @@ body {
 }
 
 .ax-hint {
+  /* Shrinks first, and may shrink to nothing: `min-width: 0` is what lets a
+     flex item go below its content width, without which it pushes the score
+     off the row instead of ellipsizing. */
+  flex: 1 1 auto;
+  min-width: 0;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 
 .ax-score {
+  flex: 0 0 auto;
   font-family: var(--ax-mono);
   white-space: nowrap;
 }
@@ -634,11 +640,17 @@ body {
 }
 
 .ax-note {
+  flex: 1 1 auto;
+  min-width: 0;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 
+/* Never shrinks. It is short, it is the two numbers §9 rule 2 is about, and
+   `nowrap` without this let it run past the viewport edge and get clipped
+   with no ellipsis to say so. */
 .ax-metrics {
+  flex: 0 0 auto;
   white-space: nowrap;
 }

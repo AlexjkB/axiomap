@@ -321,6 +321,38 @@ function callEdge(from: string, to: string, file: string): GraphEdge {
  * contract would test the rollup `views.ts` already has a test for rather than
  * the clustering this file is about.
  */
+/**
+ * A project whose sources sit at its own root, which is what you get pointing
+ * the tool at one directory rather than at a repo. Every file's directory is
+ * `ROOT_DIR`, so there is exactly one cluster and its path is `.`.
+ */
+function rootLevelProject(): GraphFile {
+  const nodes: GraphNode[] = [];
+  const files: string[] = [];
+  for (const name of ['Vault', 'Timelock', 'Base']) {
+    const file = `${name}.sol`;
+    files.push(file);
+    nodes.push(contractNode(`${file}:${name}`, file));
+  }
+  const edges: GraphEdge[] = [callEdge(nodes[0]!.id, nodes[1]!.id, files[0]!)];
+
+  return {
+    schemaVersion: 4,
+    generator: { name: 'axiomap', parser: 'synthetic', hashVersion: 1, compilers: [] },
+    project: { kind: 'bare', sources: ['.'], files: nodes.length },
+    mode: 'heuristic',
+    modeReason: 'synthesised',
+    score: {
+      overall: { semantic: 0, heuristic: 1, ambiguous: 0, unresolved: 0, total: 1, confident: 1 },
+      calls: { semantic: 0, heuristic: 1, ambiguous: 0, unresolved: 0, total: 1, confident: 1 },
+      excludedFiles: 0,
+    },
+    diagnostics: [],
+    nodes,
+    edges,
+  };
+}
+
 function syntheticProtocol(contracts = 300, dirs = 12, fanOut = 6): GraphFile {
   const nodes: GraphNode[] = [];
   const files: string[] = [];
@@ -393,5 +425,25 @@ describe('300 contracts (§7 Phase 7 exit, decision #6)', () => {
     expect(drawnNodeIds(view).every((id) => id.startsWith('src/m3/'))).toBe(true);
     expect(view.elements).toBeLessThanOrEqual(DEFAULT_RENDER_CAP);
     expectNoCallSiteLost(view, selection);
+  });
+});
+
+/**
+ * Found by looking at a screenshot, which is the only way this kind of defect
+ * is ever found: the box was drawn correctly and labelled with a full stop.
+ */
+describe('a project whose sources are at its root', () => {
+  it('names the one cluster something a human can read, not "."', () => {
+    const view = selectAggregatedView(graphFromFile(rootLevelProject()), { view: 'protocol' });
+    const boxes = clusters(view);
+
+    // One directory, so one cluster, and its path is still the honest `.`.
+    expect([...boxes.keys()]).toEqual(['.']);
+    const root = boxes.get('.')!;
+    expect(root.path).toBe('.');
+    // The label is what a renderer draws on the box. A bare `.` is one pixel
+    // and reads as a rendering artifact rather than as a name.
+    expect(root.label).not.toBe('.');
+    expect(root.label).toBe('(project root)');
   });
 });

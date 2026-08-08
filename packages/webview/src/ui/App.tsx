@@ -259,6 +259,9 @@ export function App({ bridge, layoutClient, editor }: AppProps): JSX.Element {
   }, [bridge, selected, generation]);
 
   const preset = PRESETS[state.view];
+  const note =
+    (refreshed === null ? '' : `${refreshed.reason} · `) +
+    (view === null ? 'loading…' : view.note);
   const elements = useMemo(
     () =>
       view === null || view.view !== state.view
@@ -473,9 +476,10 @@ export function App({ bridge, layoutClient, editor }: AppProps): JSX.Element {
       />
 
       <footer className="ax-status">
-        <span className="ax-note">
-          {refreshed === null ? '' : `${refreshed.reason} · `}
-          {view === null ? 'loading…' : view.note}
+        {/* §9's honest half: what was aggregated and why. Ellipsized in a narrow
+            panel, so it carries the whole sentence as its tooltip. */}
+        <span className="ax-note" title={note}>
+          {note}
         </span>
         <span className="ax-metrics">
           {view === null ? '' : `${String(view.elements)} / ${String(view.cap)} elements`}
