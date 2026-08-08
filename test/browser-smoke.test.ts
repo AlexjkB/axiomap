@@ -137,6 +137,38 @@ class Page {
     await this.send('Page.navigate', { url });
   }
 
+  /**
+   * Press, move, release — a real drag, not a synthesised `grab` event.
+   *
+   * The lock is a cytoscape option, so asserting it by calling cytoscape back
+   * ("is `autoungrabify` on?") would only restate the line that sets it. What
+   * decides whether a node moves is the pointer, so the pointer is what this
+   * sends: CDP mouse events at viewport coordinates, which is the same input
+   * path a hand on a mouse produces.
+   */
+  async drag(from: { x: number; y: number }, to: { x: number; y: number }): Promise<void> {
+    const at = (type: string, point: { x: number; y: number }): Promise<unknown> =>
+      this.send('Input.dispatchMouseEvent', {
+        type,
+        x: point.x,
+        y: point.y,
+        button: 'left',
+        buttons: 1,
+        clickCount: 1,
+      });
+    await at('mousePressed', from);
+    // Intermediate moves, because a single jump can be read as a click that
+    // happened to end elsewhere rather than as a drag.
+    for (const step of [0.25, 0.5, 0.75, 1]) {
+      await at('mouseMoved', {
+        x: from.x + (to.x - from.x) * step,
+        y: from.y + (to.y - from.y) * step,
+      });
+      await new Promise((resolve) => setTimeout(resolve, 20));
+    }
+    await at('mouseReleased', to);
+  }
+
   /** Set a host's theme variables before the app boots, as VS Code does. */
   async theme(variables: Record<string, string>): Promise<void> {
     const source = Object.entries(variables)
@@ -194,6 +226,47 @@ function tap(selector: string): string {
   `;
 }
 
+/**
+ * Where a node is on screen, and where the graph thinks it is.
+ *
+ * Two different questions, and the drag test needs both: the rendered point is
+ * where to put the mouse down, and the model position is the thing that must
+ * not change while the canvas is locked. Reading the rendered point rather than
+ * guessing one also means the test drags the node that is actually there, at
+ * whatever zoom the fit settled on.
+ */
+const FIRST_NODE = `
+  (() => {
+    const canvas = document.querySelector('.ax-canvas');
+    const cy = canvas._cyreg.cy;
+    const node = cy.nodes('[kind = "Contract"]').first();
+    if (node.empty()) return '';
+    const box = canvas.getBoundingClientRect();
+    const rendered = node.renderedPosition();
+    const model = node.position();
+    return [
+      node.id(),
+      box.left + rendered.x,
+      box.top + rendered.y,
+      model.x,
+      model.y,
+    ].join('|');
+  })()
+`;
+
+/** The model position of a node by id, as `x|y`, after the drag. */
+function positionOf(id: string): string {
+  return `
+    (() => {
+      const cy = document.querySelector('.ax-canvas')._cyreg.cy;
+      const node = cy.getElementById(${JSON.stringify(id)});
+      return node.empty() ? '' : [node.position().x, node.position().y].join('|');
+    })()
+  `;
+}
+
+const LOCK = "document.querySelector('.ax-zoom [aria-pressed]')";
+
 let session: ServeSession;
 let page: Page;
 
@@ -229,6 +302,50 @@ describe.skipIf(CHROME === undefined)('the graph in a browser', () => {
     const view = await page.until(CURRENT_VIEW, (value) => value === 'Contract detail');
     expect(view).toBe('Contract detail');
     expect(await page.until(METRICS, (value) => /layout/.test(value))).toMatch(/layout \d+ ms/);
+  }, 120_000);
+
+  /**
+   * The lock, at the only place it is either true or false: a mouse.
+   *
+   * Both halves are asserted in one test on purpose. "The node did not move" is
+   * worthless on its own — it also passes if the drag never reached the canvas,
+   * if the coordinates were wrong, or if the whole gesture silently did
+   * nothing. The unlocked drag is the control that proves the input path works,
+   * and the locked one is then a real answer rather than a tautology.
+   */
+  it('holds nodes in place until the lock is released', async () => {
+    await page.goto(session.handle.url);
+    await page.until(METRICS, (value) => /layout \d+ ms/.test(value));
+
+    // Locked on arrival: the button says so, and cytoscape agrees.
+    expect(await page.evaluate(`${LOCK}.getAttribute('aria-pressed')`)).toBe('true');
+
+    const [id, screenX, screenY, modelX, modelY] = (await page.evaluate(FIRST_NODE)).split('|');
+    expect(id).not.toBe('');
+    const from = { x: Number(screenX), y: Number(screenY) };
+    const to = { x: from.x + 120, y: from.y + 90 };
+    const before = `${modelX}|${modelY}`;
+
+    await page.drag(from, to);
+    expect(await page.evaluate(positionOf(id))).toBe(before);
+
+    /*
+     * Now unlock and drag the same node again. The screen point is re-read
+     * rather than reused: the locked drag panned the viewport, which is what a
+     * press-and-drag over a locked canvas is supposed to do, so the node is no
+     * longer under the old coordinates.
+     */
+    await page.evaluate(`${LOCK}.click()`);
+    expect(await page.evaluate(`${LOCK}.getAttribute('aria-pressed')`)).toBe('false');
+
+    const moved = (await page.evaluate(FIRST_NODE)).split('|');
+    await page.drag(
+      { x: Number(moved[1]), y: Number(moved[2]) },
+      { x: Number(moved[1]) + 120, y: Number(moved[2]) + 90 },
+    );
+    expect(await page.evaluate(positionOf(id))).not.toBe(before);
+
+    expect(page.consoleErrors.join('\n')).toBe('');
   }, 120_000);
 
   /**

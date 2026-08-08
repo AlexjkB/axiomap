@@ -21,7 +21,7 @@
  */
 
 import cytoscape from 'cytoscape';
-import { useCallback, useEffect, useRef } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 
 import type { CyElements } from './elements.js';
 import { toElkGraph } from './layout/elk-graph.js';
@@ -84,6 +84,65 @@ const WHEEL_ZOOM_RATE = 0.002;
 /** Padding used by every fit here, so the clamp and the fit agree. */
 const FIT_PADDING = 24;
 
+/**
+ * Whether a node can be dragged out of the position ELK gave it — and why the
+ * answer starts as "no".
+ *
+ * Cytoscape's default is grabbable, so before this existed every click on a
+ * contract or a function was also a potential drag: a few pixels of travel
+ * while pressing, and the node is somewhere ELK did not put it. That is easy to
+ * do by accident and impossible to undo, because the layout is only recomputed
+ * when the elements change — there is no "put it back". Panning is the gesture
+ * people actually want from a press-and-drag on this canvas, and it is what
+ * they get on the background already.
+ *
+ * The laid-out graph is the product here: §9 rule 6 spends a worker and a
+ * two-step render getting the positions right, and a stray drag quietly makes
+ * the picture wrong in a way that still looks deliberate. So the default
+ * protects the layout and moving nodes is the thing you opt into.
+ */
+const LOCKED_BY_DEFAULT = true;
+
+/**
+ * The padlock on the lock chip: a shackle that closes, and one that does not.
+ *
+ * Drawn here rather than pulled from an icon package. `lucide-react` is the
+ * obvious way to get this glyph and it would be the *only* thing that
+ * dependency is used for — against a repo that checks its dependencies for
+ * network access, generates a notices file from them, and ships them inside a
+ * VSIX. Two paths on Lucide's own 24-unit grid, at its 2px round-capped stroke,
+ * cost none of that and are indistinguishable at 13px.
+ *
+ * `currentColor` is the point of using an SVG at all: the icon takes the chip's
+ * colour, so it follows §11's palette into every host theme — including the
+ * high-contrast ones — and picks up the engaged state for free. An emoji
+ * padlock would have been a fixed-colour bitmap that ignores all of it, and
+ * would render differently on each of the three platforms the extension ships
+ * to (or not at all, on a box with no emoji font).
+ */
+function LockIcon({ locked }: { locked: boolean }): JSX.Element {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      width="13"
+      height="13"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      // The button carries the accessible name; the drawing is decoration.
+      aria-hidden="true"
+      focusable="false"
+    >
+      <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
+      {/* Closed: the shackle lands back on the body. Open: it swings clear to
+          the right, which is the state difference read at a glance. */}
+      <path d={locked ? 'M7 11V7a5 5 0 0 1 10 0v4' : 'M7 11V7a5 5 0 0 1 9.9-1'} />
+    </svg>
+  );
+}
+
 export interface GraphCanvasProps {
   elements: CyElements;
   preset: ViewPreset;
@@ -128,6 +187,7 @@ export function GraphCanvas({
 }: GraphCanvasProps): JSX.Element {
   const container = useRef<HTMLDivElement | null>(null);
   const cy = useRef<cytoscape.Core | null>(null);
+  const [locked, setLocked] = useState(LOCKED_BY_DEFAULT);
   const handlers = useRef({ onPick, onPickEdge, onLayout });
   handlers.current = { onPick, onPickEdge, onLayout };
   // The mount effect runs once and must not re-run when the theme changes; the
@@ -151,6 +211,13 @@ export function GraphCanvas({
        * more events per gesture than a wheel does.
        */
       wheelSensitivity: 0.6,
+      /*
+       * Set at construction as well as by the effect below, so there is no
+       * frame between mount and the first effect in which a node is grabbable.
+       * The effect is what tracks the toggle; this is what makes the initial
+       * state true of the instance rather than only of the button.
+       */
+      autoungrabify: LOCKED_BY_DEFAULT,
       /*
        * Off, and it shipped on.
        *
@@ -403,6 +470,23 @@ export function GraphCanvas({
   }, [selected, elements]);
 
   /*
+   * The lock, applied to the instance.
+   *
+   * `autoungrabify` is core-level rather than per-node, which is why the
+   * element effect can wipe and re-add everything without this having to run
+   * again: nodes added while it is on arrive ungrabbable. It blocks the drag
+   * and nothing else — pan, zoom, tap-to-focus, edge clicks and selection all
+   * work locked, so §11's inverse navigation is unaffected either way.
+   *
+   * Deliberately not in `NavState` and not in the URL protocol. Those describe
+   * *which graph* is on screen and are shared and restored as such; this is how
+   * the mouse behaves over it, closer to the zoom level than to the view.
+   */
+  useEffect(() => {
+    cy.current?.autoungrabify(locked);
+  }, [locked]);
+
+  /*
    * Zoom that does not depend on a wheel.
    *
    * The wheel is the only way to change zoom otherwise, and a webview panel is
@@ -435,7 +519,9 @@ export function GraphCanvas({
   return (
     <div className="ax-stage-inner">
       <div className="ax-canvas" ref={container} />
-      <div className="ax-zoom" role="group" aria-label="Zoom">
+      {/* Not "Zoom" any more: the group holds the lock too, and a screen reader
+          announcing a lock button as part of a zoom group is a small lie. */}
+      <div className="ax-zoom" role="group" aria-label="Canvas controls">
         <button type="button" className="ax-chip" title="Zoom in" onClick={() => { step(1.3); }}>
           +
         </button>
@@ -444,6 +530,27 @@ export function GraphCanvas({
         </button>
         <button type="button" className="ax-chip" title="Fit the graph to the viewport" onClick={refit}>
           fit
+        </button>
+        {/* The glyph flips where the word could not: an open and a closed
+            padlock are the same width and unambiguous about which state is
+            current, whereas the label "unlock" reads as both the state and the
+            action. `aria-pressed` still carries it for a screen reader, and the
+            `aria-label` is the name the icon cannot be. */}
+        <button
+          type="button"
+          className="ax-chip ax-chip-icon"
+          aria-pressed={locked}
+          aria-label="Lock node positions"
+          title={
+            locked
+              ? 'Nodes are locked in place — click to allow dragging them'
+              : 'Nodes can be dragged — click to lock them in place'
+          }
+          onClick={() => {
+            setLocked((value) => !value);
+          }}
+        >
+          <LockIcon locked={locked} />
         </button>
       </div>
     </div>
