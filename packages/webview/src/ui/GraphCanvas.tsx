@@ -171,7 +171,8 @@ export function GraphCanvas({
 
   useEffect(() => {
     const instance = cy.current;
-    if (instance === null) return;
+    const element = container.current;
+    if (instance === null || element === null) return;
     let abandoned = false;
 
     instance.batch(() => {
@@ -183,11 +184,32 @@ export function GraphCanvas({
       ]);
     });
 
-    // Step 1: on screen now, laid out badly, at no cost.
+    /*
+     * Step 1: positioned badly, and not shown yet.
+     *
+     * The grid is still run because ELK needs every node measured — its sizes
+     * come from cytoscape below — and because it is the fallback if the worker
+     * never answers. What changed is that it is not *watched*: the canvas is
+     * held blank until real positions arrive, so a view opens with its graph
+     * already in place instead of assembling itself from a grid.
+     *
+     * §9 rule 6 says to "render nodes unlaid-out immediately, animate into
+     * position when ELK returns". The half that matters is the rest of that
+     * rule — never block on layout — and nothing here does: the layout is in a
+     * worker, the main thread is free, the status bar says it is working. What
+     * is given up is watching the graph arrive, which reads as the tool being
+     * unsure where things go rather than as feedback. Measured layouts on real
+     * fixtures are 13-366 ms, so the blank is brief.
+     */
+    element.style.visibility = 'hidden';
     instance.layout({ name: 'grid', fit: true, animate: false }).run();
     handlers.current.onLayout(null);
 
-    if (elements.nodes.length === 0) return;
+    // Nothing to lay out, so nothing to wait for.
+    if (elements.nodes.length === 0) {
+      element.style.visibility = 'visible';
+      return;
+    }
 
     // Step 2: the real layout, off the main thread.
     const graph = toElkGraph(elements, preset, (id) => {
@@ -213,14 +235,13 @@ export function GraphCanvas({
       .layout(graph)
       .then((result) => {
         if (abandoned) return;
-        // Step 3: animate into position.
+        // Step 3: into position, in one paint. Not animated — see step 1.
         const applied = instance.layout({
           name: 'preset',
           positions: result.positions,
           fit: true,
           padding: 24,
-          animate: true,
-          animationDuration: 250,
+          animate: false,
         });
         /*
          * Fit again once it has stopped. A compound node's box is fitted around
@@ -257,6 +278,10 @@ export function GraphCanvas({
           }
         });
         applied.run();
+        // Revealed only now, with everything where it belongs. `layoutstop`
+        // fires synchronously for an unanimated layout, so the fit above has
+        // already run by this point.
+        element.style.visibility = 'visible';
         handlers.current.onLayout(result.ms);
       })
       .catch((error: unknown) => {
@@ -270,7 +295,12 @@ export function GraphCanvas({
          * should not have a failure mode that is indistinguishable from a bad
          * layout. This one shipped: a bundler interop bug left `new ELK()`
          * throwing in the worker, and nothing on screen said anything.
+         *
+         * So the grid is revealed rather than left hidden: a blank canvas would
+         * be a worse version of the same failure, and the status bar carries the
+         * reason either way.
          */
+        element.style.visibility = 'visible';
         handlers.current.onLayout({
           failed: error instanceof Error ? error.message : String(error),
         });
