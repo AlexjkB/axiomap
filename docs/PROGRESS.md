@@ -3325,3 +3325,123 @@ the preamble. Nothing deferred; this session finished what it started.
   should. They are records of what was true in Phases 7c–8c, not live pointers; the two
   living documents (`AXIOMAP.md`, `docs/architecture/extension-seams.md`) are the ones that
   were updated.
+
+---
+
+## First contact with a real protocol, and the seven defects it found
+
+**Date:** 2026-08-08
+**Status:** complete. `pnpm check` green — 446 core, 121 webview, 101 cli, 51 vscode, 57
+repo-level. Six commits, all of them fixes, none of which any test suite would have caught.
+
+Not a phase. The roadmap ended at Phase 9 and this is what happened when the tool was
+pointed at code that is not a fixture for the first time — Damn Vulnerable DeFi, then the
+`defi/` fixture in a browser — and then actually *looked at*. §7's Phase 9 notes and the
+scope-reduction entry both said the next useful thing was a real protocol; this is that,
+and the yield was higher than expected.
+
+**Every defect below was found by a human looking at a picture or an error message.** Not
+one was visible to a green suite, and the suite was green before and after each. That is
+now the third time in this project's history (Phase 7b's dead layout engine, Phase 7c's
+overlays decorating nothing) and it should stop being a surprise.
+
+### What the real project turned up about the engine
+
+Three findings, all appended to §16 rather than fixed, because each is a design question
+rather than a line of code:
+
+- **Foundry no longer writes ASTs into `build-info`.** forge 1.7.1 writes
+  `{id, language, source_id_to_path}` — an index, not standard JSON. No `input`, no
+  `output`, no `ast`, and the per-contract artifacts have none either. §3's justification
+  for dropping `solc-typed-ast` is that "Foundry and Hardhat already write" the ASTs, and
+  that half of the sentence is now false. **Consequence: `full` mode is unreachable for
+  every Foundry user**, which is most of the audience. The tool degrades honestly and says
+  so per artifact; it is simply wrong about what the ecosystem produces.
+- **Qualified errors and events through an imported type do not resolve.**
+  `revert Errors.FailedDeployment()`, `emit IERC1967.Upgraded(x)` — declared inside an
+  imported library or interface, referenced explicitly, not inherited. This is
+  OpenZeppelin v5's house style, so it will appear in a large share of real projects. It
+  was 10 of 10 remaining unresolved edges on the climber challenge, all inside vendored OZ.
+- **The mode threshold weights dependencies like the code under audit.** climber's own
+  code resolved **100%** and the project still landed in structural mode at 66%, because
+  ~22 unresolved sites inside OpenZeppelin dragged the ratio under 70%. The call graph was
+  withheld for a target whose own code was perfect.
+
+Two more things worth recording that are *not* defects, because the tool got them right:
+
+- **The error messages did their job.** "Cannot resolve import `solady/...` … Tried:
+  `lib/solady/src/utils/SafeTransferLib.sol`" named the exact path, and the exact path was
+  genuinely missing — a half-checked-out dependency in the user's own tree. §6's rule
+  about errors carrying actionable context paid for itself.
+- **Scoping is the difference between usable and useless, and nobody is told.** The same
+  project scores 30% unresolved from a subdirectory, 72% *ambiguous* from the repo root
+  with no config, and 80% heuristic with an `include`/`exclude` that names the target and
+  its real dependencies. That spread is entirely §13 configuration, and nothing in the
+  README, the CLI or the UI says so. See the notes at the end.
+
+### The six fixes
+
+| Commit | What was wrong |
+|---|---|
+| `0f708b6` | **Text cut off in four places.** `.ax-metrics` ran off the viewport (nowrap, no overflow, no flex basis) and was clipped with no ellipsis. `.ax-hint` and `.ax-note` ellipsized with no `title`, so truncation was unrecoverable — both also needed `min-width: 0`, without which a flex item refuses to shrink below its content and shoves its neighbour off the row. And the root cluster was labelled `.`: `ROOT_DIR` is `'.'` and `label()` returned it verbatim, so a project whose sources sit at its own root got a box with a full stop in the corner |
+| `423bd99` | **The state-access map stated read-vs-write twice and disagreed with itself.** Every function node carried `reads`/`writes` in its detail line while its edges drew the same thing per variable in colour. Not a redundant copy — a lossy one: `flagSummary` is `writesState ? 'writes' : readsState && 'reads'`, so a function that does both said `writes` while its edges correctly drew one of each. Gated behind `ViewPreset.stateInFlags` |
+| `eb830f3` | **Three undocumented cytoscape options.** `pixelRatio: 1` forced half-resolution rendering on any HiDPI display permanently, `wheelSensitivity: 0.2` is a fifth of the default, and there were no zoom controls at all. Reported as "zooming in and out is difficult", which was three problems wearing one coat |
+| `5343574` | **Containment drawn as spokes.** A real contract's detail view was 9 nodes and 9 edges, seven of them `declares`. ELK lays a star out as one row thousands of pixels wide. Members are compound children now, `declares` is dropped: 2 edges, 11 elements. Closes §16's "A view too wide to read at fit zoom" |
+| `9d4adb7` | **A nested contract's name clipped at both ends.** Self-inflicted by the commit above: `text-wrap: 'none'` overrode the base `wrap`, collapsing the name/kind newline into one line that cytoscape then clipped outward from the centre — `ClimberTimelock contract` drawn as `berTimelock cont` |
+| `074ae7f` | **The contract view refused a function and named the contract it was declining to open.** `containerOf` already existed and the error message was already calling it. Also fixed a comment in `navigation.ts` claiming a focus the new view cannot use "is dropped rather than carried" — neither half was true, and the always-carried focus is how the error reached a user for clicking a tab |
+
+### Deviations and judgement calls
+
+- **Three existing tests asserted behaviour this session deliberately changed**, and all
+  three were rewritten to the new contract rather than deleted or regenerated: the
+  channel-budget fill assertion gained `node:parent` (all four rules there say "this is a
+  box", which is not a node *attribute* competing for the channel), the aggregate test now
+  distinguishes "no *directory* clusters" from "no parents", and `query.test.ts`'s
+  `toThrow(/needs a Contract/)` became a test of the redirect plus a new one for the case
+  that still refuses.
+- **Nesting was put in `aggregate`, not in `selectView`.** `dot`, `mermaid`, `json` and
+  `svg` go through `selectView` and have no nesting, so they still need the `declares`
+  edges to express containment. Only the webview and the HTML export use
+  `selectAggregatedView`. Checked rather than assumed.
+- **`9d4adb7` was verified in a browser rather than reasoned about**, because the first
+  hypothesis about it was wrong. `scripts/screenshots.mjs` against `fixtures/defi`, then
+  reading the PNG. That harness is now the cheapest tool in the repo and was nearly
+  deleted with the overlays.
+
+### Known defect, logged and not fixed
+
+**In structural mode the call graph view is offered and answers with a single node.** §4
+says of the call graph: "does not survive; **disable the view with an explanation and a
+prompt to build the project**." Neither half happens. `Toolbar.tsx` disables a view only
+when it needs a focus and has none — it never reads `meta.mode` — so once a function is
+selected the tab is live, and `callView` starts from `keep = new Set([focus])` and returns
+the focus node with no edges and the note "1 functions within 2 up and 3 down of X".
+
+That reads as *"this function calls nothing and nothing calls it"*, which is a confident
+wrong answer about a graph that deliberately withheld the edges — the exact failure the
+mode exists to prevent. The mode chip in the corner is the only thing that says otherwise
+and it is across the screen from the empty canvas.
+
+Left unfixed only because it was found while answering a question about something else.
+It is small: both the view selector and `callView` know the mode.
+
+### §16 changes
+
+Three entries appended — the Foundry build-info format, qualified errors and events, and
+the mode threshold weighting dependencies. One entry closed: "A view too wide to read at
+fit zoom", taken with the nesting option it named, with a note that the fit clamp stays
+and that the protocol-map half of its trigger is a different item.
+
+### Notes for the next session
+
+- **The structural-mode call view above is the first thing to fix.** It is the only known
+  case where this tool draws a confidently wrong picture.
+- **Nobody is told how much `include`/`exclude` matters.** A 30%-vs-80% swing decided
+  entirely by §13 config, with no guidance anywhere. The README's quick start, the
+  `axiomap build` summary when a project has a `lib/` it graphed, and the bug template are
+  the three places that could say it. This is arguably the highest-value documentation gap
+  in the repo and is not in §16 because it is a docs task, not a deferral.
+- **Nothing from the Phase 9 release prep has been touched** in any of the last three
+  sessions. Still no remote, still unpublished, `docs/RELEASING.md` still the checklist.
+- **`pnpm screenshots` renders four images per theme now** and reading them back is how two
+  of this session's six fixes were confirmed. Worth running before believing any UI change.
