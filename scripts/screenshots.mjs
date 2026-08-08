@@ -444,8 +444,8 @@ async function run() {
         `;
         const notch = Number(await page.evaluate(wheel(-100)));
         const graze = Number(await page.evaluate(wheel(-8)));
-        if (!(notch > 1.2 && notch < 1.6)) {
-          console.error(`a wheel notch zoomed by ${String(notch)}x, expected ~1.35x`);
+        if (!(notch > 1.15 && notch < 1.35)) {
+          console.error(`a wheel notch zoomed by ${String(notch)}x, expected ~1.25x`);
           process.exitCode = 1;
         } else if (!(graze < notch)) {
           console.error(`a trackpad-sized delta zoomed by ${String(graze)}x, not less than a notch`);

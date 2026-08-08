@@ -72,10 +72,14 @@ const WHEEL_NOTCH_DELTA = 50;
  *
  * Separate from cytoscape's own `wheelSensitivity`, which applies to every
  * device at once and therefore cannot be raised for a wheel without making a
- * trackpad unusable. A notch of 100 works out to about 1.35x, which is roughly
- * three notches per doubling.
+ * trackpad unusable.
+ *
+ * Tuned by hand against a real mouse rather than derived: 0.003 measured at
+ * 1.39x per notch and overshot — two notches crossed a doubling, which is more
+ * than a graph you are reading wants. This is about 1.25x, or three notches per
+ * doubling. The harness asserts the band so it cannot drift back.
  */
-const WHEEL_ZOOM_RATE = 0.003;
+const WHEEL_ZOOM_RATE = 0.002;
 
 /** Padding used by every fit here, so the clamp and the fit agree. */
 const FIT_PADDING = 24;
