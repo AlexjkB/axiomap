@@ -272,6 +272,84 @@ export function GraphCanvas({
     };
     element.addEventListener('wheel', onWheel, { capture: true, passive: false });
 
+    /*
+     * Ending a drag whose end the page never saw.
+     *
+     * Cytoscape decides a drag is over when it gets a `mouseup`, and it listens
+     * for that on the window — which covers every release inside the page and
+     * none outside it. Let go over another application, over the editor beside
+     * the panel, or off the top of the screen, and no event is delivered at
+     * all: `hoverData.dragging` stays true, and the graph pans along with the
+     * pointer the next time it comes back, under a button nobody is holding.
+     * Measured on `fixtures/defi` before this existed — two hover moves after a
+     * lost release panned the viewport from 550,154 to 810,374.
+     *
+     * A webview is where this bites hardest. A top-level page usually keeps an
+     * implicit grab on the pointer for the length of a drag; a panel in an
+     * editor is a small target inside someone else's window, and leaving it
+     * mid-drag is ordinary rather than exceptional.
+     *
+     * So the release is reconstructed from the two moments it can be:
+     *
+     *   - the pointer leaves the window (`mouseout` with no `relatedTarget`),
+     *     which is where the press is lifted rather than followed out, and
+     *   - the pointer comes back with nothing held (`buttons === 0`), which is
+     *     the backstop for every route that skips the first — alt-tab, a
+     *     window manager stealing the drag, a leave event that never fires.
+     *
+     * `blur` covers the same ground as the second for a page that is switched
+     * away from entirely.
+     *
+     * What is dispatched is a real `mouseup` on the window, so cytoscape runs
+     * its own end-of-drag cleanup — its state machine is left to itself rather
+     * than reached into, which is the difference between this surviving a
+     * cytoscape upgrade and quietly breaking on one.
+     */
+    let pressed = false;
+
+    const release = (event: MouseEvent | Event): void => {
+      if (!pressed) return;
+      pressed = false;
+      const at = event instanceof MouseEvent ? event : undefined;
+      window.dispatchEvent(
+        new MouseEvent('mouseup', {
+          bubbles: true,
+          cancelable: true,
+          button: 0,
+          buttons: 0,
+          // Where the pointer was last seen. Cytoscape reads the position off
+          // the event to decide whether the gesture was a tap or a drag, and a
+          // release invented at 0,0 would be a drag across the whole graph.
+          clientX: at?.clientX ?? 0,
+          clientY: at?.clientY ?? 0,
+        }),
+      );
+    };
+
+    const onDown = (event: MouseEvent): void => {
+      if (event.button === 0) pressed = true;
+    };
+    const onUp = (): void => {
+      pressed = false;
+    };
+    // `relatedTarget === null` is the window boundary specifically. Leaving one
+    // element for another inside the page reports where it went, and those must
+    // not lift the press — a drag across the canvas crosses them constantly.
+    const onOut = (event: MouseEvent): void => {
+      if (event.relatedTarget === null) release(event);
+    };
+    const onMove = (event: MouseEvent): void => {
+      if (event.buttons === 0) release(event);
+    };
+
+    element.addEventListener('mousedown', onDown, true);
+    window.addEventListener('mouseup', onUp, true);
+    // Capture, so the stuck drag is ended before cytoscape's own `mousemove`
+    // handler runs on the same event and pans one more frame with it.
+    window.addEventListener('mousemove', onMove, true);
+    document.addEventListener('mouseout', onOut, true);
+    window.addEventListener('blur', release);
+
     instance.on('tap', 'node', (event) => {
       const node = event.target as cytoscape.NodeSingular;
       handlers.current.onPick({
@@ -299,6 +377,11 @@ export function GraphCanvas({
     cy.current = instance;
     return () => {
       element.removeEventListener('wheel', onWheel, { capture: true });
+      element.removeEventListener('mousedown', onDown, true);
+      window.removeEventListener('mouseup', onUp, true);
+      window.removeEventListener('mousemove', onMove, true);
+      document.removeEventListener('mouseout', onOut, true);
+      window.removeEventListener('blur', release);
       instance.destroy();
       cy.current = null;
     };

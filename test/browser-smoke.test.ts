@@ -169,6 +169,29 @@ class Page {
     await at('mouseReleased', to);
   }
 
+  /**
+   * One mouse event, with the button state spelled out.
+   *
+   * `buttons` is the field that matters for the drag-ended-off-window case: a
+   * pointer coming back into the page after being released outside reports
+   * `buttons: 0`, and that is the only evidence the page ever gets that the
+   * release happened.
+   */
+  async mouse(
+    type: string,
+    point: { x: number; y: number },
+    buttons: number,
+  ): Promise<void> {
+    await this.send('Input.dispatchMouseEvent', {
+      type,
+      x: point.x,
+      y: point.y,
+      button: buttons === 0 ? 'none' : 'left',
+      buttons,
+      clickCount: buttons === 0 ? 0 : 1,
+    });
+  }
+
   /** Set a host's theme variables before the app boots, as VS Code does. */
   async theme(variables: Record<string, string>): Promise<void> {
     const source = Object.entries(variables)
@@ -267,6 +290,36 @@ function positionOf(id: string): string {
 
 const LOCK = "document.querySelector('.ax-zoom [aria-pressed]')";
 
+/**
+ * A point on the canvas with nothing drawn on it, in viewport coordinates.
+ *
+ * Pressing on a node and pressing on the background are different gestures and
+ * only the second one pans — the first attempt at the drag-release test pressed
+ * on a node, panned nothing, and passed while the bug it was written for was
+ * still there. So the empty point is computed from the graph's own rendered
+ * bounding box rather than guessed at.
+ */
+const EMPTY_POINT = `
+  (() => {
+    const canvas = document.querySelector('.ax-canvas');
+    const cy = canvas._cyreg.cy;
+    const box = canvas.getBoundingClientRect();
+    const drawn = cy.elements().renderedBoundingBox();
+    // Below everything the graph drew, still inside the canvas.
+    const y = Math.min(box.top + drawn.y2 + 40, box.bottom - 20);
+    return [box.left + 60, y].join('|');
+  })()
+`;
+
+/** Where the viewport is, as `x|y`, rounded so a sub-pixel drift is not a diff. */
+const PAN = `
+  (() => {
+    const cy = document.querySelector('.ax-canvas')._cyreg.cy;
+    const pan = cy.pan();
+    return [Math.round(pan.x), Math.round(pan.y)].join('|');
+  })()
+`;
+
 let session: ServeSession;
 let page: Page;
 
@@ -345,6 +398,71 @@ describe.skipIf(CHROME === undefined)('the graph in a browser', () => {
     );
     expect(await page.evaluate(positionOf(id))).not.toBe(before);
 
+    expect(page.consoleErrors.join('\n')).toBe('');
+  }, 120_000);
+
+  /**
+   * A drag that ended somewhere the page could not see it.
+   *
+   * Release the button outside the window — off the top of the screen, over
+   * another application, over the editor beside the webview — and no `mouseup`
+   * is ever delivered. Cytoscape binds that handler on the window, which covers
+   * every release *inside* the page and none outside it, so the pan it started
+   * is still running when the pointer comes back: the graph slides around under
+   * a button nobody is holding, and only a real click puts it down.
+   *
+   * The re-entry move is the whole test. It is the first moment the page can
+   * possibly know a release happened, because `buttons: 0` is the only trace
+   * left of it.
+   */
+  it('lets go of a drag that was released outside the window', async () => {
+    await page.goto(session.handle.url);
+    await page.until(METRICS, (value) => /layout \d+ ms/.test(value));
+
+    const [emptyX, emptyY] = (await page.evaluate(EMPTY_POINT)).split('|');
+    const from = { x: Number(emptyX), y: Number(emptyY) };
+    const start = await page.evaluate(PAN);
+
+    // Press on the background and drag. The control half: if this does not pan,
+    // everything below is vacuous.
+    await page.mouse('mousePressed', from, 1);
+    await page.mouse('mouseMoved', { x: from.x + 60, y: from.y + 40 }, 1);
+    await page.mouse('mouseMoved', { x: from.x + 120, y: from.y + 80 }, 1);
+    const panned = await page.evaluate(PAN);
+    expect(panned).not.toBe(start);
+
+    /*
+     * The pointer leaves the window, and the button comes up out there. No
+     * `mouseReleased` is sent, because that is precisely what the page never
+     * receives — the only thing a browser delivers here is the boundary
+     * crossing, a `mouseout` that names no element it moved to.
+     *
+     * Both events below are dispatched from the page rather than through CDP:
+     * Chrome will not deliver a `buttons: 0` move while it still believes a
+     * press is outstanding, so the input pipeline cannot express "the release
+     * you never saw" at all. These are the events a real browser produces.
+     */
+    await page.evaluate(`
+      document.dispatchEvent(new MouseEvent('mouseout', {
+        bubbles: true, clientX: ${String(from.x + 120)}, clientY: ${String(from.y + 80)},
+      }));
+      'left the window'
+    `);
+
+    // Back, with nothing held down.
+    for (const step of [1, 2]) {
+      await page.evaluate(`
+        window.dispatchEvent(new MouseEvent('mousemove', {
+          bubbles: true, buttons: 0,
+          clientX: ${String(from.x + 180 * step)}, clientY: ${String(from.y + 140 * step)},
+        }));
+        'hovering'
+      `);
+    }
+
+    // The viewport is where the drag left it, not dragged on by a pointer that
+    // is only hovering.
+    expect(await page.evaluate(PAN)).toBe(panned);
     expect(page.consoleErrors.join('\n')).toBe('');
   }, 120_000);
 
