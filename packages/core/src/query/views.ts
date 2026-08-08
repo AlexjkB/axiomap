@@ -245,6 +245,37 @@ function callView(
   up: number,
   down: number,
 ): ViewSelection {
+  /*
+   * §4: in structural mode the call graph "does not survive; disable the view
+   * with an explanation and a prompt to build the project."
+   *
+   * Detected from the graph rather than from `mode`, which this function is not
+   * given and which would be a second source of truth for the same fact:
+   * structural mode is *implemented* by dropping `calls` and `creates` in
+   * `build.ts`, so their absence is the condition itself rather than a proxy
+   * for it. It also covers the honest second case — a project with no call
+   * sites at all — which lands in structural mode by the same route.
+   *
+   * Without this the view answered with the focus node and no edges, and a note
+   * reading "1 functions within 2 up and 3 down". That is a confident wrong
+   * answer — "this function calls nothing and nothing calls it" — about a graph
+   * that deliberately withheld the edges, which is the exact failure the mode
+   * exists to prevent.
+   */
+  let hasCallEdges = false;
+  graph.forEachEdge((_key, edge) => {
+    if (CALL_EDGE_KINDS.has(edge.kind)) hasCallEdges = true;
+  });
+  if (!hasCallEdges) {
+    throw new ViewError(
+      'This graph has no call edges, so there is no call graph to draw. Either the ' +
+        'project has no call sites, or resolution fell below the threshold and §4 ' +
+        'withheld them rather than drawing a sparse and misleading graph — `axiomap ' +
+        'stats` prints which, and building the project (`forge build --build-info`) is ' +
+        'what enables them. The other four views are unaffected.',
+    );
+  }
+
   const keep = new Set<string>([focus]);
   for (const hit of traverse(graph, focus, 'callers', { depth: up })) keep.add(hit.id);
   for (const hit of traverse(graph, focus, 'callees', { depth: down })) keep.add(hit.id);

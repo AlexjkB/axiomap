@@ -67,13 +67,27 @@ export function Toolbar({
         <nav className="ax-views">
           {PRESET_ORDER.map((name) => {
             const blocked = PRESETS[name].needsFocus && focus === null;
+            /*
+             * §4's other half: the call graph does not survive structural mode,
+             * and the view is *disabled with an explanation* rather than left
+             * live to answer with an empty canvas. `modeReason` is the sentence
+             * the engine already wrote about this project, so the tooltip says
+             * why this project rather than why in general.
+             */
+            const withheld = name === 'call' && meta?.mode === 'structural';
             return (
               <button
                 key={name}
                 type="button"
                 className={name === view ? 'ax-view ax-view-current' : 'ax-view'}
-                disabled={blocked || busy}
-                title={blocked ? 'Click a node first — this view needs a focus (§9 rule 4)' : PRESETS[name].hint}
+                disabled={blocked || withheld || busy}
+                title={
+                  withheld
+                    ? `No call graph in structural mode. ${meta?.modeReason ?? ''}`
+                    : blocked
+                      ? 'Click a node first — this view needs a focus (§9 rule 4)'
+                      : PRESETS[name].hint
+                }
                 onClick={() => {
                   onView(name);
                 }}

@@ -65,6 +65,7 @@ const vault = contract('src/Vault.sol:Vault');
 function bridgeOf(
   answer: (request: AggregatedViewOptions) => Promise<AggregatedView>,
   extra: {
+    meta?: () => Promise<ProjectMeta>;
     inspect?: (id: string) => Promise<NodeInspection>;
     auditState?: () => Promise<AuditState>;
     search?: (query: string, limit?: number) => Promise<SearchResults>;
@@ -79,7 +80,7 @@ function bridgeOf(
     inspected,
     sliced,
     bridge: {
-      meta: () => Promise.resolve(meta),
+      meta: () => extra.meta?.() ?? Promise.resolve(meta),
       view: (request) => {
         asked.push(request);
         return answer(request);
@@ -197,6 +198,43 @@ describe('App', () => {
     expect(callTab.disabled).toBe(true);
     // No focus, no request: the refusal is the UI's, before the host's.
     expect(asked.every((request) => request.view !== 'call')).toBe(true);
+  });
+
+  /**
+   * §4's second clause, at the end that draws it: the call graph is *disabled
+   * with an explanation* in structural mode, not left live to answer with an
+   * empty canvas. The core half refuses the request; this is the half that
+   * stops the request being made by someone clicking a tab.
+   */
+  it('disables the call graph in structural mode, and says why', async () => {
+    const { bridge } = bridgeOf(() => Promise.resolve(view()), {
+      meta: () =>
+        Promise.resolve({
+          ...meta,
+          mode: 'structural' as const,
+          modeReason: 'No build artifacts, and only 38% of call edges resolved confidently.',
+        }),
+    });
+    render(<App bridge={bridge} layoutClient={new LayoutClient(idleEngine)} />);
+
+    const tab = await waitFor(() => {
+      const found = screen.getByRole('button', { name: 'Call graph' }) as HTMLButtonElement;
+      expect(found.disabled).toBe(true);
+      return found;
+    });
+    // The reason is this project's, not a generic sentence about the mode.
+    expect(tab.title).toContain('38%');
+  });
+
+  it('leaves the call graph reachable in heuristic mode, once there is a focus', async () => {
+    const { bridge } = bridgeOf(() => Promise.resolve(view()));
+    render(<App bridge={bridge} layoutClient={new LayoutClient(idleEngine)} />);
+    await waitFor(() => {
+      expect(screen.getByText('heuristic')).toBeDefined();
+    });
+    const tab = screen.getByRole('button', { name: 'Call graph' }) as HTMLButtonElement;
+    // Disabled for want of a focus (§9 rule 4), which is a different sentence.
+    expect(tab.title).toMatch(/needs a focus/);
   });
 
   it('asks the host about a clicked node rather than reading the drawn view', async () => {

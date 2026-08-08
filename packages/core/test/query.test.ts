@@ -415,4 +415,45 @@ describe('structural mode gives an honest answer, not a blank one', () => {
     expect(anyFunction).toBeDefined();
     expect(traverse(graph, anyFunction ?? '', 'callees')).toEqual([]);
   });
+
+  /**
+   * §4: the call graph "does not survive; disable the view with an explanation
+   * and a prompt to build the project."
+   *
+   * It used to answer instead — the focus node, no edges, and a note reading
+   * "1 functions within 2 up and 3 down of X". That is a confident wrong
+   * answer about a graph that deliberately withheld the edges, and it is the
+   * one place this tool drew a picture it could not stand behind.
+   */
+  it('refuses the call view outright rather than drawing one node and no edges', async () => {
+    const { graph, file } = await graphOf('pathological');
+    expect(file.mode).toBe('structural');
+    const anyFunction = String(graph.filterNodes((_id, node) => node.kind === 'Function')[0]);
+
+    let thrown: unknown;
+    try {
+      selectView(graph, { view: 'call', focus: anyFunction });
+    } catch (error: unknown) {
+      thrown = error;
+    }
+    expect(thrown).toBeInstanceOf(ViewError);
+    // The explanation §4 asks for: what happened, why, and the way out.
+    expect(String((thrown as Error).message)).toMatch(/no call edges/);
+    expect(String((thrown as Error).message)).toMatch(/build-info|building the project/);
+  });
+
+  it('still draws the four views that do survive (§4)', async () => {
+    const { graph } = await graphOf('pathological');
+    for (const view of ['protocol', 'inheritance', 'state-access'] as const) {
+      expect(() => selectView(graph, { view })).not.toThrow();
+    }
+    const contract = String(graph.filterNodes((_id, node) => node.kind === 'Contract')[0]);
+    expect(() => selectView(graph, { view: 'contract', focus: contract })).not.toThrow();
+  });
+
+  it('the call view is unaffected on a graph that has call edges', async () => {
+    const { graph } = await graphOf('defi');
+    const view = selectView(graph, { view: 'call', focus: PAIR_MINT });
+    expect(view.nodes.length).toBeGreaterThan(1);
+  });
 });
