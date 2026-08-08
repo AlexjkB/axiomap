@@ -32,6 +32,24 @@ body:
     validations:
       required: true
 
+  - type: textarea
+    id: scope
+    attributes:
+      label: Where did you run it, and what is in your axiomap.config.json?
+      description: >
+        The single most common cause of a wrong-looking graph, and the cheapest to
+        rule out. Import resolution is rooted at the project root — run from a
+        subdirectory and no dependency import resolves — and the default scope is
+        every `.sol` file the root can see, which usually includes all of `lib/`
+        and turns resolution into ambiguity. Paste the directory you ran from and
+        the config, or say "no config".
+      placeholder: |
+        ran from: ~/audits/vault (contains foundry.toml)
+        config: {"include": ["src/**/*.sol"], "exclude": ["test/**", "lib/**"]}
+      render: text
+    validations:
+      required: true
+
   - type: dropdown
     id: project-type
     attributes:

@@ -16,10 +16,14 @@ edge to land inside the caller, at the exact call.
 
 ```bash
 npm i -g @axiomap/cli
-cd your-protocol
+cd your-protocol    # the directory with foundry.toml / hardhat.config — see below
 axiomap build       # → .axiomap/graph.json, prints the resolution score
 axiomap serve       # same graph, in a browser
 ```
+
+**Run it from the project root, and tell it what you are auditing.** Both matter more
+than they sound — see [Scope](#scope-the-setting-that-decides-everything-else), which is
+the first thing to check if the resolution score looks bad.
 
 Or install **Axiomap** from the VS Code Marketplace / Open VSX for the in-editor panel,
 click-to-navigate, and CodeLens.
@@ -87,6 +91,50 @@ axiomap query unresolved --json | jq 'length'   # fail the build on new unresolv
 ```
 
 Full flags: `axiomap <command> --help`.
+
+## Scope: the setting that decides everything else
+
+Two mistakes account for almost every "the graph is wrong" first impression, and both are
+configuration rather than analysis.
+
+**Run from the root of one project.** Not a subdirectory, and not a directory that
+*contains* several projects. Import resolution reads `foundry.toml`, `remappings.txt`,
+`hardhat.config.*` and `node_modules` — all of which live at a project root. From a
+subdirectory none of them are visible, so every dependency import fails and the edges that
+needed them are `unresolved`. A monorepo with three packages has three roots, not one.
+
+**Then say what you are auditing.** The default is every `.sol` file the root can see,
+which usually means your protocol plus the whole of `lib/`. That is worse than it sounds:
+vendored libraries bring hundreds of similarly-named functions, and the resolver answers
+`ambiguous` rather than guessing (which is the correct answer, and not a useful graph).
+
+Measured on two real protocols, changing nothing but this file:
+
+| Scope | Confident call edges |
+|---|---|
+| A subdirectory of the project | 38% |
+| Project root, no config | 16–20% |
+| `include` the protocol, `exclude` `lib/**` | 63–64% |
+| …plus **all** of OpenZeppelin | 49% — *worse* |
+| …plus only the library files actually used | **76%** |
+
+Adding a whole dependency tree costs more in ambiguity than it recovers. Adding the
+specific files your contracts inherit from or call into is what works:
+
+```jsonc
+{
+  "include": [
+    "src/**/*.sol",
+    "lib/openzeppelin-contracts/contracts/access/Ownable.sol",
+    "lib/openzeppelin-contracts/contracts/utils/math/Math.sol"
+  ],
+  "exclude": ["test/**", "script/**"]
+}
+```
+
+`axiomap stats` prints an `unresolved, by category` table, and `axiomap query unresolved`
+names every one with the reason. A pile of `not-found` on library types is this problem,
+and it tells you exactly which files to add.
 
 ## Configuration
 

@@ -3551,11 +3551,20 @@ weighting dependencies) all gained evidence rather than needing rewrites.
 
 ### Notes for the next session
 
-- **The `include`/`exclude` documentation gap is now the largest one in the repo.** Two real
-  projects, both unusable at their default scope, both fine with a config nobody would guess:
-  30%→80% and 20%→76%. Nothing in the README, the `build` summary or the bug template says
-  so. It is a docs task rather than a deferral, which is why it is not in §16 — and it is
-  the difference between the tool working and appearing broken on first contact.
+- ~~**The `include`/`exclude` documentation gap**~~ — **closed in the same session**, since
+  it was the largest gap in the repo and the difference between the tool working and
+  appearing broken on first contact. Two real projects, both unusable at their default
+  scope, both fine with a config nobody would guess: 30%→80% and 20%→76%. Now in three
+  places, each aimed at a different moment: **README** gains a `Scope` section with the
+  measured table, linked from the quick start so it is read before the first bad score;
+  **AXIOMAP.md §13** gains the same table and what it settles, because the engine is
+  correct at every point on it and what was missing was telling the user which point they
+  were on; and **the bug template** gains a required "where did you run it, and what is in
+  your config" field, since it is the cheapest cause to rule out and would otherwise be the
+  first round-trip on most reports.
+  **What is still open:** nothing *in the tool* says it. `axiomap build` on a project whose
+  `lib/` it just graphed could say so in the summary, and does not. That is the remaining
+  half and it is a one-line diagnostic, not a design question.
 - **`payloadVersion` is still 2 and still unpublished.** It absorbed `AuditState` and now
   `NodeElement.calls` for free. It remains the only cheap-format-change window left.
 - **Nothing from the Phase 9 release prep has been touched** in four sessions.
