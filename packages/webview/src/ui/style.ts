@@ -299,7 +299,11 @@ export function stylesheet(palette: Palette, preset: ViewPreset): StylesheetJson
         'text-valign': 'top',
         'text-halign': 'center',
         'text-margin-y': 12,
-        'text-wrap': 'none',
+        // Deliberately NOT `text-wrap: none`: `display` joins the name and the
+        // kind with a newline, and `none` collapses that into one long line
+        // which cytoscape then clips to its own measured width — the name came
+        // out with both ends missing. The base rule's `wrap` honours the
+        // newline, so a parent's label reads the way every other node's does.
         'background-color': palette.background,
         'background-opacity': 0.45,
         'text-background-color': palette.background,
