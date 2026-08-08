@@ -265,12 +265,58 @@ describe('the render cap (§9 rule 2)', () => {
     }
   });
 
-  it('leaves the four scoped views unclustered, because a focus already scoped them', async () => {
+  it('leaves the four scoped views unclustered by directory, because a focus already scoped them', async () => {
     const { graph } = await graphOf('defi');
     const view = selectAggregatedView(graph, { view: 'contract', focus: PAIR });
-    expect(view.nodes.every((node) => node.type === 'node' && node.parent === null)).toBe(true);
+    // No *directory* clusters: nothing of type `cluster`, and no `dir:` parent.
+    expect(view.nodes.every((node) => node.type === 'node')).toBe(true);
+    expect(
+      view.nodes.every((node) => node.type === 'node' && !(node.parent ?? '').startsWith('dir:')),
+    ).toBe(true);
     expect(view.edges.every((edge) => edge.type === 'edge')).toBe(true);
     expect(view.note).toBe(selectView(graph, { view: 'contract', focus: PAIR }).note);
+  });
+
+  /**
+   * Containment is nesting, not an edge. A contract's members are compound
+   * children of it, and the `declares` edge that said the same thing is gone —
+   * on a real contract that was seven of nine edges, drawn as a star that ELK
+   * lays out as one unreadable row.
+   */
+  it('nests a contract’s members inside it and drops the declares edges', async () => {
+    const { graph } = await graphOf('defi');
+    const view = selectAggregatedView(graph, { view: 'contract', focus: PAIR });
+
+    const members = view.nodes.filter((node) => node.type === 'node' && node.parent === PAIR);
+    expect(members.length).toBeGreaterThan(3);
+
+    // Every drawn `declares` edge out of the focus is now expressed by nesting.
+    const declares = view.edges.filter(
+      (edge) => edge.type === 'edge' && edge.edge.kind === 'declares' && edge.from === PAIR,
+    );
+    expect(declares).toEqual([]);
+
+    // The relations that are *not* containment survive untouched.
+    const kinds = new Set(
+      view.edges.flatMap((edge) => (edge.type === 'edge' ? [edge.edge.kind] : [])),
+    );
+    expect(kinds.has('declares')).toBe(false);
+    expect(kinds.size).toBeGreaterThan(0);
+
+    // `elements` counts what is drawn, so it fell with the edges.
+    expect(view.elements).toBe(view.nodes.length + view.edges.length);
+  });
+
+  /**
+   * Self-gating: `parent` is only set when the container is itself drawn, so a
+   * view that never draws the contract is untouched. The state-access map is
+   * the one that would break — ELK partitions it, and a nested node cannot be
+   * in a partition of its own.
+   */
+  it('does not nest where the container is not drawn', async () => {
+    const { graph } = await graphOf('defi');
+    const view = selectAggregatedView(graph, { view: 'state-access', focus: PAIR });
+    expect(view.nodes.every((node) => node.type === 'node' && node.parent === null)).toBe(true);
   });
 });
 

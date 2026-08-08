@@ -282,6 +282,32 @@ export function stylesheet(palette: Palette, preset: ViewPreset): StylesheetJson
         shape: 'diamond',
       },
     },
+    /*
+     * A node that holds other nodes: a contract with its members drawn inside,
+     * on the contract-detail and inheritance views.
+     *
+     * Placed above the `.cluster` rules on purpose — a directory cluster is
+     * also a parent, and its own rules must still win. What changes here is
+     * only what containment requires: the label moves out of the middle, where
+     * it would sit on top of the members, and the fill steps back so the
+     * members read as being on it rather than in front of it. The border stays
+     * whatever the node's kind made it.
+     */
+    {
+      selector: 'node:parent',
+      style: {
+        'text-valign': 'top',
+        'text-halign': 'center',
+        'text-margin-y': 12,
+        'text-wrap': 'none',
+        'background-color': palette.background,
+        'background-opacity': 0.45,
+        'text-background-color': palette.background,
+        'text-background-opacity': 0.85,
+        'text-background-padding': '3px',
+        padding: '18px',
+      },
+    },
     {
       selector: 'node.cluster',
       style: {

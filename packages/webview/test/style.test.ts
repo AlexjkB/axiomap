@@ -75,7 +75,17 @@ describe('stylesheet', () => {
       .sort();
 
   it('fills nodes from the neutral defaults and nothing else', () => {
-    expect(touching('background-color')).toEqual(['node', 'node.cluster', 'node.cluster.collapsed']);
+    // All four are the same statement — "this is a box, or a box holding
+    // boxes" — rather than four signals competing for one channel. `:parent`
+    // is a contract drawing its members inside it; the two `.cluster` rules
+    // are a directory doing the same. Nothing here is an *attribute* of the
+    // node, which is what the channel rule is about.
+    expect(touching('background-color')).toEqual([
+      'node',
+      'node.cluster',
+      'node.cluster.collapsed',
+      'node:parent',
+    ]);
   });
 
   it('leaves node opacity alone — nothing dims a node', () => {

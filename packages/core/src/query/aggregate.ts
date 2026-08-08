@@ -463,23 +463,52 @@ export function aggregate(
   const clustered = options.cluster ?? selection.view === 'protocol';
 
   if (!clustered) {
-    enforceRenderCap(selection.view, selection.nodes.length, selection.edges.length, cap, false);
-    return {
-      view: selection.view,
-      nodes: selection.nodes.map((node) => ({
-        type: 'node' as const,
-        id: node.id,
-        node,
-        parent: null,
-      })),
-      edges: selection.edges.map((edge) => ({
+    /*
+     * Containment is drawn by nesting, not by an edge.
+     *
+     * A contract and its members are joined by `declares`, and drawing that as
+     * a spoke makes the contract-detail view a star: seven of nine edges on a
+     * real contract said nothing except "this member is in this contract", and
+     * ELK lays a star out as one row several thousand pixels wide. Reported as
+     * "how is that helpful", correctly.
+     *
+     * So a member becomes a compound child of its container, which is the same
+     * mechanism the protocol map already uses for directories, and the
+     * `declares` edge that said the same thing is dropped. It is self-gating:
+     * `parent` is only set when the container is itself drawn, so the call and
+     * state-access views — which never draw the contract — are untouched.
+     */
+    const drawn = new Map(selection.nodes.map((node) => [node.id, node]));
+    const parentOf = (node: GraphNode): string | null => {
+      const scope = node.scope;
+      if (scope === null) return null;
+      const container = drawn.get(scope);
+      return container !== undefined && container.kind === 'Contract' ? scope : null;
+    };
+
+    const nodes = selection.nodes.map((node) => ({
+      type: 'node' as const,
+      id: node.id,
+      node,
+      parent: parentOf(node),
+    }));
+    const nested = new Map(nodes.map((node) => [node.id, node.parent]));
+    const edges = selection.edges
+      .filter((edge) => !(edge.kind === 'declares' && nested.get(edge.to) === edge.from))
+      .map((edge) => ({
         type: 'edge' as const,
         id: edge.id,
         edge,
         from: edge.from,
         to: edge.to,
-      })),
-      elements: selection.nodes.length + selection.edges.length,
+      }));
+
+    enforceRenderCap(selection.view, nodes.length, edges.length, cap, false);
+    return {
+      view: selection.view,
+      nodes,
+      edges,
+      elements: nodes.length + edges.length,
       cap,
       expanded: [],
       collapsed: [],
