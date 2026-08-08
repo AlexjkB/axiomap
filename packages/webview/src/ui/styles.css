@@ -135,10 +135,18 @@ body {
   min-width: 0;
 }
 
-/* The focus chip is the one thing on the row allowed to give way: it already
-   ellipsizes, and a node id is the only item here whose length is unbounded. */
+/*
+ * The focus chip is the one thing on the row allowed to give way: it already
+ * ellipsizes, and a node id is the only item here whose length is unbounded.
+ *
+ * Basis `0`, not `auto`. With `auto` the chip's hypothetical size is the whole
+ * id, which on a narrow panel exceeds the line by itself and pushes the hop
+ * steppers and the mode chip onto a row of their own — measured at 560px, where
+ * the chip claimed all 540 available pixels. At `0` it packs with its siblings
+ * first and then grows into whatever is left.
+ */
 .ax-focus {
-  flex: 1 1 auto;
+  flex: 1 1 0;
 }
 
 .ax-hops {
@@ -152,6 +160,11 @@ body {
   text-overflow: ellipsis;
   white-space: nowrap;
   max-width: 44ch;
+  /* Without this the id refuses to shrink below its own content and pushes the
+     hop steppers onto a third row on a narrow panel. `overflow: hidden` alone
+     does not do it: a flex item's floor is its min-content width until told
+     otherwise. */
+  min-width: 0;
 }
 
 .ax-label {
@@ -180,6 +193,13 @@ body {
   background: var(--ax-bg);
   border: 1px solid var(--ax-border);
   padding: 1px 3px;
+  /* Pinned to the row's own line box. A bare input is two pixels taller than
+     the text beside it, which is invisible on one row and becomes a toolbar
+     that changes height between the call graph and everything else once the
+     steppers wrap onto a row of their own. */
+  box-sizing: border-box;
+  height: 20px;
+  line-height: 1;
 }
 
 .ax-hops label {
@@ -701,4 +721,62 @@ body {
 .ax-metrics {
   flex: 0 0 auto;
   white-space: nowrap;
+}
+
+/*
+ * Narrow panel: two rows rather than one crowded one.
+ *
+ * `nowrap` on the row above stops the tab labels breaking in half, but it
+ * cannot conjure width — below this the focus chip, the hop steppers and the
+ * mode chip start colliding. So the row is allowed to wrap again, at a place
+ * chosen rather than wherever it runs out: the view tabs take the whole first
+ * line, everything else goes to the second.
+ *
+ * `order` is what makes that possible without moving anything in the DOM. The
+ * brand sits before the tabs in markup because that is the reading order on a
+ * wide panel; here it is reordered after them, so the tabs lead.
+ *
+ * Height still does not change *between views* at a given width, which is the
+ * invariant the previous fix was about: the second row exists on every view
+ * (the mode chip is always there), and the call graph's hop steppers join it
+ * rather than creating it.
+ */
+@media (max-width: 860px) {
+  .ax-toolbar-row {
+    flex-wrap: wrap;
+    row-gap: 6px;
+  }
+
+  /* Whole first line, which is what forces everything after it onto a second. */
+  .ax-views {
+    order: 0;
+    flex: 1 0 100%;
+  }
+
+  .ax-brand {
+    order: 1;
+  }
+
+  .ax-focus {
+    order: 2;
+  }
+
+  .ax-hops {
+    order: 3;
+  }
+
+  .ax-mode {
+    order: 4;
+  }
+}
+
+/*
+ * Narrower still: the brand is the one item on the row carrying no information
+ * — the panel is already titled "Axiomap" by its own tab — so it is what gets
+ * dropped to buy the focus chip its width back.
+ */
+@media (max-width: 620px) {
+  .ax-brand {
+    display: none;
+  }
 }

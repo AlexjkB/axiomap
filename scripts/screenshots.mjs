@@ -170,6 +170,16 @@ class Page {
     return page;
   }
 
+  /** Re-emulate at a different width, for the responsive checks. */
+  resize(width, height = 1000) {
+    return this.send('Emulation.setDeviceMetricsOverride', {
+      width,
+      height,
+      deviceScaleFactor: 1,
+      mobile: false,
+    });
+  }
+
   send(method, params = {}) {
     const id = this.#nextId++;
     return new Promise((resolve) => {
@@ -368,6 +378,46 @@ async function run() {
         } else {
           console.log(`  toolbar height steady at ${String(after)}px across views`);
         }
+
+        /*
+         * The same invariant at a width where the toolbar is two rows.
+         *
+         * It must be *two* rows there — one crowded row is what this breakpoint
+         * exists to avoid — and it must still be the same two on every view. A
+         * check that only ever ran at 1600px would have passed the bug this was
+         * written for.
+         */
+        for (const width of [800, 560]) {
+          await page.resize(width);
+          await settled(page);
+          const narrowCall = Number(await page.evaluate(TOOLBAR_H));
+          console.log(await page.shot(path.join(out, `06-narrow-${String(width)}-call.png`)));
+
+          await page.evaluate(clickView('Protocol map'));
+          await page.until(CURRENT_VIEW, (value) => value === 'Protocol map');
+          await settled(page);
+          const narrowProtocol = Number(await page.evaluate(TOOLBAR_H));
+
+          if (narrowCall !== narrowProtocol) {
+            console.error(
+              `at ${String(width)}px the toolbar changed with the view: ` +
+                `${narrowCall}px -> ${narrowProtocol}px`,
+            );
+            process.exitCode = 1;
+          } else if (narrowCall <= after) {
+            console.error(
+              `at ${String(width)}px the toolbar did not grow to two rows (${narrowCall}px)`,
+            );
+            process.exitCode = 1;
+          } else {
+            console.log(`  ${String(width)}px: two rows, steady at ${String(narrowCall)}px`);
+          }
+
+          await page.evaluate(clickView('Call graph'));
+          await page.until(CURRENT_VIEW, (value) => value === 'Call graph');
+          await settled(page);
+        }
+        await page.resize(1600);
 
         if (page.consoleErrors.length > 0) {
           console.error(`console errors under ${themeName}:`, page.consoleErrors);
