@@ -308,6 +308,36 @@ describe('the render cap (§9 rule 2)', () => {
   });
 
   /**
+   * Clicking "Contract detail" with a function selected is the obvious way to
+   * ask what else is in that contract, and it used to be a `ViewError` whose
+   * message named the very contract it was declining to open.
+   */
+  it('opens a member’s own contract, and says it did', async () => {
+    const { graph } = await graphOf('defi');
+    const member = 'src/Pair.sol:Pair.mint(address)';
+
+    const fromMember = selectView(graph, { view: 'contract', focus: member });
+    const fromContract = selectView(graph, { view: 'contract', focus: PAIR });
+
+    // The same view, reached two ways.
+    expect(fromMember.nodes.map((node) => node.id).sort()).toEqual(
+      fromContract.nodes.map((node) => node.id).sort(),
+    );
+    // …and it does not pretend it was asked for the contract.
+    expect(fromMember.note).toContain('opened from mint');
+    expect(fromContract.note).not.toContain('opened from');
+  });
+
+  it('still refuses a node that is inside no contract', async () => {
+    const { graph } = await graphOf('defi');
+    const sourceUnit = graph.findNode((_id, node) => node.kind === 'SourceUnit');
+    expect(sourceUnit).toBeDefined();
+    expect(() => selectView(graph, { view: 'contract', focus: String(sourceUnit) })).toThrow(
+      ViewError,
+    );
+  });
+
+  /**
    * Self-gating: `parent` is only set when the container is itself drawn, so a
    * view that never draws the contract is untouched. The state-access map is
    * the one that would break — ELK partitions it, and a nested node cannot be

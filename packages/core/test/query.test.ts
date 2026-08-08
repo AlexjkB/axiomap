@@ -30,6 +30,7 @@ import { buildTempProject, cleanUpTempProjects } from './temp-project.js';
 
 afterAll(cleanUpTempProjects);
 
+const PAIR = 'src/Pair.sol:Pair';
 const PAIR_MINT = 'src/Pair.sol:Pair.mint(address)';
 const IPAIR_MINT = 'src/interfaces/IAmm.sol:IPair.mint(address)';
 const ROUTER_ADD = 'src/Router.sol:Router.addLiquidity(address,address,uint256,uint256,address,uint256)';
@@ -371,10 +372,23 @@ describe('views (§11, as selection only)', () => {
     expect(view.edges.some((edge) => edge.kind === 'overrides')).toBe(true);
   });
 
-  it('rejects a focus of the wrong kind with a usable message', async () => {
+  /**
+   * This asserted the opposite until the contract view was asked for with a
+   * function selected and answered with an error naming the contract it was
+   * declining to open. Containment is exact, so resolving it is not a guess.
+   */
+  it('opens a member’s own contract rather than refusing the focus', async () => {
     const { graph } = await graphOf('defi');
-    expect(() => selectView(graph, { view: 'contract', focus: PAIR_MINT })).toThrow(
-      /needs a Contract/,
+    const view = selectView(graph, { view: 'contract', focus: PAIR_MINT });
+    expect(view.nodes.some((node) => node.id === PAIR)).toBe(true);
+    expect(view.note).toMatch(/opened from/);
+  });
+
+  it('rejects a focus that is inside no contract, with a usable message', async () => {
+    const { graph } = await graphOf('defi');
+    const unit = String(graph.findNode((_id, node) => node.kind === 'SourceUnit'));
+    expect(() => selectView(graph, { view: 'contract', focus: unit })).toThrow(
+      /needs a Contract or one of its members/,
     );
   });
 

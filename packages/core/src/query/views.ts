@@ -189,14 +189,25 @@ function protocolView(graph: AxiomapGraph, includeTests: boolean): ViewSelection
 }
 
 /** §11's contract detail: one contract's members and the relations among them. */
-function contractView(graph: AxiomapGraph, focus: string): ViewSelection {
+function contractView(graph: AxiomapGraph, requested: string): ViewSelection {
+  /*
+   * A member asked for its own contract.
+   *
+   * This used to refuse, with a message that named the contract to pass
+   * instead — which is the tool computing the answer and then declining to
+   * act on it. Clicking "Contract detail" with a function selected is the
+   * obvious way to ask "what else is in here", and containment is exact
+   * (`node.scope`), so there is nothing being guessed at.
+   */
+  const focus = containerOf(graph, requested) ?? requested;
   const node = graph.getNodeAttributes(focus);
   if (node.kind !== 'Contract') {
     throw new ViewError(
-      `The contract view needs a Contract, and "${focus}" is a ${node.kind}. ` +
-        `Try --focus ${node.scope ?? focus}.`,
+      `The contract view needs a Contract or one of its members, and "${requested}" is a ` +
+        `${graph.getNodeAttributes(requested).kind} that is not inside one.`,
     );
   }
+  const redirected = focus !== requested;
 
   const keep = new Set<string>([focus]);
   graph.forEachOutEdge(focus, (_key, edge) => {
@@ -216,7 +227,11 @@ function contractView(graph: AxiomapGraph, focus: string): ViewSelection {
     view: 'contract',
     nodes: nodesOf(graph, keep),
     edges: inducedEdges(graph, keep, () => true),
-    note: `${node.name} and its members, including ${node.linearizedBases.length - 1} base contracts`,
+    note:
+      `${node.name} and its members, including ${node.linearizedBases.length - 1} base contracts` +
+      // Say so rather than silently showing something other than what was
+      // asked for: the focus on screen and the view being drawn differ.
+      (redirected ? `, opened from ${graph.getNodeAttributes(requested).name}` : ''),
   };
 }
 

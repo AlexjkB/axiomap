@@ -74,9 +74,12 @@ export function reduce(state: NavState, event: NavEvent): NavState {
   switch (event.type) {
     case 'view': {
       if (event.view === state.view) return state;
-      // A focus that the new view cannot use is dropped rather than carried:
-      // `selectView` would refuse a Function as the contract view's focus, and
-      // an error is not what a user clicking a tab asked for.
+      // The focus is carried across the switch, deliberately. It used to be
+      // the case that the contract view refused a Function and this comment
+      // claimed the focus was dropped to avoid that — neither was true: the
+      // code always carried it, and the refusal reached the user as an error
+      // for clicking a tab. `contractView` now opens a member's own contract,
+      // so carrying it is what makes the two views agree about where you are.
       return { ...state, view: event.view, expand: [], autoExpand: true };
     }
     case 'focus':
