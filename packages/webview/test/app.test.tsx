@@ -308,6 +308,45 @@ describe('App', () => {
    * bridge call rather than from anything the view carried, because the view
    * carries no source and never will (§9 rule 1).
    */
+  /**
+   * A click that deliberately does nothing is indistinguishable from one that
+   * failed. In structural mode *no* function opens the call graph, so without
+   * this the view reads as broken rather than as withholding.
+   */
+  it('says why a click did not open the call graph, rather than doing nothing', async () => {
+    const leaf = fn('src/Vault.sol:Vault.pure0()');
+    const { bridge, asked, inspected } = bridgeOf(() =>
+      Promise.resolve(
+        view({
+          view: 'contract',
+          nodes: [{ type: 'node', id: leaf.id, node: leaf, parent: null, calls: false }],
+          elements: 1,
+        }),
+      ),
+    );
+    render(<App bridge={bridge} layoutClient={new LayoutClient(idleEngine)} />);
+    await waitFor(() => {
+      expect(canvasProps.length).toBeGreaterThan(0);
+    });
+
+    const before = asked.length;
+    const onPick = canvasProps.at(-1)?.['onPick'] as (pick: { kind: string; id: string }) => void;
+    act(() => {
+      onPick({ kind: 'Function', id: leaf.id });
+    });
+
+    // It did not navigate…
+    expect(asked.length).toBe(before);
+    // …it said so…
+    await waitFor(() => {
+      expect(screen.getByText(/no call graph to root on it/i)).toBeDefined();
+    });
+    // …and it still selected the node, which is the useful half of the click.
+    await waitFor(() => {
+      expect(inspected).toContain(leaf.id);
+    });
+  });
+
   it('asks the host for a clicked node’s source', async () => {
     const { bridge, sliced } = bridgeOf(() =>
       Promise.resolve(

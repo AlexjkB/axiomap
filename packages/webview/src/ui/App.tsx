@@ -60,6 +60,16 @@ export function App({ bridge, layoutClient, editor }: AppProps): JSX.Element {
   const [state, dispatch] = useReducer(reduce, initialState({ up: 2, down: 3 }));
   const [paletteOpen, setPaletteOpen] = useState(false);
   /*
+   * Why the last click did not go anywhere.
+   *
+   * A click that deliberately does nothing is indistinguishable from one that
+   * failed, which is the complaint this exists to answer: in structural mode
+   * *no* function opens the call graph, and without a sentence saying so the
+   * behaviour reads as the view being broken. Cleared by the next navigation,
+   * because it is about one click and not a state the UI is in.
+   */
+  const [hint, setHint] = useState<string | null>(null);
+  /*
    * Phase 8's artifact watch, as one number.
    *
    * The host rebuilt the graph, so every answer this component is holding was
@@ -164,6 +174,11 @@ export function App({ bridge, layoutClient, editor }: AppProps): JSX.Element {
   const request = toRequest(state);
   const key = JSON.stringify(request);
 
+  // A new place to be is a new thing to say about it.
+  useEffect(() => {
+    setHint(null);
+  }, [key]);
+
   useEffect(() => {
     if (!ready(state)) {
       setBusy(false);
@@ -260,8 +275,9 @@ export function App({ bridge, layoutClient, editor }: AppProps): JSX.Element {
 
   const preset = PRESETS[state.view];
   const note =
+    hint ??
     (refreshed === null ? '' : `${refreshed.reason} · `) +
-    (view === null ? 'loading…' : view.note);
+      (view === null ? 'loading…' : view.note);
   const elements = useMemo(
     () =>
       view === null || view.view !== state.view
@@ -301,12 +317,22 @@ export function App({ bridge, layoutClient, editor }: AppProps): JSX.Element {
        */
       if (pick.kind === 'Function') {
         const drawn = view?.nodes.find((node) => node.type === 'node' && node.id === pick.id);
-        if (drawn?.type === 'node' && !drawn.calls) return;
+        if (drawn?.type === 'node' && !drawn.calls) {
+          setHint(
+            meta?.mode === 'structural'
+              ? 'No call graph in this project — §4 withheld every call edge. ' +
+                  'Selected it instead; the inspector has the rest.'
+              : 'Nothing calls this and it calls nothing, so there is no call graph ' +
+                  'to root on it. Selected it instead.',
+          );
+          return;
+        }
       }
+      setHint(null);
 
       dispatch({ type: 'pick', ...pick, ...(open === undefined ? {} : { open }) });
     },
-    [open, editor, view],
+    [open, editor, view, meta?.mode],
   );
 
   /**
