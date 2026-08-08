@@ -69,7 +69,7 @@ export function hydrateView(
         message: `This exported file draws "${element.id}" but does not carry it.`,
       });
     }
-    return { type: 'node', id: element.id, node, parent: element.parent };
+    return { type: 'node', id: element.id, node, parent: element.parent, calls: element.calls };
   });
   return { ...view, nodes };
 }

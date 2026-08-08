@@ -61,11 +61,13 @@ import type { SourceSlice } from '../source/slice.js';
 /** The version this build writes and reads. Bumped whenever the shape changes. */
 export const PAYLOAD_VERSION = 2;
 
-/** A drawn node, as the payload stores it: the id, and where it hangs. */
+/** A drawn node, as the payload stores it: the id, where it hangs, what it does. */
 export interface StaticNodeElement {
   type: 'node';
   id: string;
   parent: string | null;
+  /** {@link NodeElement.calls} — whether opening the call graph here shows anything. */
+  calls: boolean;
 }
 
 export type StaticDisplayNode = ClusterElement | StaticNodeElement;
@@ -141,7 +143,7 @@ export function dehydrateView(view: AggregatedView): {
   const elements: StaticDisplayNode[] = view.nodes.map((element) => {
     if (element.type === 'cluster') return element;
     nodes.push(element.node);
-    return { type: 'node', id: element.id, parent: element.parent };
+    return { type: 'node', id: element.id, parent: element.parent, calls: element.calls };
   });
   return { view: { ...view, nodes: elements }, nodes };
 }

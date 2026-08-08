@@ -63,6 +63,15 @@ export interface CyNodeData {
   /** True when clicking this node re-focuses the current view. */
   focusable: boolean;
   /**
+   * Has at least one call edge in the graph, so drilling in would show something.
+   *
+   * Carried onto the drawn element rather than left in the app's copy of the
+   * view because the canvas is what gets clicked: a function with no call edges
+   * does not open the call graph, and a renderer that cannot tell the two apart
+   * cannot ever say so.
+   */
+  calls: boolean;
+  /**
    * Node size is label plus this.
    *
    * A CSS length string with explicit units, which is how cytoscape documents
@@ -233,6 +242,9 @@ function displayNode(element: DisplayNode, preset: ViewPreset): CyElements['node
         expanded: element.expanded,
         path: element.path,
         focusable: false,
+        // A cluster stands for nodes that are not drawn; drilling into it is a
+        // different gesture with its own affordance.
+        calls: false,
         // A cluster's own padding is set by the stylesheet; this is here so the
         // base rule's `data(pad)` resolves for every element.
         pad: `${String(BASE_PADDING)}px`,
@@ -252,6 +264,7 @@ function displayNode(element: DisplayNode, preset: ViewPreset): CyElements['node
       kind: element.node.kind,
       ...(preset.partitioned ? { partition: partitionOf(element.node) } : {}),
       focusable: preset.focusKinds.includes(element.node.kind),
+      calls: element.calls,
       pad: `${String(BASE_PADDING)}px`,
     },
     classes: nodeClasses(element.node, preset).join(' '),

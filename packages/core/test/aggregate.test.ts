@@ -308,6 +308,35 @@ describe('the render cap (§9 rule 2)', () => {
   });
 
   /**
+   * A host decides whether drilling into a function is worth a request, and it
+   * cannot work that out itself: §9 rule 1 means the webview never receives the
+   * graph. So the fact travels with the view.
+   */
+  it('marks which drawn nodes have call edges, from the whole graph not the view', async () => {
+    const { graph } = await graphOf('defi');
+    const view = selectAggregatedView(graph, { view: 'contract', focus: PAIR });
+    const nodes = view.nodes.flatMap((node) => (node.type === 'node' ? [node] : []));
+
+    // `mint` calls and is called; a struct or an error never is.
+    const mint = nodes.find((node) => node.id.includes('.mint('));
+    expect(mint?.calls).toBe(true);
+    const error = nodes.find((node) => node.node.kind === 'Error');
+    expect(error?.calls).toBe(false);
+
+    // "In the whole graph, not in this view" is the part worth pinning: the
+    // contract view draws no cross-contract calls, so a member whose only
+    // caller lives elsewhere would read as a dead end if this counted edges
+    // from the selection.
+    const drawnEdges = new Set(
+      view.edges.flatMap((edge) =>
+        edge.type === 'edge' && edge.edge.kind === 'calls' ? [edge.from, edge.to] : [],
+      ),
+    );
+    const marked = nodes.filter((node) => node.calls).map((node) => node.id);
+    expect(marked.some((id) => !drawnEdges.has(id))).toBe(true);
+  });
+
+  /**
    * Clicking "Contract detail" with a function selected is the obvious way to
    * ask what else is in that contract, and it used to be a `ViewError` whose
    * message named the very contract it was declining to open.

@@ -286,9 +286,27 @@ export function App({ bridge, layoutClient, editor }: AppProps): JSX.Element {
         // has no declaration to land on.
         editor?.reveal({ kind: 'node', id: pick.id });
       }
+
+      /*
+       * A node with no call edges does not open the call graph.
+       *
+       * Drilling into a function normally roots the call graph on it, and for a
+       * function nothing calls and which calls nothing that is a view holding
+       * one node — the same empty answer structural mode was taught to refuse,
+       * arrived at from the other direction. Selecting it still works: the
+       * inspector says what it is, which is the useful half of the click.
+       *
+       * `calls` is about the whole graph, not this view (see `NodeElement`), so
+       * a function whose only caller lives in another contract still opens.
+       */
+      if (pick.kind === 'Function') {
+        const drawn = view?.nodes.find((node) => node.type === 'node' && node.id === pick.id);
+        if (drawn?.type === 'node' && !drawn.calls) return;
+      }
+
       dispatch({ type: 'pick', ...pick, ...(open === undefined ? {} : { open }) });
     },
-    [open, editor],
+    [open, editor, view],
   );
 
   /**

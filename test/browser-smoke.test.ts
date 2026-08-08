@@ -402,7 +402,9 @@ describe.skipIf(CHROME === undefined)('the export in a browser', () => {
     //    the file Phase 7d shipped, and the one the quota now guarantees room
     //    for on a project too big to embed whole.
     await file.until(METRICS, (value) => /layout \d+ ms/.test(value));
-    const functionId = await file.evaluate(tap('[kind = "Function"]'));
+    // A function with call edges: one without them deliberately does not open
+    // the call graph, since that view would hold a single node.
+    const functionId = await file.evaluate(tap('[kind = "Function"][?calls]'));
     expect(functionId).not.toBe('');
     expect(await file.until(CURRENT_VIEW, (value) => value === 'Call graph')).toBe('Call graph');
 

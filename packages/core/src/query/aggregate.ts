@@ -47,6 +47,7 @@
 
 import type { AxiomapGraph } from '../graph/build.js';
 import type { EdgeKind, GraphEdge, GraphNode, Resolution } from '../graph/schema.js';
+import { CALL_EDGE_KINDS } from '../graph/schema.js';
 import {
   selectView,
   ViewError,
@@ -83,6 +84,20 @@ export interface NodeElement {
   /** The graph's own object, by reference. Do not decorate it. */
   node: GraphNode;
   parent: string | null;
+  /**
+   * Does this node have any `calls`/`creates` edge **in the whole graph**?
+   *
+   * Not in this view — in the graph. A host uses it to decide whether opening
+   * the call graph on this node would show anything, and the answer has to be
+   * about the graph rather than about what happens to be drawn, or a function
+   * whose only caller is in another contract would look like a dead end.
+   *
+   * It travels here rather than being asked for per click because §9 rule 1
+   * means the webview cannot work it out: it never receives the graph, and a
+   * round trip per click to answer "would this be empty" is a round trip to
+   * decide whether to make a request.
+   */
+  calls: boolean;
 }
 
 export type DisplayNode = ClusterElement | NodeElement;
@@ -156,6 +171,12 @@ export interface AggregateOptions {
   cluster?: boolean;
   /** Open further clusters while they fit. Default true; see the header. */
   autoExpand?: boolean;
+  /**
+   * Ids with at least one `calls`/`creates` edge, from the whole graph.
+   * Supplied by {@link selectAggregatedView}; absent means "unknown", which
+   * reads as `false` and costs a host nothing it had before.
+   */
+  calls?: ReadonlySet<string>;
 }
 
 /**
@@ -286,6 +307,7 @@ function layOut(
   selection: ViewSelection,
   dirs: Map<string, DirNode>,
   open: ReadonlySet<string>,
+  calls: ReadonlySet<string>,
 ): Layout {
   const roots = [...dirs.values()].filter((dir) => dir.parent === null).map((dir) => dir.path);
 
@@ -401,7 +423,13 @@ function layOut(
   }
   for (const node of selection.nodes) {
     if (!drawnNodes.has(node.id)) continue;
-    nodes.push({ type: 'node', id: node.id, node, parent: clusterId(dirOf(node.file)) });
+    nodes.push({
+      type: 'node',
+      id: node.id,
+      node,
+      parent: clusterId(dirOf(node.file)),
+      calls: calls.has(node.id),
+    });
   }
 
   edges.push(...aggregated.values());
@@ -491,6 +519,7 @@ export function aggregate(
       id: node.id,
       node,
       parent: parentOf(node),
+      calls: options.calls?.has(node.id) ?? false,
     }));
     const nested = new Map(nodes.map((node) => [node.id, node.parent]));
     const edges = selection.edges
@@ -521,7 +550,8 @@ export function aggregate(
 
   // What the user asked for explicitly is drawn or refused; it is not silently
   // collapsed back to fit.
-  let layout = layOut(selection.view, selection, dirs, open);
+  const calls = options.calls ?? new Set<string>();
+  let layout = layOut(selection.view, selection, dirs, open, calls);
   enforceRenderCap(selection.view, layout.nodes.length, layout.edges.length, cap, true);
 
   if (options.autoExpand ?? true) {
@@ -535,7 +565,7 @@ export function aggregate(
       if (open.has(path)) continue;
       const trial = new Set(open);
       trial.add(path);
-      const candidate = layOut(selection.view, selection, dirs, trial);
+      const candidate = layOut(selection.view, selection, dirs, trial, calls);
       if (candidate.nodes.length + candidate.edges.length > cap) continue;
       open.add(path);
       layout = candidate;
@@ -579,5 +609,14 @@ export function selectAggregatedView(
   graph: AxiomapGraph,
   options: AggregatedViewOptions,
 ): AggregatedView {
-  return aggregate(selectView(graph, options), options);
+  // Every node with a call edge either way, once per view rather than once per
+  // drawn node: `forEachEdge` is one pass and the alternative is a degree query
+  // per element.
+  const calls = new Set<string>();
+  graph.forEachEdge((_key, edge) => {
+    if (!CALL_EDGE_KINDS.has(edge.kind)) return;
+    calls.add(edge.from);
+    calls.add(edge.to);
+  });
+  return aggregate(selectView(graph, options), { ...options, calls });
 }
