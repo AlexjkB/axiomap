@@ -146,6 +146,31 @@ describe('elements', () => {
     expect(plain.nodes.every((node) => node.data.partition === undefined)).toBe(true);
   });
 
+  /**
+   * The state-access map draws read-vs-write per variable, in colour, on every
+   * edge. A node-level `reads`/`writes` beside that is not a second copy of it:
+   * the flag is `writesState ? 'writes' : readsState && 'reads'`, so a function
+   * that does both says `writes` while its own edges correctly draw one of each.
+   */
+  it('leaves reads/writes to the edges on the state-access map, and keeps it elsewhere', () => {
+    const both = fn('src/Vault.sol:Vault.deposit(uint256)', {
+      flags: { ...fn('x').flags, readsState: true, writesState: true, hasAssembly: true },
+    });
+    const nodes = [{ type: 'node' as const, id: both.id, node: both, parent: null }];
+
+    const bipartite = toElements(view({ view: 'state-access', nodes }), PRESETS['state-access']);
+    const drawn = bipartite.nodes[0]?.data.detail ?? '';
+    expect(drawn).not.toContain('writes');
+    expect(drawn).not.toContain('reads');
+    // The flags nothing else on screen carries are untouched.
+    expect(drawn).toContain('asm');
+
+    // Every other view keeps it: there, nothing else answers "does this touch
+    // storage at all", which is §11's fourth fact.
+    const elsewhere = toElements(view({ view: 'contract', nodes }), PRESETS.contract);
+    expect(elsewhere.nodes[0]?.data.detail).toContain('writes');
+  });
+
   it('weights an edge by call sites, sublinearly', () => {
     expect(edgeWidth(1)).toBe(1);
     expect(edgeWidth(20)).toBeGreaterThan(edgeWidth(2));

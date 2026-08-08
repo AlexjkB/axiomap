@@ -127,7 +127,7 @@ function signature(node: FunctionNode): string {
  * `asm` and `delegatecall` earn their place on a node label; `hasTryCatch` does
  * not, and a label that lists eight flags is a label nobody reads.
  */
-function flagSummary(node: FunctionNode): string {
+function flagSummary(node: FunctionNode, stateInFlags: boolean): string {
   const flags: string[] = [];
   if (node.flags.hasDelegatecall) flags.push('delegatecall');
   if (node.flags.hasAssembly) flags.push('asm');
@@ -135,17 +135,22 @@ function flagSummary(node: FunctionNode): string {
   if (node.flags.hasSelfdestruct) flags.push('selfdestruct');
   if (node.flags.hasCreate) flags.push('create');
   if (node.flags.sendsValue) flags.push('value');
-  if (node.flags.writesState) flags.push('writes');
-  else if (node.flags.readsState) flags.push('reads');
+  // Suppressed on the state-access map, where the edges say this per variable
+  // and in colour. See `ViewPreset.stateInFlags` for why the node-level flag is
+  // not merely redundant there but disagrees with what is drawn beside it.
+  if (stateInFlags) {
+    if (node.flags.writesState) flags.push('writes');
+    else if (node.flags.readsState) flags.push('reads');
+  }
   return flags.slice(0, 3).join(' · ');
 }
 
-function labelOf(node: GraphNode): { label: string; detail: string } {
+function labelOf(node: GraphNode, preset: ViewPreset): { label: string; detail: string } {
   if (isFunction(node)) {
     const qualifiers = [node.visibility, node.stateMutability === 'nonpayable' ? '' : node.stateMutability]
       .filter((part) => part !== '' && part !== 'default')
       .join(' ');
-    const summary = flagSummary(node);
+    const summary = flagSummary(node, preset.stateInFlags);
     return {
       label: signature(node),
       detail: summary === '' ? qualifiers : `${qualifiers}  ${summary}`,
@@ -236,7 +241,7 @@ function displayNode(element: DisplayNode, preset: ViewPreset): CyElements['node
     };
   }
 
-  const { label, detail } = labelOf(element.node);
+  const { label, detail } = labelOf(element.node, preset);
   return {
     data: {
       id: element.id,

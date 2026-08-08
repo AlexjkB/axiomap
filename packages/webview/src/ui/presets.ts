@@ -36,6 +36,20 @@ export interface ViewPreset {
   partitioned: boolean;
   /** Directory clustering, matching `aggregate`'s own default for the view. */
   clustered: boolean;
+  /**
+   * Whether a node's flag summary may say `reads` / `writes`.
+   *
+   * False for the state-access map, where every edge already carries that per
+   * *variable* and in colour. The node-level flag is not a second copy of it,
+   * it is a worse one: `flags` is `writesState ? 'writes' : readsState &&
+   * 'reads'`, so a function that does both — which is most of them — reports
+   * only `writes` while its own edges correctly draw one of each. A label that
+   * disagrees with the edges leaving it is worse than a label that says less.
+   *
+   * True everywhere else, where nothing else on screen answers "does this
+   * touch storage at all" and §11's density target wants four facts per node.
+   */
+  stateInFlags: boolean;
 }
 
 /**
@@ -89,6 +103,7 @@ export const PRESETS: Record<ViewName, ViewPreset> = {
     layout: { ...LAYERED, 'elk.direction': 'RIGHT' },
     partitioned: false,
     clustered: true,
+    stateInFlags: true,
   },
   contract: {
     view: 'contract',
@@ -99,6 +114,7 @@ export const PRESETS: Record<ViewName, ViewPreset> = {
     layout: { ...LAYERED, 'elk.direction': 'DOWN' },
     partitioned: false,
     clustered: false,
+    stateInFlags: true,
   },
   call: {
     view: 'call',
@@ -109,6 +125,7 @@ export const PRESETS: Record<ViewName, ViewPreset> = {
     layout: { ...LAYERED, 'elk.direction': 'RIGHT' },
     partitioned: false,
     clustered: false,
+    stateInFlags: true,
   },
   'state-access': {
     view: 'state-access',
@@ -124,6 +141,7 @@ export const PRESETS: Record<ViewName, ViewPreset> = {
     },
     partitioned: true,
     clustered: false,
+    stateInFlags: false,
   },
   inheritance: {
     view: 'inheritance',
@@ -135,6 +153,7 @@ export const PRESETS: Record<ViewName, ViewPreset> = {
     layout: { ...LAYERED, 'elk.direction': 'UP' },
     partitioned: false,
     clustered: false,
+    stateInFlags: true,
   },
 };
 
