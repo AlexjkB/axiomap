@@ -438,6 +438,18 @@ export function App({ bridge, layoutClient, editor }: AppProps): JSX.Element {
         }}
         onClearFocus={() => {
           dispatch({ type: 'focus', focus: null });
+          /*
+           * The selection goes with it.
+           *
+           * These are two pieces of state and a click sets both — the focus is
+           * what the view is narrowed to, the selection is what the inspector
+           * is answering about — so they can be cleared apart in principle.
+           * In practice "clear" is the one control on screen for being done
+           * with a node, and clearing only the focus left the protocol map
+           * unfocused but still faded around a node the user had finished
+           * with, with nothing left in the toolbar that would undo it.
+           */
+          setSelected(null);
         }}
       />
 

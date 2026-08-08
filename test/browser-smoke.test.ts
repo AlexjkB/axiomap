@@ -466,6 +466,58 @@ describe.skipIf(CHROME === undefined)('the graph in a browser', () => {
   }, 120_000);
 
   /**
+   * Clearing the focus puts the graph back.
+   *
+   * The focus and the selection are two different pieces of state that a click
+   * happens to set together, and "clear" only ever spoke to the first — so the
+   * protocol map came back unfocused and still faded around a node the user had
+   * finished with, with no control left on screen that would undo it. The
+   * inspector's own close button was the only way out, and it is not what
+   * anyone reaches for after clearing the focus.
+   */
+  it('undims the protocol map when the focus is cleared', async () => {
+    await page.goto(session.handle.url);
+    await page.until(METRICS, (value) => /layout \d+ ms/.test(value));
+
+    // A click sets both: it focuses the contract and selects it.
+    await page.evaluate(tap('[kind = "Contract"]'));
+    await page.until(CURRENT_VIEW, (value) => value === 'Contract detail');
+    await page.until(METRICS, (value) => /layout \d+ ms/.test(value));
+
+    // Back to the protocol map, which is drawn dimmed around the selection.
+    await page.evaluate(`
+      [...document.querySelectorAll('.ax-view')]
+        .find((button) => button.textContent === 'Protocol map')?.click();
+      'switched'
+    `);
+    await page.until(CURRENT_VIEW, (value) => value === 'Protocol map');
+    const dimmed = await page.until(
+      "String(document.querySelector('.ax-canvas')._cyreg.cy.elements('.ax-dimmed').length)",
+      (value) => value !== '0' && value !== '',
+    );
+    expect(Number(dimmed)).toBeGreaterThan(0);
+
+    // The toolbar's own clear, which is the control the report was about.
+    const cleared = await page.evaluate(`
+      (() => {
+        const button = document.querySelector('.ax-focus .ax-chip');
+        if (button === null) return 'no clear button';
+        button.click();
+        return 'cleared';
+      })()
+    `);
+    expect(cleared).toBe('cleared');
+
+    expect(
+      await page.until(
+        "String(document.querySelector('.ax-canvas')._cyreg.cy.elements('.ax-dimmed').length)",
+        (value) => value === '0',
+      ),
+    ).toBe('0');
+    expect(page.consoleErrors.join('\n')).toBe('');
+  }, 120_000);
+
+  /**
    * A drag that ended somewhere the page could not see it.
    *
    * Release the button outside the window — off the top of the screen, over
