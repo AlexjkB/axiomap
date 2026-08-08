@@ -274,6 +274,9 @@ const tapKind = (kind) => `
 `;
 
 const CODE = "document.querySelector('.ax-code')?.textContent ?? ''";
+/** The toolbar's rendered height, which must not change between views. */
+const TOOLBAR_H =
+  "String(Math.round(document.querySelector('.ax-toolbar').getBoundingClientRect().height))";
 const PALETTE = "document.querySelector('.ax-palette')?.textContent ?? ''";
 
 const typeInPalette = (text) => `
@@ -283,6 +286,18 @@ const typeInPalette = (text) => `
     const setter = Object.getOwnPropertyDescriptor(window.HTMLInputElement.prototype, 'value').set;
     setter.call(input, ${JSON.stringify(text)});
     input.dispatchEvent(new Event('input', { bubbles: true }));
+    return 'ok';
+  })()
+`;
+
+/** Click a view tab by its label, the way the toolbar spells it. */
+const clickView = (label) => `
+  (() => {
+    const tab = [...document.querySelectorAll('.ax-view')]
+      .find((button) => button.textContent.trim() === ${JSON.stringify(label)});
+    if (!tab) return 'missing';
+    if (tab.disabled) return 'disabled';
+    tab.click();
     return 'ok';
   })()
 `;
@@ -328,6 +343,31 @@ async function run() {
         await page.until(PALETTE, (value) => value.includes('mint'));
         console.log(await page.shot(path.join(out, '04-search-palette.png')));
         await page.evaluate(press('Escape'));
+
+        /*
+         * The call graph, and the check the call graph is here for.
+         *
+         * It is the one view that puts extra controls on the toolbar row (§9
+         * rule 4's hop steppers), and that used to make the row run out of
+         * width, wrap the tab labels onto two lines, and grow the whole bar —
+         * a toolbar that changes height as you switch views is a canvas that
+         * resizes under the graph. Measured rather than eyeballed, because the
+         * difference is 20 pixels and every screenshot before this one was
+         * taken on a view that did not show it.
+         */
+        const before = Number(await page.evaluate(TOOLBAR_H));
+        await page.evaluate(clickView('Call graph'));
+        await page.until(CURRENT_VIEW, (value) => value === 'Call graph');
+        await settled(page);
+        console.log(await page.shot(path.join(out, '05-call-graph.png')));
+
+        const after = Number(await page.evaluate(TOOLBAR_H));
+        if (before !== after) {
+          console.error(`toolbar height changed with the view: ${before}px -> ${after}px`);
+          process.exitCode = 1;
+        } else {
+          console.log(`  toolbar height steady at ${String(after)}px across views`);
+        }
 
         if (page.consoleErrors.length > 0) {
           console.error(`console errors under ${themeName}:`, page.consoleErrors);

@@ -61,6 +61,12 @@ body {
   gap: 12px;
   padding: 6px 10px;
   min-height: 28px;
+  /* One line, always. The call view adds the hop steppers to this row, and
+     without this the row ran out of width, the tab labels wrapped to two lines
+     and the whole bar grew taller — the toolbar changing height as you switch
+     views is a canvas that resizes under the graph. Everything here either
+     refuses to shrink or ellipsizes; nothing wraps. */
+  flex-wrap: nowrap;
 }
 
 .ax-subrow {
@@ -72,6 +78,7 @@ body {
 }
 
 .ax-brand {
+  flex: 0 0 auto;
   font-family: var(--ax-mono);
   letter-spacing: 0.08em;
   color: var(--ax-dim);
@@ -80,6 +87,7 @@ body {
 
 .ax-views {
   display: flex;
+  flex: 0 0 auto;
   gap: 0;
 }
 
@@ -91,6 +99,8 @@ body {
   border-right-width: 0;
   padding: 3px 10px;
   cursor: pointer;
+  /* A two-line tab label is what made the bar grow. */
+  white-space: nowrap;
 }
 
 .ax-view:first-child {
@@ -123,6 +133,17 @@ body {
   align-items: center;
   gap: 6px;
   min-width: 0;
+}
+
+/* The focus chip is the one thing on the row allowed to give way: it already
+   ellipsizes, and a node id is the only item here whose length is unbounded. */
+.ax-focus {
+  flex: 1 1 auto;
+}
+
+.ax-hops {
+  flex: 0 0 auto;
+  white-space: nowrap;
 }
 
 .ax-focus code {
@@ -166,6 +187,7 @@ body {
 }
 
 .ax-mode {
+  flex: 0 0 auto;
   margin-left: auto;
   font-family: var(--ax-mono);
   border: 1px solid currentcolor;
