@@ -402,6 +402,70 @@ describe.skipIf(CHROME === undefined)('the graph in a browser', () => {
   }, 120_000);
 
   /**
+   * Selecting one node fades everything unrelated to it.
+   *
+   * Asserted as the *relationship* rather than as a count: the selection and
+   * its one-hop neighbourhood carry no dim class, something outside it does.
+   * A count would be a fixture fingerprint that changes whenever `defi` does,
+   * and would still pass if the wrong elements were the dim ones.
+   */
+  it('dims everything unrelated to the selected node', async () => {
+    await page.goto(session.handle.url);
+    await page.until(METRICS, (value) => /layout \d+ ms/.test(value));
+
+    // Into a contract, where functions and storage are drawn together — the
+    // view the dimming was asked for.
+    await page.evaluate(tap('[kind = "Contract"]'));
+    await page.until(CURRENT_VIEW, (value) => value === 'Contract detail');
+    await page.until(METRICS, (value) => /layout \d+ ms/.test(value));
+
+    // A state variable selects without navigating away, so the assertion runs
+    // against the view the click landed in.
+    const picked = await page.evaluate(tap('[kind = "StateVariable"]'));
+    expect(picked).not.toBe('');
+
+    const state = await page.until(
+      `
+        (() => {
+          const cy = document.querySelector('.ax-canvas')._cyreg.cy;
+          const chosen = cy.getElementById(${JSON.stringify(picked)});
+          if (chosen.empty()) return 'missing';
+          const near = chosen.closedNeighborhood();
+          return [
+            chosen.hasClass('ax-dimmed') ? 'selection-dimmed' : 'selection-lit',
+            near.filter('.ax-dimmed').length === 0 ? 'neighbours-lit' : 'neighbours-dimmed',
+            cy.elements('.ax-dimmed').length > 0 ? 'rest-dimmed' : 'rest-lit',
+          ].join('|');
+        })()
+      `,
+      (value) => value !== '' && value !== 'missing',
+    );
+    expect(state).toBe('selection-lit|neighbours-lit|rest-dimmed');
+
+    /*
+     * And it lifts. Closing the inspector is how a selection is cleared, and
+     * a graph left permanently dimmed after one stray click would be a worse
+     * problem than the clutter this fixes.
+     */
+    const closed = await page.evaluate(`
+      (() => {
+        const button = document.querySelector('.ax-inspect-head .ax-chip');
+        if (button === null) return 'no close button';
+        button.click();
+        return 'closed';
+      })()
+    `);
+    expect(closed).toBe('closed');
+
+    const cleared = await page.until(
+      "String(document.querySelector('.ax-canvas')._cyreg.cy.elements('.ax-dimmed').length)",
+      (value) => value === '0',
+    );
+    expect(cleared).toBe('0');
+    expect(page.consoleErrors.join('\n')).toBe('');
+  }, 120_000);
+
+  /**
    * A drag that ended somewhere the page could not see it.
    *
    * Release the button outside the window — off the top of the screen, over

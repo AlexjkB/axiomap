@@ -234,6 +234,33 @@ export const RESOLUTION_LINE: Record<string, { style: 'solid' | 'dashed' | 'dott
   unresolved: { style: 'dotted', opacity: 0.55 },
 };
 
+/**
+ * The class a node or edge carries when it is not related to the selection.
+ *
+ * Named once and exported, because the canvas adds it and the stylesheet
+ * defines it, and a class name spelled in two files is a rename away from a
+ * feature that silently stops working — nothing throws when a cytoscape
+ * selector matches nothing.
+ */
+export const DIMMED = 'ax-dimmed';
+
+/**
+ * How far back a dimmed element goes.
+ *
+ * Faded, not hidden. Two different values because they are doing different
+ * jobs: a dimmed *node* is still the shape of the graph and worth keeping
+ * readable enough to navigate by, while a dimmed *edge* is the thing actually
+ * causing the clutter — a state-access map is a couple of hundred crossing
+ * lines, and edges have to go further back than nodes for the remaining ones to
+ * stand out at all.
+ *
+ * Neither is zero. Hiding unrelated elements outright would reflow nothing (the
+ * layout is fixed) but would make the graph look smaller than it is, and §4's
+ * whole argument is that the tool does not quietly show you less than it knows.
+ */
+const DIM_NODE_OPACITY = 0.2;
+const DIM_EDGE_OPACITY = 0.08;
+
 export function stylesheet(palette: Palette, preset: ViewPreset): StylesheetJson {
   const label = {
     'font-family': palette.fontFamily,
@@ -398,6 +425,19 @@ export function stylesheet(palette: Palette, preset: ViewPreset): StylesheetJson
       style: { 'line-style': line.style, opacity: line.opacity },
     });
   }
+
+  /*
+   * Last, so it wins.
+   *
+   * The `res-*` rules above set an edge's opacity from §4's confidence, and a
+   * dimmed unresolved edge that kept its own 0.55 would be brighter than a
+   * dimmed semantic one. Whatever an element's opacity means normally, being
+   * unrelated to the selection overrides it.
+   */
+  sheet.push(
+    { selector: `node.${DIMMED}`, style: { opacity: DIM_NODE_OPACITY } },
+    { selector: `edge.${DIMMED}`, style: { opacity: DIM_EDGE_OPACITY, label: '' } },
+  );
 
   if (preset.partitioned) {
     // §11 names the two hues for this view; the edges already carry the kind.

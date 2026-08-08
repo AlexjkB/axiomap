@@ -9,7 +9,7 @@
 import { describe, expect, it } from 'vitest';
 
 import { PRESETS } from '../src/ui/presets.js';
-import { FALLBACK_PALETTE, PALETTE_VARIABLES, readPalette, RESOLUTION_LINE, stylesheet } from '../src/ui/style.js';
+import { DIMMED, FALLBACK_PALETTE, PALETTE_VARIABLES, readPalette, RESOLUTION_LINE, stylesheet } from '../src/ui/style.js';
 
 describe('palette', () => {
   it('takes every colour from the host’s theme when it sets one', () => {
@@ -88,8 +88,33 @@ describe('stylesheet', () => {
     ]);
   });
 
-  it('leaves node opacity alone — nothing dims a node', () => {
-    expect(touching('opacity')).toEqual([]);
+  /**
+   * Node opacity, spent — deliberately, and on one thing.
+   *
+   * This assertion used to be `[]`, and §11 names it as the gate that a new
+   * signal has to be argued past rather than edited around. The argument:
+   *
+   * **Dimming is not an overlay.** §11's rule is that "a node's appearance is a
+   * function of what it is and never of what is currently switched on", and
+   * what it guards against is a *data* signal creeping back onto the canvas —
+   * access control as a tint, review state as a fill — one channel at a time
+   * until the overlay system is back without its budget. `.ax-dimmed` encodes
+   * nothing about the node. It says "not related to what you just clicked",
+   * which is a fact about the pointer and not about the graph, it survives no
+   * click, and no reader ever has to learn what it means about a contract.
+   * `node:selected` already writes a border on the same footing.
+   *
+   * **It suppresses channels rather than competing for one.** Every element
+   * that stays lit keeps its kind colour, its border style and its width
+   * intact; the faded ones keep theirs too, just further back. Nothing has to
+   * share a channel with a second meaning, which is the failure the budget
+   * exists to prevent.
+   *
+   * The list is exact, so a *second* rule reaching for node opacity still
+   * fails here — the gate is narrowed, not removed.
+   */
+  it('spends node opacity on the selection dimming and nothing else', () => {
+    expect(touching('opacity')).toEqual([`node.${DIMMED}`]);
   });
 
   it('gives node border style to the view’s own vocabulary only', () => {

@@ -27,7 +27,7 @@ import type { CyElements } from './elements.js';
 import { toElkGraph } from './layout/elk-graph.js';
 import type { LayoutClient } from './layout/client.js';
 import type { ViewPreset } from './presets.js';
-import { stylesheet, type Palette } from './style.js';
+import { DIMMED, stylesheet, type Palette } from './style.js';
 
 /**
  * How far `fit` may zoom in on a graph too small to fill the viewport.
@@ -546,9 +546,37 @@ export function GraphCanvas({
     if (instance === null) return;
     instance.batch(() => {
       instance.elements(':selected').unselect();
+      instance.elements().removeClass(DIMMED);
       if (selected === null) return;
       const node = instance.getElementById(selected);
-      if (!node.empty()) node.select();
+      if (node.empty()) return;
+      node.select();
+
+      /*
+       * Everything unrelated to the selection, faded back.
+       *
+       * The state-access map of a real contract is the case that asks for this:
+       * fifteen functions against fifteen storage variables is a couple of
+       * hundred crossing edges, and finding the four that belong to the one
+       * function you clicked is a tracing exercise done with a fingertip on the
+       * screen. Dimming answers it in one glance, and it answers the reverse
+       * question — *who else writes this variable* — the same way.
+       *
+       * One hop, both directions. `closedNeighborhood` is the selection plus
+       * the edges touching it plus what is on their far end, which is exactly
+       * "related to what is selected" for every view here: callers and callees
+       * in the call graph, the storage a function touches in the state map, the
+       * contracts a contract inherits from. Going transitive would light most
+       * of a connected graph and dim nothing worth dimming.
+       *
+       * Ancestors are kept lit so a cluster or contract box does not fade out
+       * from around a node that stayed: the container is not "unrelated", it is
+       * where the related thing lives. Descendants likewise, so selecting a
+       * collapsed contract does not grey out its own members.
+       */
+      const near = node.closedNeighborhood();
+      const lit = near.union(near.ancestors()).union(near.descendants());
+      instance.elements().difference(lit).addClass(DIMMED);
     });
   }, [selected, elements]);
 
