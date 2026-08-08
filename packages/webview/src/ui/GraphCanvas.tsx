@@ -151,10 +151,25 @@ export function GraphCanvas({
        * more events per gesture than a wheel does.
        */
       wheelSensitivity: 0.6,
-      // A low-resolution texture *while panning and zooming only*; the real
-      // elements are drawn once the viewport settles. §11: no animation except
-      // functional layout transitions.
-      textureOnViewport: true,
+      /*
+       * Off, and it shipped on.
+       *
+       * It renders a texture of the *current viewport* and moves that around
+       * while panning, so everything you pan toward is blank until you let go
+       * and the real elements are drawn — the opposite of what panning is for.
+       * Reported as having to release the mouse before the graph could be seen.
+       *
+       * **It was a throughput hedge that bought nothing.** Measured on
+       * `fixtures/large` at 1,478 drawn elements, near §9 rule 2's cap of
+       * 1,500, panning every frame: **5.4 fps with it on, 5.7 fps with it off**
+       * — the same, and if anything slightly worse for keeping it. So the blank
+       * viewport was the entire cost of the option.
+       *
+       * (Both numbers are from headless Chrome with software rendering, so they
+       * are a comparison and not a report on real hardware. The comparison is
+       * the part that decides this.)
+       */
+      textureOnViewport: false,
       /*
        * `pixelRatio` is deliberately left at cytoscape's default, which is the
        * device's. Pinning it to 1 renders half-resolution on any HiDPI display
