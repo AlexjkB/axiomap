@@ -18,6 +18,52 @@ describe('navigation', () => {
     expect(ready(start)).toBe(true);
   });
 
+  /**
+   * `clear` used to leave you on a view that cannot draw without a focus,
+   * looking at §9 rule 4's notice — a dead end reached by pressing a button
+   * whose whole job is to get you out of one.
+   */
+  it('returns to the protocol map when the focus a view requires is cleared', () => {
+    const start = initialState({ up: 2, down: 3 });
+    const inCall = reduce(reduce(start, { type: 'view', view: 'call' }), {
+      type: 'focus',
+      focus: 'src/Vault.sol:Vault.deposit(uint256)',
+    });
+    expect(ready(inCall)).toBe(true);
+
+    const cleared = reduce(inCall, { type: 'focus', focus: null });
+    expect(cleared.view).toBe('protocol');
+    expect(cleared.focus).toBeNull();
+    expect(ready(cleared)).toBe(true);
+    // Behaves as clicking the tab does: the open directories belonged to a map
+    // the user has not been looking at.
+    expect(cleared.expand).toEqual([]);
+    expect(cleared.autoExpand).toBe(true);
+  });
+
+  it('does the same from contract detail, which also requires a focus', () => {
+    const start = initialState({ up: 2, down: 3 });
+    const inContract = reduce(start, { type: 'pick', kind: 'Contract', id: 'src/Vault.sol:Vault' });
+    expect(inContract.view).toBe('contract');
+    expect(reduce(inContract, { type: 'focus', focus: null }).view).toBe('protocol');
+  });
+
+  /**
+   * The state-access map takes an *optional* focus: clearing it widens from one
+   * contract to the whole project, which is a thing to have asked for rather
+   * than a dead end. It must not be dragged back to the protocol map.
+   */
+  it('leaves a view whose focus is optional exactly where it is', () => {
+    const start = initialState({ up: 2, down: 3 });
+    const scoped = reduce(reduce(start, { type: 'view', view: 'state-access' }), {
+      type: 'focus',
+      focus: 'src/Vault.sol:Vault',
+    });
+    const widened = reduce(scoped, { type: 'focus', focus: null });
+    expect(widened.view).toBe('state-access');
+    expect(widened.focus).toBeNull();
+  });
+
   it('refuses the call graph until something is focused (§9 rule 4)', () => {
     const call = reduce(start, { type: 'view', view: 'call' });
     expect(ready(call)).toBe(false);

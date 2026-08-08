@@ -82,8 +82,28 @@ export function reduce(state: NavState, event: NavEvent): NavState {
       // so carrying it is what makes the two views agree about where you are.
       return { ...state, view: event.view, expand: [], autoExpand: true };
     }
-    case 'focus':
+    case 'focus': {
+      /*
+       * Clearing the focus on a view that requires one leaves the user looking
+       * at §9 rule 4's "this view needs a focus node" notice instead of a
+       * graph — a dead end reached by pressing a button labelled `clear`.
+       *
+       * The protocol map is where a focus comes from in the first place (the
+       * whole of navigation is drill-down, per this file's header), and it is
+       * one of the three views that never needs one. So clearing goes back to
+       * it, and behaves exactly as clicking its tab does — including dropping
+       * `expand`, since the directories that were open belong to a map the
+       * user has not been looking at.
+       *
+       * Views that take an *optional* focus are left alone: clearing it on the
+       * state-access map widens it from one contract to the whole project,
+       * which is a useful thing to have asked for rather than a dead end.
+       */
+      if (event.focus === null && PRESETS[state.view].needsFocus) {
+        return { ...state, focus: null, view: 'protocol', expand: [], autoExpand: true };
+      }
       return { ...state, focus: event.focus };
+    }
     case 'hops':
       return { ...state, up: Math.max(0, event.up), down: Math.max(0, event.down) };
     case 'pick': {
