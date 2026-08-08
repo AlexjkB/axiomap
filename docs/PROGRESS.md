@@ -3408,7 +3408,13 @@ Two more things worth recording that are *not* defects, because the tool got the
   reading the PNG. That harness is now the cheapest tool in the repo and was nearly
   deleted with the overlays.
 
-### Known defect, logged and not fixed
+### Known defect — logged here, fixed in the next commit (`62fbc6d`)
+
+> **Superseded.** This section was written as an open defect and closed one commit later,
+> in the same session. It is left standing rather than rewritten because the entry above
+> is a record of what was true when it was written — but it was wrong for as long as it
+> took to read it, and it said "the first thing to fix" in a document somebody would
+> reasonably trust. The fix and the rest of the session are logged in the entry below.
 
 **In structural mode the call graph view is offered and answers with a single node.** §4
 says of the call graph: "does not survive; **disable the view with an explanation and a
@@ -3445,3 +3451,111 @@ and that the protocol-map half of its trigger is a different item.
   sessions. Still no remote, still unpublished, `docs/RELEASING.md` still the checklist.
 - **`pnpm screenshots` renders four images per theme now** and reading them back is how two
   of this session's six fixes were confirmed. Worth running before believing any UI change.
+
+---
+
+## Eleven fixes from using it, and a stale entry that had to be corrected
+
+**Date:** 2026-08-08
+**Status:** complete. `pnpm check` green — 450 core, 127 webview, 101 cli, 51 vscode, 57
+repo-level. Eleven commits, +698/−37 across 16 files.
+
+The continuation of the session above, and it starts by correcting it. The previous entry
+closed with a "Known defect, logged and not fixed" section naming the structural-mode call
+view as **the first thing to fix**, and it was fixed in the very next commit. The entry
+then sat unamended through ten more. It has a `> Superseded` note on it now.
+
+**That is the failure mode this project is most exposed to and least protected against.**
+`pnpm check` cannot fail on a document, and the same defect has now appeared three times in
+three sessions: ~40 comments citing a §11 that said the opposite, `navigation.ts` claiming
+a focus was "dropped rather than carried" when the code always carried it, and this. Code
+drift gets caught by a suite; prose drift gets caught by somebody reading it and asking, as
+happened here.
+
+### The one that mattered
+
+**`62fbc6d` — structural mode refuses the call graph instead of answering it.** §4 says the
+call graph "does not survive; disable the view with an explanation and a prompt to build
+the project", and neither half happened: `callView` returned the focus node with no edges
+and a note reading "1 functions within 2 up and 3 down of X". That reads as *this function
+calls nothing and nothing calls it* about a graph that had deliberately withheld every call
+edge — the only known case where this tool drew a picture it could not stand behind.
+
+Two halves, both needed. The core refusal is detected from the graph rather than from
+`mode`, because structural mode is *implemented* by dropping those edge kinds, so their
+absence is the condition and not a proxy for it — and it covers a project with genuinely no
+call sites for free. The toolbar disables the tab, with `modeReason` as its tooltip so it
+says why *this* project.
+
+### The rest
+
+| Commit | What was wrong |
+|---|---|
+| `14117d5` | `clear` on a view that requires a focus left you on §9 rule 4's notice — a dead end reached by pressing the button whose job is to leave one. Gated on `needsFocus`, so the state-access map still widens rather than jumping |
+| `4891680` | The toolbar grew ~20px on the call graph: the hop steppers ran the row out of width and the tab labels wrapped to two lines |
+| `2c08476` | …which traded that for collisions on a narrow panel. Two rows below 860px, tabs first. Took three attempts — see below |
+| `f84a984` | The wordmark, removed, along with the media query that existed only to hide it |
+| `57de739` | Every view change played the graph assembling itself out of a grid. §9 rule 6 **amended**, not quietly broken |
+| `60cfa8b`, `5b38789` | A mouse wheel now zooms at its own rate, 1.25x a notch. Cytoscape has one sensitivity for every device, which is why the earlier bump did not fix it |
+| `607a31e` | `textureOnViewport` made everything you panned toward blank until you released |
+| `73c81e0`, `db49a52` | A function with no call edges no longer opens a one-node call graph, and says why it did not |
+
+### Three things worth keeping
+
+**`2c08476` took three attempts, and the reason was ordering.** The media queries were
+inserted *above* the base rules they override, so `.ax-views { flex: 0 0 auto }` won on
+source order and the forced wrap never applied at all. That is the second time in two
+sessions a fix was defeated by CSS source order — `text-wrap: none` overriding the base
+`wrap` was the first. This stylesheet's structure is worth a look.
+
+**`607a31e` was decided by measurement, not preference.** `textureOnViewport` is a
+throughput option, so removing it could have traded a blank viewport for a stuttering pan.
+Measured on `fixtures/large` at 1,478 elements, near §9 rule 2's cap: **5.4 fps with it on,
+5.7 fps with it off**. It bought nothing, which turned a trade into a deletion.
+
+**`73c81e0` needed a fact the webview cannot have.** §9 rule 1 means it never receives the
+graph, so "would the call graph be empty here" travels with the view as `NodeElement.calls`
+— computed from the *whole graph*, not the drawn one, because the contract view draws no
+cross-contract calls and a member whose only caller is elsewhere would otherwise read as a
+dead end.
+
+### The harness earned its place
+
+`scripts/screenshots.mjs` gained the call-graph view, toolbar-height assertions at 1600,
+800 and 560px, and a wheel-zoom rate check. It caught two defects introduced *while fixing*
+another, and a check that only ran at 1600px would have passed every bug in `2c08476`.
+
+It was down to four images per theme after the overlay cut, and all four were of views that
+put nothing extra on the toolbar — which is exactly why a 20px jump survived a screenshot
+pass. **Coverage of the busiest view was the real defect; the CSS was a symptom.**
+
+### On real projects
+
+A second target (`bounty_hunt/targets/metric`) confirmed the Foundry finding independently:
+6 build-info files, all `{id, language, source_id_to_path}`, no ASTs. Two unrelated projects
+now, so §16's entry is not built on one sample.
+
+It also produced a correction worth recording: **resolving modifiers does not move the mode
+gate.** `onlyOwner` and `nonReentrant` are `modifiedBy` edges and the gate counts `calls`
+and `creates` only, so fixing 22 of them moved the calls score by one point. What moved it
+from 62% to 76% — over the threshold, into heuristic mode — was adding the *six OpenZeppelin
+files the protocol actually uses* (`Math`, `SafeCast`, `SignedMath`, `IERC20`, `SafeERC20`,
+`Panic`) to `include`. Adding **all** of OpenZeppelin instead made it *worse*, 49%, because
+200 files of similarly-named functions turn resolution into ambiguity.
+
+### §16 changes
+
+Nothing appended. Every deferral this session touched already had an entry; the three from
+the previous session (Foundry build-info, qualified errors and events, the threshold
+weighting dependencies) all gained evidence rather than needing rewrites.
+
+### Notes for the next session
+
+- **The `include`/`exclude` documentation gap is now the largest one in the repo.** Two real
+  projects, both unusable at their default scope, both fine with a config nobody would guess:
+  30%→80% and 20%→76%. Nothing in the README, the `build` summary or the bug template says
+  so. It is a docs task rather than a deferral, which is why it is not in §16 — and it is
+  the difference between the tool working and appearing broken on first contact.
+- **`payloadVersion` is still 2 and still unpublished.** It absorbed `AuditState` and now
+  `NodeElement.calls` for free. It remains the only cheap-format-change window left.
+- **Nothing from the Phase 9 release prep has been touched** in four sessions.
