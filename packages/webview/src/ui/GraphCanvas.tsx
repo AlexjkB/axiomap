@@ -52,6 +52,31 @@ const MAX_FIT_ZOOM = 1.75;
  */
 const MIN_FIT_ZOOM = 0.6;
 
+/**
+ * Telling a mouse wheel from a trackpad, which the platform will not do for us.
+ *
+ * `WheelEvent` carries no device. What it carries is a shape: a wheel notch is
+ * one large quantised delta — 100 or 120 pixels, or a line count — while a
+ * trackpad streams many small fractional ones, and a pinch arrives as a wheel
+ * event with `ctrlKey` set. So the threshold is the discriminator, and it is
+ * deliberately well above any per-frame trackpad delta rather than close to it.
+ *
+ * A misread in either direction is a nuisance and not a fault: a trackpad
+ * mistaken for a wheel zooms one step too eagerly, a wheel mistaken for a
+ * trackpad zooms as it did before this existed.
+ */
+const WHEEL_NOTCH_DELTA = 50;
+
+/**
+ * How much of a zoom one wheel notch is worth.
+ *
+ * Separate from cytoscape's own `wheelSensitivity`, which applies to every
+ * device at once and therefore cannot be raised for a wheel without making a
+ * trackpad unusable. A notch of 100 works out to about 1.35x, which is roughly
+ * three notches per doubling.
+ */
+const WHEEL_ZOOM_RATE = 0.003;
+
 /** Padding used by every fit here, so the clamp and the fit agree. */
 const FIT_PADDING = 24;
 
@@ -115,11 +140,11 @@ export function GraphCanvas({
       elements: [],
       style: stylesheet(current.current, preset),
       /*
-       * Cytoscape's own default is 1 and 0.2 shipped with no reason recorded.
-       * Five turns of a wheel to cross one zoom level reads as a canvas that
-       * is not responding, which is what it was reported as. 0.6 is still
-       * calmer than the default, because a trackpad in a webview delivers far
-       * larger deltas than a mouse wheel does.
+       * This now applies to the trackpad and the pinch gesture only — a mouse
+       * wheel is intercepted below and zoomed at its own rate, because one
+       * sensitivity cannot serve both. Kept calmer than cytoscape's default of
+       * 1 for the reason it always was: a trackpad in a webview streams many
+       * more events per gesture than a wheel does.
        */
       wheelSensitivity: 0.6,
       // A low-resolution texture *while panning and zooming only*; the real
@@ -134,6 +159,32 @@ export function GraphCanvas({
        * costs more than it saves.
        */
     });
+
+    /*
+     * A mouse wheel zooms further per notch than a trackpad does per frame.
+     *
+     * Capture phase and `stopPropagation`, so cytoscape's own handler never
+     * sees the events we take over — and *only* those. Anything that does not
+     * look like a notch is left alone and reaches cytoscape with its own
+     * `wheelSensitivity`, which is what a trackpad and a pinch still get.
+     */
+    const onWheel = (event: WheelEvent): void => {
+      if (event.ctrlKey) return;
+      const notch = event.deltaMode !== 0 || Math.abs(event.deltaY) >= WHEEL_NOTCH_DELTA;
+      if (!notch) return;
+
+      event.preventDefault();
+      event.stopPropagation();
+
+      const box = element.getBoundingClientRect();
+      instance.zoom({
+        level: instance.zoom() * Math.exp(-event.deltaY * WHEEL_ZOOM_RATE),
+        // About the pointer, not the centre: zooming toward what you are
+        // looking at is the whole reason a wheel beats the +/- buttons.
+        renderedPosition: { x: event.clientX - box.left, y: event.clientY - box.top },
+      });
+    };
+    element.addEventListener('wheel', onWheel, { capture: true, passive: false });
 
     instance.on('tap', 'node', (event) => {
       const node = event.target as cytoscape.NodeSingular;
@@ -161,6 +212,7 @@ export function GraphCanvas({
 
     cy.current = instance;
     return () => {
+      element.removeEventListener('wheel', onWheel, { capture: true });
       instance.destroy();
       cy.current = null;
     };

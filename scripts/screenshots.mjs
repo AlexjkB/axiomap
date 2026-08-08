@@ -419,6 +419,43 @@ async function run() {
         }
         await page.resize(1600);
 
+        /*
+         * A wheel notch zooms further than a trackpad frame does.
+         *
+         * Reported twice — first as "zooming is difficult", then as wanting the
+         * wheel specifically to move faster — and a `WheelEvent` carries no
+         * device, so the two are told apart by the size of the delta. Worth an
+         * assertion because the discriminator is a threshold, and a threshold
+         * that drifts to the wrong side of a real mouse is silent.
+         */
+        await page.evaluate(clickView('Protocol map'));
+        await page.until(CURRENT_VIEW, (value) => value === 'Protocol map');
+        await settled(page);
+        const wheel = (deltaY) => `
+          (() => {
+            const cy = document.querySelector('.ax-canvas')._cyreg.cy;
+            const before = cy.zoom();
+            document.querySelector('.ax-canvas').dispatchEvent(new WheelEvent('wheel', {
+              deltaY: ${String(deltaY)}, clientX: 400, clientY: 400,
+              bubbles: true, cancelable: true,
+            }));
+            return String(cy.zoom() / before);
+          })()
+        `;
+        const notch = Number(await page.evaluate(wheel(-100)));
+        const graze = Number(await page.evaluate(wheel(-8)));
+        if (!(notch > 1.2 && notch < 1.6)) {
+          console.error(`a wheel notch zoomed by ${String(notch)}x, expected ~1.35x`);
+          process.exitCode = 1;
+        } else if (!(graze < notch)) {
+          console.error(`a trackpad-sized delta zoomed by ${String(graze)}x, not less than a notch`);
+          process.exitCode = 1;
+        } else {
+          console.log(
+            `  wheel notch ${notch.toFixed(2)}x vs trackpad frame ${graze.toFixed(3)}x`,
+          );
+        }
+
         if (page.consoleErrors.length > 0) {
           console.error(`console errors under ${themeName}:`, page.consoleErrors);
           process.exitCode = 1;
