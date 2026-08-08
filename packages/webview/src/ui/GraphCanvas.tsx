@@ -21,7 +21,7 @@
  */
 
 import cytoscape from 'cytoscape';
-import { useEffect, useRef } from 'react';
+import { useCallback, useEffect, useRef } from 'react';
 
 import type { CyElements } from './elements.js';
 import { toElkGraph } from './layout/elk-graph.js';
@@ -114,10 +114,25 @@ export function GraphCanvas({
       container: element,
       elements: [],
       style: stylesheet(current.current, preset),
-      wheelSensitivity: 0.2,
-      // §11: no animation except functional layout transitions.
+      /*
+       * Cytoscape's own default is 1 and 0.2 shipped with no reason recorded.
+       * Five turns of a wheel to cross one zoom level reads as a canvas that
+       * is not responding, which is what it was reported as. 0.6 is still
+       * calmer than the default, because a trackpad in a webview delivers far
+       * larger deltas than a mouse wheel does.
+       */
+      wheelSensitivity: 0.6,
+      // A low-resolution texture *while panning and zooming only*; the real
+      // elements are drawn once the viewport settles. §11: no animation except
+      // functional layout transitions.
       textureOnViewport: true,
-      pixelRatio: 1,
+      /*
+       * `pixelRatio` is deliberately left at cytoscape's default, which is the
+       * device's. Pinning it to 1 renders half-resolution on any HiDPI display
+       * — permanently, not only while moving — and §11's density argument is
+       * about labels being legible at default zoom. Soft text at every zoom
+       * costs more than it saves.
+       */
     });
 
     instance.on('tap', 'node', (event) => {
@@ -286,5 +301,50 @@ export function GraphCanvas({
     });
   }, [selected, elements]);
 
-  return <div className="ax-canvas" ref={container} />;
+  /*
+   * Zoom that does not depend on a wheel.
+   *
+   * The wheel is the only way to change zoom otherwise, and a webview panel is
+   * exactly where a wheel is least predictable — trackpad, tiling, a host that
+   * may claim the gesture. These are deterministic steps and a way back to a
+   * known state, which is what "I cannot zoom" actually asks for.
+   */
+  const step = useCallback((factor: number) => {
+    const instance = cy.current;
+    if (instance === null) return;
+    instance.zoom({
+      level: instance.zoom() * factor,
+      position: { x: instance.width() / 2, y: instance.height() / 2 },
+    });
+  }, []);
+
+  const refit = useCallback(() => {
+    const instance = cy.current;
+    if (instance === null || instance.elements().empty()) return;
+    instance.fit(undefined, FIT_PADDING);
+    if (instance.zoom() > MAX_FIT_ZOOM) {
+      instance.zoom({
+        level: MAX_FIT_ZOOM,
+        position: { x: instance.width() / 2, y: instance.height() / 2 },
+      });
+      instance.center();
+    }
+  }, []);
+
+  return (
+    <div className="ax-stage-inner">
+      <div className="ax-canvas" ref={container} />
+      <div className="ax-zoom" role="group" aria-label="Zoom">
+        <button type="button" className="ax-chip" title="Zoom in" onClick={() => { step(1.3); }}>
+          +
+        </button>
+        <button type="button" className="ax-chip" title="Zoom out" onClick={() => { step(1 / 1.3); }}>
+          −
+        </button>
+        <button type="button" className="ax-chip" title="Fit the graph to the viewport" onClick={refit}>
+          fit
+        </button>
+      </div>
+    </div>
+  );
 }

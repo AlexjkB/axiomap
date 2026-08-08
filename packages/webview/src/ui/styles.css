@@ -212,6 +212,32 @@ body {
   min-height: 0;
 }
 
+/* The canvas and the controls that float over it. */
+.ax-stage-inner {
+  position: absolute;
+  inset: 0;
+}
+
+.ax-zoom {
+  position: absolute;
+  right: 10px;
+  bottom: 10px;
+  display: flex;
+  gap: 4px;
+  /* Above the canvas, below the notices — a render-cap refusal is the one thing
+     that must not be competed with. */
+  z-index: 5;
+  background: var(--ax-panel);
+  border: 1px solid var(--ax-border);
+  border-radius: 3px;
+  padding: 3px;
+}
+
+.ax-zoom .ax-chip {
+  min-width: 22px;
+  text-align: center;
+}
+
 .ax-stage {
   position: relative;
   flex: 1 1 auto;
