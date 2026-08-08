@@ -63,7 +63,6 @@ export function Toolbar({
   return (
     <header className="ax-toolbar">
       <div className="ax-toolbar-row">
-        <span className="ax-brand">axiomap</span>
         <nav className="ax-views">
           {PRESET_ORDER.map((name) => {
             const blocked = PRESETS[name].needsFocus && focus === null;

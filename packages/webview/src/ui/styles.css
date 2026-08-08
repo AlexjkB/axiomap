@@ -77,14 +77,6 @@ body {
   font-size: 11px;
 }
 
-.ax-brand {
-  flex: 0 0 auto;
-  font-family: var(--ax-mono);
-  letter-spacing: 0.08em;
-  color: var(--ax-dim);
-  text-transform: uppercase;
-}
-
 .ax-views {
   display: flex;
   flex: 0 0 auto;
@@ -732,9 +724,8 @@ body {
  * chosen rather than wherever it runs out: the view tabs take the whole first
  * line, everything else goes to the second.
  *
- * `order` is what makes that possible without moving anything in the DOM. The
- * brand sits before the tabs in markup because that is the reading order on a
- * wide panel; here it is reordered after them, so the tabs lead.
+ * `order` is what makes that possible without moving anything in the DOM: the
+ * tabs take `order: 0` and everything after them follows in markup order.
  *
  * Height still does not change *between views* at a given width, which is the
  * invariant the previous fix was about: the second row exists on every view
@@ -753,10 +744,6 @@ body {
     flex: 1 0 100%;
   }
 
-  .ax-brand {
-    order: 1;
-  }
-
   .ax-focus {
     order: 2;
   }
@@ -767,16 +754,5 @@ body {
 
   .ax-mode {
     order: 4;
-  }
-}
-
-/*
- * Narrower still: the brand is the one item on the row carrying no information
- * — the panel is already titled "Axiomap" by its own tab — so it is what gets
- * dropped to buy the focus chip its width back.
- */
-@media (max-width: 620px) {
-  .ax-brand {
-    display: none;
   }
 }
