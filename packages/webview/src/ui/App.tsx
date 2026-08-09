@@ -293,14 +293,36 @@ export function App({ bridge, layoutClient, editor }: AppProps): JSX.Element {
 
   const onPick = useCallback(
     (pick: { kind: string; id: string; path?: string; expanded?: boolean }) => {
-      // A click both navigates and selects: §11's inspector is about the thing
-      // you just clicked, and a directory is not a node the inspector can answer
-      // about — it stands for what is *not* drawn.
+      // A click selects: §11's inspector is about the thing you just clicked,
+      // and a directory is not a node the inspector can answer about — it
+      // stands for what is *not* drawn.
       if (pick.kind !== 'Cluster') {
         setSelected(pick.id);
         // §11: "Click node → reveal in editor." A cluster is a directory and
         // has no declaration to land on.
         editor?.reveal({ kind: 'node', id: pick.id });
+      }
+
+      /*
+       * Clicking a contract no longer opens it.
+       *
+       * It used to navigate straight into contract detail, which meant there
+       * was no way to *read* a contract without losing the map you found it on
+       * — and with the inspector and the neighbourhood dimming both hanging off
+       * the selection, the click that populates them was the same click that
+       * threw away the view they were describing. Double-click opens it now,
+       * and the toolbar's own tab does too, since the focus is set here.
+       *
+       * The focus is still set, so nothing downstream loses track of where the
+       * user is: `Contract detail` and `Call graph` stop being disabled, the
+       * toolbar grows its focus chip, and the state-access map narrows to this
+       * contract when it is opened. The protocol map itself ignores the focus
+       * (`usesFocus`), so this costs no re-request and no re-layout.
+       */
+      if (pick.kind === 'Contract') {
+        setHint(null);
+        dispatch({ type: 'focus', focus: pick.id });
+        return;
       }
 
       /*
@@ -349,6 +371,22 @@ export function App({ bridge, layoutClient, editor }: AppProps): JSX.Element {
       if (site !== null) editor?.reveal({ kind: 'site', ...site });
     },
     [editor],
+  );
+
+  /**
+   * Double-click: open the thing, which is what a single click used to do.
+   *
+   * Routed through the same `pick` the search palette and the inspector's own
+   * focus chip use, so there is one definition of "opening a node" and the
+   * three ways of asking for it cannot drift apart. The selection and the
+   * editor reveal have already happened on the first of the two clicks.
+   */
+  const onDrill = useCallback(
+    (pick: { kind: string; id: string }) => {
+      setHint(null);
+      dispatch({ type: 'pick', kind: pick.kind, id: pick.id });
+    },
+    [],
   );
 
   const onFocus = useCallback(
@@ -462,6 +500,7 @@ export function App({ bridge, layoutClient, editor }: AppProps): JSX.Element {
             palette={palette}
             selected={selected}
             onPick={onPick}
+            onDrill={onDrill}
             onPickEdge={onPickEdge}
             onLayout={setLayout}
           />

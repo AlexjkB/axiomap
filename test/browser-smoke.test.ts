@@ -250,6 +250,28 @@ function tap(selector: string): string {
 }
 
 /**
+ * Double-click a node — the gesture that *opens* one.
+ *
+ * Both events, in the order cytoscape sends them: a real double click is two
+ * taps and then a `dbltap`, not a `dbltap` on its own. Emitting only the last
+ * would test a handler in isolation and miss the thing worth checking, which is
+ * that the select-then-open pair leaves the app in the right place.
+ */
+function doubleTap(selector: string): string {
+  return `
+    (() => {
+      const cy = document.querySelector('.ax-canvas')._cyreg.cy;
+      const node = cy.nodes(${JSON.stringify(selector)}).first();
+      if (node.empty()) return '';
+      node.emit('tap');
+      node.emit('tap');
+      node.emit('dbltap');
+      return node.id();
+    })()
+  `;
+}
+
+/**
  * Where a node is on screen, and where the graph thinks it is.
  *
  * Two different questions, and the drag test needs both: the rendered point is
@@ -346,14 +368,46 @@ describe.skipIf(CHROME === undefined)('the graph in a browser', () => {
     expect(page.consoleErrors.join('\n')).toBe('');
   }, 120_000);
 
-  it('drills down when a contract is clicked', async () => {
+  /**
+   * One click reads a contract, two open it.
+   *
+   * A single click used to navigate, which meant a contract could not be
+   * inspected without losing the map it was found on — the same click that
+   * fills the inspector and dims the neighbourhood threw away the view they
+   * describe. The negative half is the point of the test: staying put is the
+   * behaviour that regressed, and it is the one nothing else would catch.
+   */
+  it('selects a contract on one click and opens it on two', async () => {
     await page.goto(session.handle.url);
     await page.until(METRICS, (value) => /layout/.test(value));
 
-    await page.evaluate(tap('[kind = "Contract"]'));
+    const id = await page.evaluate(tap('[kind = "Contract"]'));
+    expect(id).not.toBe('');
 
-    const view = await page.until(CURRENT_VIEW, (value) => value === 'Contract detail');
-    expect(view).toBe('Contract detail');
+    // The inspector fills, so the click certainly landed...
+    expect(await page.until(INSPECTOR, (value) => value !== '')).not.toBe('');
+    /*
+     * ...and the view did not move. Polled rather than read once, so a
+     * navigation that is merely slow still fails this — but with a short
+     * budget, because this is the one assertion here that can only be settled
+     * by waiting for nothing to happen, and the default sixty tries spend
+     * thirty seconds proving it every run. Three seconds is many times the
+     * measured layout of this fixture.
+     */
+    expect(await page.until(CURRENT_VIEW, (value) => value !== 'Protocol map', 6)).toBe(
+      'Protocol map',
+    );
+    // The focus is set even though nothing navigated, which is what un-disables
+    // the focus-dependent tabs and puts the chip in the toolbar.
+    expect(await page.evaluate("document.querySelector('.ax-focus code')?.textContent ?? ''")).toBe(
+      id,
+    );
+
+    // Two clicks open it.
+    await page.evaluate(doubleTap('[kind = "Contract"]'));
+    expect(await page.until(CURRENT_VIEW, (value) => value === 'Contract detail')).toBe(
+      'Contract detail',
+    );
     expect(await page.until(METRICS, (value) => /layout/.test(value))).toMatch(/layout \d+ ms/);
   }, 120_000);
 
@@ -414,8 +468,8 @@ describe.skipIf(CHROME === undefined)('the graph in a browser', () => {
     await page.until(METRICS, (value) => /layout \d+ ms/.test(value));
 
     // Into a contract, where functions and storage are drawn together — the
-    // view the dimming was asked for.
-    await page.evaluate(tap('[kind = "Contract"]'));
+    // view the dimming was asked for. Two clicks, since one now only selects.
+    await page.evaluate(doubleTap('[kind = "Contract"]'));
     await page.until(CURRENT_VIEW, (value) => value === 'Contract detail');
     await page.until(METRICS, (value) => /layout \d+ ms/.test(value));
 
@@ -479,8 +533,8 @@ describe.skipIf(CHROME === undefined)('the graph in a browser', () => {
     await page.goto(session.handle.url);
     await page.until(METRICS, (value) => /layout \d+ ms/.test(value));
 
-    // A click sets both: it focuses the contract and selects it.
-    await page.evaluate(tap('[kind = "Contract"]'));
+    // Opening the contract sets both the focus and the selection.
+    await page.evaluate(doubleTap('[kind = "Contract"]'));
     await page.until(CURRENT_VIEW, (value) => value === 'Contract detail');
     await page.until(METRICS, (value) => /layout \d+ ms/.test(value));
 
@@ -737,7 +791,7 @@ describe.skipIf(CHROME === undefined)('the export in a browser', () => {
 
     // 2. Protocol → contract. The nodes were reassembled from the table on the
     //    way through the bridge, so a drawn label is evidence hydration ran.
-    const contractId = await file.evaluate(tap('[kind = "Contract"]'));
+    const contractId = await file.evaluate(doubleTap('[kind = "Contract"]'));
     expect(contractId).not.toBe('');
     expect(await file.until(CURRENT_VIEW, (value) => value === 'Contract detail')).toBe(
       'Contract detail',

@@ -160,6 +160,16 @@ export interface GraphCanvasProps {
   /** A node was clicked: a cluster path to toggle, or a graph node to focus. */
   onPick: (pick: { kind: string; id: string; path?: string; expanded?: boolean }) => void;
   /**
+   * A node was double-clicked, which is the gesture that *opens* it.
+   *
+   * Split from `onPick` because a single click stopped navigating: selecting a
+   * contract to read the inspector should not also throw away the map you were
+   * reading it on. Cytoscape emits `dbltap` in addition to the two `tap`s, not
+   * instead of them, so both handlers run and the selection is already correct
+   * by the time this one navigates.
+   */
+  onDrill?: (pick: { kind: string; id: string }) => void;
+  /**
    * An edge was clicked, with its **call site** (§11: "click edge → reveal the
    * call site"). Null for an aggregated edge, which stands for many sites and
    * carries none.
@@ -181,6 +191,7 @@ export function GraphCanvas({
   layoutClient,
   palette,
   onPick,
+  onDrill,
   onPickEdge,
   selected = null,
   onLayout,
@@ -188,8 +199,8 @@ export function GraphCanvas({
   const container = useRef<HTMLDivElement | null>(null);
   const cy = useRef<cytoscape.Core | null>(null);
   const [locked, setLocked] = useState(LOCKED_BY_DEFAULT);
-  const handlers = useRef({ onPick, onPickEdge, onLayout });
-  handlers.current = { onPick, onPickEdge, onLayout };
+  const handlers = useRef({ onPick, onDrill, onPickEdge, onLayout });
+  handlers.current = { onPick, onDrill, onPickEdge, onLayout };
   // The mount effect runs once and must not re-run when the theme changes; the
   // stylesheet is reapplied by the element effect below, which does.
   const current = useRef(palette);
@@ -358,6 +369,14 @@ export function GraphCanvas({
         ...(node.data('path') === undefined ? {} : { path: String(node.data('path')) }),
         ...(node.data('expanded') === undefined ? {} : { expanded: Boolean(node.data('expanded')) }),
       });
+    });
+
+    instance.on('dbltap', 'node', (event) => {
+      const node = event.target as cytoscape.NodeSingular;
+      // A directory is opened and closed by single clicks; double-clicking one
+      // would toggle it twice and look like nothing happened.
+      if (node.data('kind') === 'Cluster') return;
+      handlers.current.onDrill?.({ kind: String(node.data('kind')), id: node.id() });
     });
 
     instance.on('tap', 'edge', (event) => {

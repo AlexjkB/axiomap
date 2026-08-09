@@ -161,7 +161,11 @@ export function toRequest(state: NavState): {
   const preset = PRESETS[state.view];
   return {
     view: state.view,
-    ...(state.focus === null ? {} : { focus: state.focus }),
+    // `usesFocus`, not "is there one". A click sets a focus without navigating,
+    // and sending it to a view that ignores it would still be a new request —
+    // the protocol map would re-fetch and re-lay-out on every click to be given
+    // back the graph already on screen.
+    ...(state.focus === null || !preset.usesFocus ? {} : { focus: state.focus }),
     ...(state.view === 'call' ? { up: state.up, down: state.down } : {}),
     ...(preset.clustered && state.expand.length > 0 ? { expand: state.expand } : {}),
     // Sent only once the user has taken over, so an untouched map still gets

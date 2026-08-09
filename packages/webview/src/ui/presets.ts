@@ -26,6 +26,21 @@ export interface ViewPreset {
   hint: string;
   /** Whether `selectView` refuses this view without a focus node (§9 rule 4). */
   needsFocus: boolean;
+  /**
+   * Whether the *engine* reads the focus when drawing this view.
+   *
+   * Wider than `needsFocus`: the state-access map takes an optional focus that
+   * narrows it to one contract, so it uses one without requiring one. The
+   * protocol map and the inheritance view ignore it entirely — `selectView`
+   * calls `protocolView(graph, includeTests)` and never looks at it.
+   *
+   * This exists because a click now sets a focus without navigating, and a
+   * request that carries a field the view does not read is still a *different
+   * request*: the app would re-fetch and ELK would re-lay-out the protocol map
+   * on every click, throwing away the viewport, to be handed back the graph
+   * already on screen.
+   */
+  usesFocus: boolean;
   /** Node kinds a click can re-focus this view on. */
   focusKinds: readonly string[];
   layout: ElkOptions;
@@ -97,8 +112,9 @@ export const PRESETS: Record<ViewName, ViewPreset> = {
   protocol: {
     view: 'protocol',
     label: 'Protocol map',
-    hint: 'Contracts clustered by directory; cross-contract calls aggregated and weighted by call site. Click a directory to drill in, a contract to open it.',
+    hint: 'Contracts clustered by directory; cross-contract calls aggregated and weighted by call site. Click a directory to drill in, a contract to inspect it, double-click to open it.',
     needsFocus: false,
+    usesFocus: false,
     focusKinds: ['Contract'],
     layout: { ...LAYERED, 'elk.direction': 'RIGHT' },
     partitioned: false,
@@ -110,6 +126,7 @@ export const PRESETS: Record<ViewName, ViewPreset> = {
     label: 'Contract detail',
     hint: "One contract's members, with inherited members in their own tier. Click a function to open the call graph on it.",
     needsFocus: true,
+    usesFocus: true,
     focusKinds: ['Contract'],
     layout: { ...LAYERED, 'elk.direction': 'DOWN' },
     partitioned: false,
@@ -121,6 +138,7 @@ export const PRESETS: Record<ViewName, ViewPreset> = {
     label: 'Call graph',
     hint: 'Function level, rooted on a focus node (§9 rule 4). Callers to the left, callees to the right.',
     needsFocus: true,
+    usesFocus: true,
     focusKinds: ['Function'],
     layout: { ...LAYERED, 'elk.direction': 'RIGHT' },
     partitioned: false,
@@ -132,6 +150,7 @@ export const PRESETS: Record<ViewName, ViewPreset> = {
     label: 'State access',
     hint: 'Functions left, storage right. Blue reads, orange writes — who can touch this.',
     needsFocus: false,
+    usesFocus: true,
     focusKinds: ['Contract'],
     layout: {
       ...LAYERED,
@@ -148,6 +167,7 @@ export const PRESETS: Record<ViewName, ViewPreset> = {
     label: 'Inheritance',
     hint: 'C3 order, bases above their derived contracts. Members that override or implement are drawn inside their contract.',
     needsFocus: false,
+    usesFocus: false,
     focusKinds: ['Contract'],
     // `inherits` points derived → base (§10), so UP puts bases at the top.
     layout: { ...LAYERED, 'elk.direction': 'UP' },
