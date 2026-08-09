@@ -42,8 +42,12 @@ fixtures/*/cache/
 
 # Generated perf fixture — `node fixtures/large/generate.mjs` reproduces it
 # byte-identically from a fixed seed. ~8 MB of derived Solidity; the generator
-# is the fixture, not its output.
-fixtures/large/generated/
+# is the fixture, not its output. Ignoring the whole directory rather than just
+# `generated/` because `--out` takes an arbitrary name, and a run that pointed
+# it elsewhere once committed 106 files nothing referenced.
+fixtures/large/*
+!fixtures/large/generate.mjs
+!fixtures/large/.gitkeep
 
 # `scripts/copy-release-files.mjs` copies these into a publishable package's own
 # directory as its `prepack` step, right before `npm pack`/`npm publish`. The
