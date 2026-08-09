@@ -211,6 +211,44 @@ body {
   background: color-mix(in srgb, var(--ax-accent) 30%, transparent);
 }
 
+/*
+ * The function filter, on its own subrow.
+ *
+ * `gap` rather than the row's default 12px: five chips reading as one control
+ * beats five chips reading as five, and the row has to survive a narrow panel
+ * without wrapping into a fourth line.
+ */
+.ax-filters {
+  gap: 4px;
+  justify-content: flex-start;
+  flex-wrap: nowrap;
+  overflow-x: auto;
+  /* Chips keep their size; the row scrolls if the panel is too narrow for all
+     five. Squashing them would put `internal` and `private` one ellipsis
+     apart. */
+  scrollbar-width: none;
+}
+
+.ax-filters .ax-chip {
+  flex: 0 0 auto;
+  font-family: var(--ax-mono);
+}
+
+/* Present but inert on a view with no functions, matching how the tabs a focus
+   is missing for are drawn. The row stays so the toolbar keeps its height. */
+.ax-filters .ax-chip:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+/* "all" is a state, not a control: it says the graph is unnarrowed and stands
+   where the `show all` button appears once it is not. */
+.ax-filter-all {
+  font-family: var(--ax-mono);
+  text-transform: none;
+  letter-spacing: 0;
+}
+
 /* A chip whose content is a glyph rather than a word. Centred rather than
    text-baselined, since an inline SVG sits on the baseline and would ride two
    pixels high next to the +/−/fit chips it shares a row with. */

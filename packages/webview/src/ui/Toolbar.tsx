@@ -14,6 +14,7 @@
 import type { ProjectMeta, ViewName } from '@axiomap/core';
 
 import { PRESET_ORDER, PRESETS } from './presets.js';
+import { TRAITS, type Trait } from './filter.js';
 
 export interface ToolbarProps {
   meta: ProjectMeta | null;
@@ -25,6 +26,21 @@ export interface ToolbarProps {
   onView: (view: ViewName) => void;
   onHops: (hops: { up: number; down: number }) => void;
   onClearFocus: () => void;
+  /**
+   * The function traits currently being shown, and the toggle for one.
+   *
+   * `showTraits` is false on a view that draws no functions. The row is still
+   * rendered then, with its chips disabled and saying why — this file's own
+   * rule for the focus-dependent tabs, for the same two reasons. A hidden
+   * control teaches nobody what it was for, and a row that comes and goes
+   * changes the toolbar's height between views, which resizes the canvas under
+   * the graph.
+   *
+   * Empty set means everything, which is the state the row starts in.
+   */
+  showTraits: boolean;
+  traits: ReadonlySet<Trait>;
+  onTrait: (trait: Trait) => void;
 }
 
 /**
@@ -57,6 +73,9 @@ export function Toolbar({
   onView,
   onHops,
   onClearFocus,
+  showTraits,
+  traits,
+  onTrait,
 }: ToolbarProps): JSX.Element {
   const preset = PRESETS[view];
 
@@ -154,6 +173,50 @@ export function Toolbar({
           <span className={`ax-mode ax-mode-${meta.mode}`} title={meta.modeReason}>
             {meta.mode}
           </span>
+        )}
+      </div>
+
+      <div className="ax-toolbar-row ax-subrow ax-filters">
+        <span className="ax-label">show</span>
+        {TRAITS.map((trait) => {
+          const on = showTraits && traits.has(trait);
+          return (
+            <button
+              key={trait}
+              type="button"
+              className="ax-chip"
+              aria-pressed={on}
+              disabled={!showTraits}
+              title={
+                !showTraits
+                  ? `${PRESETS[view].label} draws no functions, so there is nothing to narrow`
+                  : on
+                    ? `Stop singling out ${trait} functions`
+                    : `Show only ${trait} functions (with any others ticked)`
+              }
+              onClick={() => {
+                onTrait(trait);
+              }}
+            >
+              {trait}
+            </button>
+          );
+        })}
+        {/* The way back to the whole graph, and the only thing on the row that
+            says the graph is currently narrowed. */}
+        {!showTraits || traits.size === 0 ? (
+          <span className="ax-label ax-filter-all">all</span>
+        ) : (
+          <button
+            type="button"
+            className="ax-chip ax-clear"
+            title="Show every function again"
+            onClick={() => {
+              for (const trait of TRAITS) if (traits.has(trait)) onTrait(trait);
+            }}
+          >
+            <span aria-hidden="true">✕</span> show all
+          </button>
         )}
       </div>
 

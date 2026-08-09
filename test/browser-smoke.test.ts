@@ -234,6 +234,7 @@ class Page {
 
 const METRICS = "document.querySelector('.ax-metrics')?.textContent ?? ''";
 const CURRENT_VIEW = "document.querySelector('.ax-view-current')?.textContent ?? ''";
+const NOTE = "document.querySelector('.ax-note')?.textContent ?? ''";
 const INSPECTOR = "document.querySelector('.ax-inspector')?.textContent ?? ''";
 
 /** Click a node the way a mouse would — cytoscape draws to a canvas. */
@@ -748,6 +749,78 @@ describe.skipIf(CHROME === undefined)('the graph in a browser', () => {
     expect(await page.evaluate(ZOOM)).toBe('1.15');
     // And the node still where it was dragged, not back at its ELK position.
     expect(await page.evaluate(positionOf(id))).toBe(moved);
+    expect(page.consoleErrors.join('\n')).toBe('');
+  }, 120_000);
+
+  /**
+   * The visibility filter, from the chips down to the drawn graph.
+   *
+   * `filter.test.ts` covers the rule. What only a browser can show is that the
+   * chip is wired to it, that the graph is re-laid-out rather than left with
+   * holes, and that the status bar admits what is missing — which is the whole
+   * mitigation for hiding rather than fading.
+   */
+  it('draws only the ticked function traits, and says what it hid', async () => {
+    await page.goto(session.handle.url);
+    await page.until(METRICS, (value) => /layout \d+ ms/.test(value));
+
+    // Contract detail: functions and storage, where the filter is offered.
+    await page.evaluate(doubleTap('[kind = "Contract"]'));
+    await page.until(CURRENT_VIEW, (value) => value === 'Contract detail');
+    await page.until(METRICS, (value) => /layout \d+ ms/.test(value));
+
+    const drawn = `
+      (() => {
+        const cy = document.querySelector('.ax-canvas')._cyreg.cy;
+        return String(cy.nodes('[kind = "Function"]').length);
+      })()
+    `;
+    const before = Number(await page.evaluate(drawn));
+    expect(before).toBeGreaterThan(0);
+
+    // The filter row exists here, and starts unnarrowed.
+    expect(await page.evaluate("document.querySelectorAll('.ax-filters .ax-chip').length")).not.toBe(
+      '0',
+    );
+
+    const tick = (label: string): string => `
+      (() => {
+        const chip = [...document.querySelectorAll('.ax-filters .ax-chip')]
+          .find((button) => button.textContent === ${JSON.stringify(label)});
+        if (chip === undefined) return 'no chip';
+        chip.click();
+        return chip.getAttribute('aria-pressed');
+      })()
+    `;
+    expect(await page.evaluate(tick('external'))).toBe('false');
+
+    // Fewer functions drawn, and every one of them external.
+    const after = await page.until(drawn, (value) => value !== String(before) && value !== '');
+    expect(Number(after)).toBeLessThan(before);
+    expect(
+      await page.evaluate(`
+        (() => {
+          const cy = document.querySelector('.ax-canvas')._cyreg.cy;
+          return String(cy.nodes('[kind = "Function"]').every((node) =>
+            node.hasClass('vis-external')));
+        })()
+      `),
+    ).toBe('true');
+
+    // Re-laid-out, not left with holes: nothing is where it was.
+    expect(await page.until(METRICS, (value) => /layout \d+ ms/.test(value))).toMatch(/layout/);
+    // And the status bar says so, which is the honesty half.
+    expect(await page.until(NOTE, (value) => /hidden/.test(value))).toMatch(
+      /\d+ functions? hidden — showing external only/,
+    );
+
+    // `show all` puts them back.
+    await page.evaluate(`
+      [...document.querySelectorAll('.ax-filters .ax-chip')]
+        .find((button) => button.textContent.includes('show all'))?.click();
+      'cleared'
+    `);
+    expect(await page.until(drawn, (value) => value === String(before))).toBe(String(before));
     expect(page.consoleErrors.join('\n')).toBe('');
   }, 120_000);
 

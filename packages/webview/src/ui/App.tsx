@@ -28,6 +28,7 @@ import type { EditorLink } from '../editor.js';
 import { GraphCanvas } from './GraphCanvas.js';
 import { Inspector } from './Inspector.js';
 import { toElements } from './elements.js';
+import { applyFilter, filterable, hiddenNote, type Trait } from './filter.js';
 import { LayoutClient, browserEngine } from './layout/client.js';
 import { initialState, ready, reduce, toRequest } from './navigation.js';
 import { PRESETS } from './presets.js';
@@ -84,6 +85,17 @@ export function App({ bridge, layoutClient, editor }: AppProps): JSX.Element {
 
   const [auditState, setAuditState] = useState<AuditState | null>(null);
   const [selected, setSelected] = useState<string | null>(null);
+  /*
+   * Which function traits to draw. Empty means all of them, which is where
+   * every view starts.
+   *
+   * App state rather than navigation state: it is not in the request, does not
+   * belong in a shared URL, and `reduce` decides what a *click on the graph*
+   * means. It does reach `viewKey` below, because a filtered graph is a
+   * different arrangement and must not be handed the unfiltered one's
+   * remembered positions.
+   */
+  const [traits, setTraits] = useState<ReadonlySet<Trait>>(() => new Set());
   const [inspection, setInspection] = useState<NodeInspection | null>(null);
   const [inspectError, setInspectError] = useState<string | null>(null);
   const [inspecting, setInspecting] = useState(false);
@@ -274,16 +286,51 @@ export function App({ bridge, layoutClient, editor }: AppProps): JSX.Element {
   }, [bridge, selected, generation]);
 
   const preset = PRESETS[state.view];
+  /*
+   * The filter lands here, between the view the host answered with and the
+   * elements the canvas draws: ELK is handed only what is shown, so hiding the
+   * internals re-lays-out into a small graph rather than leaving holes where
+   * they used to be.
+   */
+  const filtered = useMemo(
+    () => (view === null ? null : applyFilter(view, traits)),
+    [view, traits],
+  );
+  /*
+   * §9's honest half, plus the filter's.
+   *
+   * The count of hidden functions is appended to the engine's own note rather
+   * than tucked into the filter row, and it is there whenever anything is
+   * missing. This is the mitigation for hiding rather than fading: an
+   * `external` function that reaches storage through two `internal` hops looks
+   * like it reaches nothing once they are gone, and the only defence against
+   * reading a filtered graph as the whole one is that the tool keeps saying it
+   * is not.
+   */
+  const hiding = filtered === null ? '' : hiddenNote(filtered.hidden, traits);
   const note =
     hint ??
-    (refreshed === null ? '' : `${refreshed.reason} · `) +
-      (view === null ? 'loading…' : view.note);
+    [
+      refreshed === null ? '' : refreshed.reason,
+      view === null ? 'loading…' : view.note,
+      hiding,
+    ]
+      .filter((part) => part !== '')
+      .join(' · ');
+
+  /*
+   * The canvas's memory key. The request plus the filter, because a filtered
+   * graph is a different arrangement: without the filter in the key, ticking
+   * `external` would be handed the unfiltered layout's remembered positions and
+   * the surviving nodes would sit exactly where they were, holes and all.
+   */
+  const filterKey = `${key}|${[...traits].sort().join(',')}`;
   const elements = useMemo(
     () =>
-      view === null || view.view !== state.view
+      filtered === null || filtered.view.view !== state.view
         ? { nodes: [], edges: [] }
-        : toElements(view, preset),
-    [view, preset, state.view],
+        : toElements(filtered.view, preset),
+    [filtered, preset, state.view],
   );
 
   // The clusters the *engine* opened, which is not the same as the ones the
@@ -381,6 +428,14 @@ export function App({ bridge, layoutClient, editor }: AppProps): JSX.Element {
    * three ways of asking for it cannot drift apart. The selection and the
    * editor reveal have already happened on the first of the two clicks.
    */
+  const onTrait = useCallback((trait: Trait) => {
+    setTraits((current) => {
+      const next = new Set(current);
+      if (!next.delete(trait)) next.add(trait);
+      return next;
+    });
+  }, []);
+
   const onDrill = useCallback(
     (pick: { kind: string; id: string }) => {
       setHint(null);
@@ -485,6 +540,9 @@ export function App({ bridge, layoutClient, editor }: AppProps): JSX.Element {
         onHops={(hops) => {
           dispatch({ type: 'hops', ...hops });
         }}
+        showTraits={filterable(view)}
+        traits={traits}
+        onTrait={onTrait}
         onClearFocus={() => {
           dispatch({ type: 'focus', focus: null });
           /*
@@ -510,7 +568,7 @@ export function App({ bridge, layoutClient, editor }: AppProps): JSX.Element {
             layoutClient={client}
             palette={palette}
             selected={selected}
-            viewKey={key}
+            viewKey={filterKey}
             onPick={onPick}
             onDrill={onDrill}
             onPickEdge={onPickEdge}
@@ -589,7 +647,9 @@ export function App({ bridge, layoutClient, editor }: AppProps): JSX.Element {
           {note}
         </span>
         <span className="ax-metrics">
-          {view === null ? '' : `${String(view.elements)} / ${String(view.cap)} elements`}
+          {filtered === null
+            ? ''
+            : `${String(filtered.view.elements)} / ${String(filtered.view.cap)} elements`}
           {layout === null
             ? ''
             : typeof layout === 'number'
