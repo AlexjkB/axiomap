@@ -186,6 +186,31 @@ body {
   background: color-mix(in srgb, var(--ax-accent) 18%, transparent);
 }
 
+/*
+ * Louder than the chips it sits among, and it should be.
+ *
+ * Everything else on this row is a fact or a filter; this is the one control
+ * that puts the UI back the way it was found. It never competes for attention,
+ * because it only exists while there is a focus to clear.
+ *
+ * Not colour alone — the border carries the same signal — so it survives the
+ * high-contrast themes §7's Phase 8 requires the graph to stay legible under.
+ */
+.ax-clear {
+  flex: 0 0 auto;
+  color: var(--ax-fg);
+  border-color: var(--ax-accent);
+  background: color-mix(in srgb, var(--ax-accent) 14%, transparent);
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  white-space: nowrap;
+}
+
+.ax-clear:hover {
+  background: color-mix(in srgb, var(--ax-accent) 30%, transparent);
+}
+
 /* A chip whose content is a glyph rather than a word. Centred rather than
    text-baselined, since an inline SVG sits on the baseline and would ride two
    pixels high next to the +/−/fit chips it shares a row with. */

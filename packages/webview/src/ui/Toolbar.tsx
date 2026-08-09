@@ -101,8 +101,21 @@ export function Toolbar({
           <span className="ax-focus" title={focus}>
             <span className="ax-label">focus</span>
             <code>{focus}</code>
-            <button type="button" className="ax-chip" onClick={onClearFocus}>
-              clear
+            {/* The way *out* of a focus, and the only one on screen.
+                Deliberately louder than a plain chip: the focus arrives by
+                clicking a contract, which a first-time user does within
+                seconds, and until it is cleared two of the five tabs behave
+                differently and the graph is dimmed. A control that undoes a
+                state the user did not knowingly enter has to be findable
+                without being looked for — the ✕ and the noun are what make it
+                read as "get rid of this" rather than as another chip. */}
+            <button
+              type="button"
+              className="ax-chip ax-clear"
+              title="Clear the focus — back to the whole protocol map, undimmed"
+              onClick={onClearFocus}
+            >
+              <span aria-hidden="true">✕</span> clear focus
             </button>
           </span>
         )}
