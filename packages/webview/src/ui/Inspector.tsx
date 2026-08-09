@@ -48,8 +48,14 @@ export interface InspectorProps {
   palette: Palette;
   /** Inspect another node without moving the graph. */
   onInspect: (id: string) => void;
-  /** Re-root the graph on a node — §11's "focus here". */
-  onFocus: (id: string, kind: string) => void;
+  /**
+   * Show a node inside its contract — §11's "focus here".
+   *
+   * The kind is not passed, and that is the point: this chip lands on contract
+   * detail for a function, a modifier, an event, an error or a storage slot
+   * alike. Routing by kind is what sent a modifier to an empty call graph.
+   */
+  onFocus: (id: string) => void;
   onClose: () => void;
 }
 
@@ -218,7 +224,7 @@ function Relations({
   empty: string;
   relations: readonly NodeRelation[];
   onInspect: (id: string) => void;
-  onFocus: (id: string, kind: string) => void;
+  onFocus: (id: string) => void;
 }): JSX.Element {
   return (
     <section className="ax-inspect-section">
@@ -254,7 +260,7 @@ function Relations({
                 className="ax-chip"
                 title="Focus the graph here (§11)"
                 onClick={() => {
-                  onFocus(relation.id, relation.kind);
+                  onFocus(relation.id);
                 }}
               >
                 focus
@@ -437,7 +443,7 @@ export function Inspector({
                     type="button"
                     className="ax-chip"
                     onClick={() => {
-                      onFocus(member.id, member.kind);
+                      onFocus(member.id);
                     }}
                   >
                     focus

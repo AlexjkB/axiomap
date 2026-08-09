@@ -41,6 +41,25 @@ export type NavEvent =
   | { type: 'view'; view: ViewName }
   | { type: 'focus'; focus: string | null }
   | { type: 'hops'; up: number; down: number }
+  /**
+   * "Show me this node in its contract" — the inspector's `focus` chip.
+   *
+   * Distinct from `pick` because the inspector lists relations of every kind:
+   * events, errors, modifiers, storage, and functions that call nothing. `pick`
+   * routes a Function to the call graph, and from a relation list that produced
+   * a view with one node and no edges for a modifier like `nonReentrant` — and
+   * for an event or a state variable it produced *nothing at all*, since `pick`
+   * has no view for those kinds and returns the state unchanged. A chip that
+   * silently does nothing is the worse of the two.
+   *
+   * Contract detail always, for every kind. `contractView` redirects a member
+   * id to its container (`containerOf`), so the id of a modifier, an event or a
+   * storage slot lands on the contract that declares it with the node itself
+   * selected. It is the one view that can say something about all of them, and
+   * it can never come back empty. The call graph is one click away on the tab,
+   * which this focus enables.
+   */
+  | { type: 'open'; id: string }
   | {
       type: 'pick';
       kind: string;
@@ -106,6 +125,12 @@ export function reduce(state: NavState, event: NavEvent): NavState {
     }
     case 'hops':
       return { ...state, up: Math.max(0, event.up), down: Math.max(0, event.down) };
+    case 'open': {
+      // `expand` and `autoExpand` are reset the way every other arrival at a
+      // new view resets them: the open directories belong to the protocol map.
+      if (state.view === 'contract' && state.focus === event.id) return state;
+      return { ...state, view: 'contract', focus: event.id, expand: [], autoExpand: true };
+    }
     case 'pick': {
       if (event.kind === 'Cluster') {
         if (event.path === undefined) return state;

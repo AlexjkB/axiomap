@@ -412,6 +412,53 @@ describe.skipIf(CHROME === undefined)('the graph in a browser', () => {
   }, 120_000);
 
   /**
+   * The inspector's `focus` chip lands on contract detail, not on an empty view.
+   *
+   * It used to route by kind, through the same `pick` a canvas click uses: a
+   * Function went to the call graph, so focusing a modifier like `nonReentrant`
+   * opened a graph with one node and no edges, and focusing an event or a
+   * storage slot did nothing at all, because `pick` has no view for those
+   * kinds. The relation list is full of both.
+   *
+   * Driven through the real chip rather than the reducer — `navigation.test.ts`
+   * covers the rule itself, and what this adds is that the button in the panel
+   * is wired to it.
+   */
+  it('opens contract detail from an inspector focus chip', async () => {
+    await page.goto(session.handle.url);
+    await page.until(METRICS, (value) => /layout \d+ ms/.test(value));
+
+    // One click: selected, inspector filled with the contract's members, and
+    // still on the protocol map.
+    await page.evaluate(tap('[kind = "Contract"]'));
+    await page.until(INSPECTOR, (value) => /Members\s*\d+/.test(value));
+    expect(await page.evaluate(CURRENT_VIEW)).toBe('Protocol map');
+
+    /*
+     * The first member's own `focus` chip. Whatever kind it happens to be —
+     * function, storage, event — the answer must be the same view.
+     */
+    const clicked = await page.evaluate(`
+      (() => {
+        const row = document.querySelector('.ax-relations li');
+        if (row === null) return 'no member rows';
+        const chip = row.querySelector('.ax-chip');
+        if (chip === null) return 'no focus chip';
+        chip.click();
+        return row.querySelector('.ax-relation-meta')?.textContent ?? 'clicked';
+      })()
+    `);
+    expect(clicked).not.toBe('no member rows');
+    expect(clicked).not.toBe('no focus chip');
+
+    expect(await page.until(CURRENT_VIEW, (value) => value === 'Contract detail')).toBe(
+      'Contract detail',
+    );
+    expect(await page.until(METRICS, (value) => /layout \d+ ms/.test(value))).toMatch(/layout/);
+    expect(page.consoleErrors.join('\n')).toBe('');
+  }, 120_000);
+
+  /**
    * The lock, at the only place it is either true or false: a mouse.
    *
    * Both halves are asserted in one test on purpose. "The node did not move" is

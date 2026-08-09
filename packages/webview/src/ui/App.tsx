@@ -389,11 +389,22 @@ export function App({ bridge, layoutClient, editor }: AppProps): JSX.Element {
     [],
   );
 
+  /**
+   * The inspector's `focus` chip: show this node inside its contract.
+   *
+   * `kind` is deliberately unused now. It used to route through `pick`, which
+   * sends a Function to the call graph — so focusing a modifier like
+   * `nonReentrant` opened a call graph with one node and no edges, and focusing
+   * an event or a state variable did nothing whatsoever, because `pick` has no
+   * view for those kinds. Contract detail answers for every kind and can never
+   * come back empty; see the `open` event in `navigation.ts`.
+   */
   const onFocus = useCallback(
-    (id: string, kind: string) => {
+    (id: string) => {
       setSelected(id);
       editor?.reveal({ kind: 'node', id });
-      dispatch({ type: 'pick', kind, id });
+      setHint(null);
+      dispatch({ type: 'open', id });
     },
     [editor],
   );

@@ -95,6 +95,32 @@ describe('navigation', () => {
     }
   });
 
+  /**
+   * The inspector's `focus` chip, which lists relations of every kind.
+   *
+   * `pick` is wrong for it in both directions: it sent a Function to the call
+   * graph, so a modifier with no call edges opened a view holding one node, and
+   * it has no view at all for an event or a storage slot, so those chips did
+   * nothing. `open` lands on contract detail for all of them — `contractView`
+   * redirects a member id to its container — and that view can never come back
+   * empty.
+   */
+  it('opens contract detail from the inspector, whatever kind the node is', () => {
+    for (const id of [
+      'src/Vault.sol:Vault.nonReentrant',
+      'src/Vault.sol:Vault.pendingAdmin',
+      'src/Vault.sol:Vault.Transfer(address,uint256)',
+      'src/Vault.sol:Vault',
+    ]) {
+      expect(reduce(start, { type: 'open', id })).toMatchObject({ view: 'contract', focus: id });
+    }
+  });
+
+  it('re-opening what is already open changes nothing', () => {
+    const open = reduce(start, { type: 'open', id: 'src/Vault.sol:Vault' });
+    expect(reduce(open, { type: 'open', id: 'src/Vault.sol:Vault' })).toBe(open);
+  });
+
   it('toggles a directory, and closing one closes what is inside it', () => {
     // `expanded` is the state the clicked box is *drawn* in, which is what the
     // canvas puts on the event.
