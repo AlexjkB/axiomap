@@ -27,7 +27,7 @@ import type { CyElements } from './elements.js';
 import { toElkGraph } from './layout/elk-graph.js';
 import type { LayoutClient } from './layout/client.js';
 import type { ViewPreset } from './presets.js';
-import { DIMMED, stylesheet, type Palette } from './style.js';
+import { DIMMED, FADED, stylesheet, type Palette } from './style.js';
 
 /**
  * How far `fit` may zoom in on a graph too small to fill the viewport.
@@ -253,6 +253,16 @@ export interface GraphCanvasProps {
    * same graph, so its remembered positions still apply to it.
    */
   viewKey: string;
+  /**
+   * Drawn nodes the trait filter is not asking for, to be faded in place.
+   *
+   * Ids rather than a filtered element list, because nothing is removed: the
+   * layout, the element set and the viewport are all untouched, so ticking a
+   * checkbox is a repaint rather than a rearrangement. Applied as its own class
+   * so the selection dimming, which is wiped and recomputed per click, cannot
+   * switch the filter off.
+   */
+  faded: ReadonlySet<string>;
   /** Layout finished (ms), is pending (null), or failed (a message). */
   onLayout: (result: number | null | { failed: string }) => void;
 }
@@ -267,6 +277,7 @@ export function GraphCanvas({
   onPickEdge,
   selected = null,
   viewKey,
+  faded,
   onLayout,
 }: GraphCanvasProps): JSX.Element {
   const container = useRef<HTMLDivElement | null>(null);
@@ -715,6 +726,28 @@ export function GraphCanvas({
       instance.elements().difference(lit).addClass(DIMMED);
     });
   }, [selected, elements]);
+
+  /*
+   * The trait filter, applied to what is already drawn.
+   *
+   * Edges too: a line at full strength into a faded box reads as a connection
+   * to something that is not there, and the eye follows the line. `elements` is
+   * a dependency because a re-fetched view arrives with new elements that carry
+   * none of these classes.
+   */
+  useEffect(() => {
+    const instance = cy.current;
+    if (instance === null) return;
+    instance.batch(() => {
+      instance.elements().removeClass(FADED);
+      for (const id of faded) {
+        const node = instance.getElementById(id);
+        if (node.empty()) continue;
+        node.addClass(FADED);
+        node.connectedEdges().addClass(FADED);
+      }
+    });
+  }, [faded, elements]);
 
   /*
    * The lock, applied to the instance.

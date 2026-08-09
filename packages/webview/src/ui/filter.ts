@@ -6,30 +6,30 @@
  * question is usually about five of them: which entry points are `external`,
  * what can be reached from outside, what takes value.
  *
+ * ### Faded, not removed
+ *
+ * This shipped once as a filter that hid what it excluded and re-laid-out the
+ * rest, which makes a smaller graph and a worse one. Two reasons it went:
+ *
+ * **The graph stopped being true.** An `external` function that reaches storage
+ * through two `internal` hops reads as reaching nothing once the hops are gone,
+ * and a tool whose §4 argument is never pretending to more certainty than it
+ * has should not answer a narrower question than the one it appears to. Fading
+ * keeps every edge and every path on screen.
+ *
+ * **A filter is not a navigation.** Hiding changed the element set, so ELK ran
+ * again and the graph rearranged itself under the pointer on every tick of a
+ * checkbox. Fading is a class on the nodes that are already placed: instant,
+ * and the arrangement and the camera do not move at all.
+ *
  * ### Why this is here and not in the engine
  *
  * `selectAggregatedView` already filters — by view, by focus, by directory —
  * and this could have been another request field. It is not, because it would
  * be the first filter whose answer the user changes several times a second
- * while looking at one graph, and a round trip per checkbox is a different
- * feel from a toggle. Everything it needs is on the drawn view already.
- *
- * The one thing that buys the engine is §9 rule 2's element cap, which counts
- * what the *engine* selected. A view refused for being over the cap is still
- * refused however this is set — the filter cannot rescue it. That is the honest
- * behaviour anyway: the cap is about what the tool will draw at all, and it
- * should not depend on a checkbox.
- *
- * ### Hiding, not fading
- *
- * A filtered function leaves the graph and ELK lays out what remains, so "only
- * the external and payable ones" is a small readable graph rather than the same
- * graph with fainter boxes. The cost is real and is why {@link hiddenNote}
- * exists: an `external` function that reaches storage through two `internal`
- * hops looks like it reaches nothing once the hops are hidden. The status bar
- * says how many functions are not being drawn, every time any are missing,
- * because a graph that is quietly answering a narrower question than the one
- * you think you asked is exactly what §4 refuses to ship elsewhere.
+ * while looking at one graph, and a round trip per checkbox is a different feel
+ * from a toggle. Everything it needs is on the drawn view already, and now that
+ * nothing is removed there is no element count for the engine to disagree with.
  */
 
 import type { AggregatedView, DisplayNode } from '@axiomap/core';
@@ -59,7 +59,7 @@ export type Trait = (typeof TRAITS)[number];
 export function matches(node: DisplayNode, traits: ReadonlySet<Trait>): boolean {
   if (traits.size === 0) return true;
   // Only functions are filtered. Contracts, storage, events and clusters are
-  // the structure the functions hang off; hiding a contract because it is not
+  // the structure the functions hang off; fading a contract because it is not
   // `payable` would be a category error.
   if (node.type !== 'node' || node.node.kind !== 'Function') return true;
   const fn = node.node;
@@ -77,52 +77,31 @@ export function filterable(view: AggregatedView | null): boolean {
   );
 }
 
-export interface FilteredView {
-  view: AggregatedView;
-  /** How many function nodes the filter removed. */
-  hidden: number;
+/**
+ * The ids to fade: every drawn function the selection does not name.
+ *
+ * Ids rather than a filtered view, because nothing is being removed — the
+ * canvas takes this set and puts a class on those nodes, leaving the elements,
+ * the layout and the viewport exactly as they were.
+ */
+export function fadedIds(view: AggregatedView | null, traits: ReadonlySet<Trait>): Set<string> {
+  const faded = new Set<string>();
+  if (view === null || traits.size === 0) return faded;
+  for (const node of view.nodes) if (!matches(node, traits)) faded.add(node.id);
+  return faded;
 }
 
 /**
- * The view with unselected functions removed, and the edges that touched them.
+ * What the status bar says about what is faded.
  *
- * An edge whose endpoint is gone has to go: cytoscape would drop it anyway
- * rather than draw a line to nothing, and leaving it in the view would make
- * `elements` disagree with what is on screen.
+ * Softer than the note this replaced, and deliberately: nothing is missing any
+ * more, so the sentence reports a state of the view rather than warning about
+ * an omission. It is still there whenever anything is faded, because a graph
+ * that is quietly answering a narrower question than the one you think you
+ * asked is what §4 refuses to ship elsewhere.
  */
-export function applyFilter(view: AggregatedView, traits: ReadonlySet<Trait>): FilteredView {
-  if (traits.size === 0) return { view, hidden: 0 };
-
-  const kept = view.nodes.filter((node) => matches(node, traits));
-  const hidden = view.nodes.length - kept.length;
-  if (hidden === 0) return { view, hidden: 0 };
-
-  const drawn = new Set(kept.map((node) => node.id));
-  const edges = view.edges.filter((edge) => drawn.has(edge.from) && drawn.has(edge.to));
-  return {
-    view: {
-      ...view,
-      nodes: kept,
-      edges,
-      // `elements` is what the status bar prints against the cap. It has to
-      // describe what is drawn, or the count and the canvas disagree.
-      elements: kept.length + edges.length,
-    },
-    hidden,
-  };
-}
-
-/**
- * What the status bar says about what is missing.
- *
- * Always, whenever anything is hidden. This is the mitigation for the whole
- * design: a call chain through a hidden `internal` function reads as an
- * `external` function that reaches nothing, and the only defence against
- * mistaking a filtered graph for the whole one is that the tool keeps saying
- * so.
- */
-export function hiddenNote(hidden: number, traits: ReadonlySet<Trait>): string {
-  if (hidden === 0) return '';
+export function fadedNote(faded: number, traits: ReadonlySet<Trait>): string {
+  if (faded === 0) return '';
   const shown = TRAITS.filter((trait) => traits.has(trait)).join(', ');
-  return `${String(hidden)} function${hidden === 1 ? '' : 's'} hidden — showing ${shown} only`;
+  return `${String(faded)} function${faded === 1 ? '' : 's'} faded — highlighting ${shown}`;
 }

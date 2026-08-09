@@ -756,11 +756,11 @@ describe.skipIf(CHROME === undefined)('the graph in a browser', () => {
    * The visibility filter, from the chips down to the drawn graph.
    *
    * `filter.test.ts` covers the rule. What only a browser can show is that the
-   * chip is wired to it, that the graph is re-laid-out rather than left with
-   * holes, and that the status bar admits what is missing — which is the whole
-   * mitigation for hiding rather than fading.
+   * chip is wired to it, that the faded functions are still *there* — same
+   * element count, same layout, same camera — and that the status bar says what
+   * is faded.
    */
-  it('draws only the ticked function traits, and says what it hid', async () => {
+  it('fades the functions the filter is not asking for, and leaves the rest alone', async () => {
     await page.goto(session.handle.url);
     await page.until(METRICS, (value) => /layout \d+ ms/.test(value));
 
@@ -769,19 +769,30 @@ describe.skipIf(CHROME === undefined)('the graph in a browser', () => {
     await page.until(CURRENT_VIEW, (value) => value === 'Contract detail');
     await page.until(METRICS, (value) => /layout \d+ ms/.test(value));
 
-    const drawn = `
+    const counts = `
       (() => {
         const cy = document.querySelector('.ax-canvas')._cyreg.cy;
-        return String(cy.nodes('[kind = "Function"]').length);
+        return [
+          cy.nodes('[kind = "Function"]').length,
+          cy.nodes('.ax-faded').length,
+          cy.elements().length,
+        ].join('|');
       })()
     `;
-    const before = Number(await page.evaluate(drawn));
-    expect(before).toBeGreaterThan(0);
+    const [functions, fadedBefore, elementsBefore] = (await page.evaluate(counts)).split('|');
+    expect(Number(functions)).toBeGreaterThan(0);
+    expect(fadedBefore).toBe('0');
 
-    // The filter row exists here, and starts unnarrowed.
-    expect(await page.evaluate("document.querySelectorAll('.ax-filters .ax-chip').length")).not.toBe(
-      '0',
-    );
+    // A camera and an arrangement to prove untouched.
+    const [nodeId] = (await page.evaluate(FIRST_NODE)).split('|');
+    await page.evaluate(`
+      (() => {
+        const cy = document.querySelector('.ax-canvas')._cyreg.cy;
+        cy.zoom(1.2);
+        cy.pan({ x: 51, y: 29 });
+      })()
+    `);
+    const placedAt = await page.evaluate(positionOf(nodeId));
 
     const tick = (label: string): string => `
       (() => {
@@ -794,24 +805,34 @@ describe.skipIf(CHROME === undefined)('the graph in a browser', () => {
     `;
     expect(await page.evaluate(tick('external'))).toBe('false');
 
-    // Fewer functions drawn, and every one of them external.
-    const after = await page.until(drawn, (value) => value !== String(before) && value !== '');
-    expect(Number(after)).toBeLessThan(before);
+    const after = await page.until(counts, (value) => !value.startsWith(`${functions}|0|`));
+    const [stillFunctions, fadedAfter, elementsAfter] = after.split('|');
+
+    // Faded, not removed: the element count and the function count are the
+    // same, and something is now carrying the class.
+    expect(stillFunctions).toBe(functions);
+    expect(elementsAfter).toBe(elementsBefore);
+    expect(Number(fadedAfter)).toBeGreaterThan(0);
+
+    // Every function left at full strength is external.
     expect(
       await page.evaluate(`
         (() => {
           const cy = document.querySelector('.ax-canvas')._cyreg.cy;
-          return String(cy.nodes('[kind = "Function"]').every((node) =>
-            node.hasClass('vis-external')));
+          return String(cy.nodes('[kind = "Function"]').filter((node) =>
+            !node.hasClass('ax-faded')).every((node) => node.hasClass('vis-external')));
         })()
       `),
     ).toBe('true');
 
-    // Re-laid-out, not left with holes: nothing is where it was.
-    expect(await page.until(METRICS, (value) => /layout \d+ ms/.test(value))).toMatch(/layout/);
-    // And the status bar says so, which is the honesty half.
-    expect(await page.until(NOTE, (value) => /hidden/.test(value))).toMatch(
-      /\d+ functions? hidden — showing external only/,
+    // Nothing moved and nothing was re-framed — a filter is not a navigation.
+    expect(await page.evaluate(positionOf(nodeId))).toBe(placedAt);
+    expect(await page.evaluate(PAN)).toBe('51|29');
+    expect(await page.evaluate(ZOOM)).toBe('1.2');
+
+    // And the status bar says so.
+    expect(await page.until(NOTE, (value) => /faded/.test(value))).toMatch(
+      /\d+ functions? faded — highlighting external/,
     );
 
     // `show all` puts them back.
@@ -820,7 +841,9 @@ describe.skipIf(CHROME === undefined)('the graph in a browser', () => {
         .find((button) => button.textContent.includes('show all'))?.click();
       'cleared'
     `);
-    expect(await page.until(drawn, (value) => value === String(before))).toBe(String(before));
+    expect(
+      await page.until(counts, (value) => value.startsWith(`${functions}|0|`)),
+    ).toBe(`${functions}|0|${elementsBefore}`);
     expect(page.consoleErrors.join('\n')).toBe('');
   }, 120_000);
 

@@ -245,6 +245,18 @@ export const RESOLUTION_LINE: Record<string, { style: 'solid' | 'dashed' | 'dott
 export const DIMMED = 'ax-dimmed';
 
 /**
+ * The class a function carries when the trait filter is not asking for it.
+ *
+ * A second class rather than reusing {@link DIMMED}, because the two are set by
+ * different things and cleared by different things: the selection effect wipes
+ * and recomputes `DIMMED` on every selection change, and a filter that shared
+ * the class would be switched off by clicking a node. They draw the same,
+ * which is the point — "not what you are looking at" is one idea — but they
+ * have to be independently switchable.
+ */
+export const FADED = 'ax-faded';
+
+/**
  * How far back a dimmed element goes.
  *
  * Faded, not hidden. Two different values because they are doing different
@@ -435,8 +447,11 @@ export function stylesheet(palette: Palette, preset: ViewPreset): StylesheetJson
    * unrelated to the selection overrides it.
    */
   sheet.push(
-    { selector: `node.${DIMMED}`, style: { opacity: DIM_NODE_OPACITY } },
-    { selector: `edge.${DIMMED}`, style: { opacity: DIM_EDGE_OPACITY, label: '' } },
+    { selector: `node.${DIMMED}, node.${FADED}`, style: { opacity: DIM_NODE_OPACITY } },
+    {
+      selector: `edge.${DIMMED}, edge.${FADED}`,
+      style: { opacity: DIM_EDGE_OPACITY, label: '' },
+    },
   );
 
   if (preset.partitioned) {

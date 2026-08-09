@@ -28,7 +28,7 @@ import type { EditorLink } from '../editor.js';
 import { GraphCanvas } from './GraphCanvas.js';
 import { Inspector } from './Inspector.js';
 import { toElements } from './elements.js';
-import { applyFilter, filterable, hiddenNote, type Trait } from './filter.js';
+import { fadedIds, fadedNote, filterable, type Trait } from './filter.js';
 import { LayoutClient, browserEngine } from './layout/client.js';
 import { initialState, ready, reduce, toRequest } from './navigation.js';
 import { PRESETS } from './presets.js';
@@ -287,15 +287,14 @@ export function App({ bridge, layoutClient, editor }: AppProps): JSX.Element {
 
   const preset = PRESETS[state.view];
   /*
-   * The filter lands here, between the view the host answered with and the
-   * elements the canvas draws: ELK is handed only what is shown, so hiding the
-   * internals re-lays-out into a small graph rather than leaving holes where
-   * they used to be.
+   * The filter, as a set of ids for the canvas to fade.
+   *
+   * Deliberately not applied to `elements`: changing the element set would send
+   * the graph back through ELK and rearrange it under the pointer on every tick
+   * of a checkbox, and would drop the edges that show how the faded functions
+   * are reached. A filter narrows attention, it does not navigate.
    */
-  const filtered = useMemo(
-    () => (view === null ? null : applyFilter(view, traits)),
-    [view, traits],
-  );
+  const faded = useMemo(() => fadedIds(view, traits), [view, traits]);
   /*
    * §9's honest half, plus the filter's.
    *
@@ -307,7 +306,7 @@ export function App({ bridge, layoutClient, editor }: AppProps): JSX.Element {
    * reading a filtered graph as the whole one is that the tool keeps saying it
    * is not.
    */
-  const hiding = filtered === null ? '' : hiddenNote(filtered.hidden, traits);
+  const hiding = fadedNote(faded.size, traits);
   const note =
     hint ??
     [
@@ -318,19 +317,12 @@ export function App({ bridge, layoutClient, editor }: AppProps): JSX.Element {
       .filter((part) => part !== '')
       .join(' · ');
 
-  /*
-   * The canvas's memory key. The request plus the filter, because a filtered
-   * graph is a different arrangement: without the filter in the key, ticking
-   * `external` would be handed the unfiltered layout's remembered positions and
-   * the surviving nodes would sit exactly where they were, holes and all.
-   */
-  const filterKey = `${key}|${[...traits].sort().join(',')}`;
   const elements = useMemo(
     () =>
-      filtered === null || filtered.view.view !== state.view
+      view === null || view.view !== state.view
         ? { nodes: [], edges: [] }
-        : toElements(filtered.view, preset),
-    [filtered, preset, state.view],
+        : toElements(view, preset),
+    [view, preset, state.view],
   );
 
   // The clusters the *engine* opened, which is not the same as the ones the
@@ -568,7 +560,8 @@ export function App({ bridge, layoutClient, editor }: AppProps): JSX.Element {
             layoutClient={client}
             palette={palette}
             selected={selected}
-            viewKey={filterKey}
+            viewKey={key}
+            faded={faded}
             onPick={onPick}
             onDrill={onDrill}
             onPickEdge={onPickEdge}
@@ -647,9 +640,7 @@ export function App({ bridge, layoutClient, editor }: AppProps): JSX.Element {
           {note}
         </span>
         <span className="ax-metrics">
-          {filtered === null
-            ? ''
-            : `${String(filtered.view.elements)} / ${String(filtered.view.cap)} elements`}
+          {view === null ? '' : `${String(view.elements)} / ${String(view.cap)} elements`}
           {layout === null
             ? ''
             : typeof layout === 'number'
