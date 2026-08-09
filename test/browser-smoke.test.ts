@@ -366,6 +366,96 @@ afterAll(async () => {
 });
 
 describe.skipIf(CHROME === undefined)('the graph in a browser', () => {
+
+
+  /**
+   * A theme arriving mid-layout does not leave the graph in the placeholder grid.
+   *
+   * The two-step render (§9 rule 6) draws a `grid` first and replaces it when
+   * ELK answers, and the arrangement memory writes down where a view was left
+   * whenever the element effect re-runs. Those two met: a host that applies its
+   * theme just after the panel boots re-runs the effect *while the grid is still
+   * on screen*, the memory wrote the grid down under that view's key, and the
+   * layout that arrived a moment later was discarded in favour of it. The graph
+   * then sat in a grid until `reset` — which applies ELK's positions — put it
+   * right, which is exactly how it was reported.
+   *
+   * `reset` is the assertion for the same reason: it is the only thing that
+   * reapplies the layout verbatim, so "reset moves nothing" is precisely the
+   * claim that what is on screen is already the laid-out graph.
+   */
+  it('keeps the layout when the host re-themes while it is still laying out', async () => {
+    // A VS Code webview in miniature: the palette changes a few times in the
+    // window the first layout occupies. Ticked rather than fired once, because
+    // the window is the thing being aimed at and it is tens of milliseconds
+    // wide.
+    const injected = (await page.send('Page.addScriptToEvaluateOnNewDocument', {
+      source: `
+        (() => {
+          const shades = ['#101010', '#111111', '#121212', '#131313', '#141414', '#151515'];
+          let tick = 0;
+          const timer = setInterval(() => {
+            document.documentElement.style.setProperty(
+              '--vscode-editor-background',
+              shades[tick % shades.length],
+            );
+            tick += 1;
+            if (tick > 60) clearInterval(timer);
+          }, 8);
+        })()
+      `,
+    })) as { identifier: string };
+
+    try {
+      await page.goto(session.handle.url);
+      await page.until(METRICS, (value) => /layout \d+ ms/.test(value));
+      // Past the last tick, so the graph being measured is the settled one.
+      await new Promise((resolve) => setTimeout(resolve, 2000));
+
+      // Childless nodes only: a compound parent's position is derived from its
+      // children, so it is not independently placed and would be noise here.
+      const snapshot = `
+        (() => {
+          const cy = document.querySelector('.ax-canvas')._cyreg.cy;
+          return cy
+            .nodes()
+            .filter((node) => node.isChildless())
+            .map((node) => node.id() + '@' + Math.round(node.position().x) + ',' + Math.round(node.position().y))
+            .join('|');
+        })()
+      `;
+      const before = await page.evaluate(snapshot);
+      expect(before).not.toBe('');
+
+      expect(
+        await page.evaluate(`
+          (() => {
+            const button = [...document.querySelectorAll('.ax-zoom button')].find(
+              (candidate) => candidate.textContent.trim() === 'reset',
+            );
+            if (button === undefined) return 'no reset button';
+            button.click();
+            return 'reset';
+          })()
+        `),
+      ).toBe('reset');
+      await new Promise((resolve) => setTimeout(resolve, 500));
+
+      const after = await page.evaluate(snapshot);
+      const moved = before
+        .split('|')
+        .filter((entry, index) => entry !== after.split('|')[index]);
+      expect(moved, `reset moved ${String(moved.length)} nodes: ${moved.slice(0, 3).join(' ')}`).toEqual(
+        [],
+      );
+      expect(page.consoleErrors.join('\n')).toBe('');
+    } finally {
+      await page.send('Page.removeScriptToEvaluateOnNewDocument', {
+        identifier: injected.identifier,
+      });
+    }
+  }, 120_000);
+
   it('draws the protocol map and lays it out in the worker (§9 rule 6)', async () => {
     await page.goto(session.handle.url);
     const metrics = await page.until(METRICS, (value) => /layout/.test(value));

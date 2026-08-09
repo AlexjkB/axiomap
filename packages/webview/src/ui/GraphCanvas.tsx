@@ -535,6 +535,23 @@ export function GraphCanvas({
     const element = container.current;
     if (instance === null || element === null) return;
     let abandoned = false;
+    /*
+     * Whether this run ever put the graph somewhere worth writing down.
+     *
+     * Between step 1 and ELK answering, the nodes are in the placeholder grid —
+     * positions that are real to cytoscape and meaningless to a reader. The
+     * cleanup below runs on *every* re-run of this effect, not only on leaving
+     * the view, so without this flag a re-run landing inside that window filed
+     * the grid away as "where this view was left". The next layout to arrive
+     * then found a complete memo and honoured it, and the graph stayed in a
+     * grid until `reset` reapplied ELK's answer.
+     *
+     * A host applying its theme just after the panel boots is the way this
+     * happens on a first load — `palette` is a dependency, and it changes a
+     * beat after mount — and switching views before the first layout lands is
+     * the other. Both were reported as "sometimes the graph does not sort".
+     */
+    let arranged = false;
 
     instance.batch(() => {
       instance.elements().remove();
@@ -632,6 +649,8 @@ export function GraphCanvas({
         } else {
           applyPositions(instance, result.positions, { fit: true });
         }
+        // Either branch is an arrangement; the grid before them is not.
+        arranged = true;
         // Revealed only now, with everything where it belongs. `layoutstop`
         // fires synchronously for an unanimated layout, so the fit inside has
         // already run by this point.
@@ -672,8 +691,13 @@ export function GraphCanvas({
        *
        * `destroyed()` because unmounting runs the mount effect's cleanup first,
        * and that destroys the instance this would otherwise read.
+       *
+       * `arranged` because a run that never got its layout has nothing to say
+       * about where this view was left — see the flag's own note. Leaving the
+       * previous entry alone is the right answer there: it was written by a run
+       * that did finish, and it is still true of this graph.
        */
-      if (instance.destroyed() || instance.nodes().empty()) return;
+      if (instance.destroyed() || instance.nodes().empty() || !arranged) return;
       const positions: Record<string, { x: number; y: number }> = {};
       instance.nodes().forEach((node) => {
         const at = node.position();
