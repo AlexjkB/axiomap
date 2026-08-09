@@ -692,6 +692,66 @@ describe.skipIf(CHROME === undefined)('the graph in a browser', () => {
   }, 120_000);
 
   /**
+   * Leaving a view and coming back puts you where you were.
+   *
+   * Checking one thing on the state-access map and returning is the commonest
+   * move there is on a large protocol, and it used to cost the pan built up to
+   * get somewhere plus any node moved by hand: the canvas is wiped and laid out
+   * from scratch on every switch, which is right the first time and wrong every
+   * time after.
+   *
+   * The camera and the arrangement are both asserted, because they are
+   * remembered by the same mechanism and restored in the same breath — one
+   * working while the other silently does not is exactly the half-fix this
+   * would otherwise ship as.
+   */
+  it('comes back to a view with its camera and arrangement intact', async () => {
+    await page.goto(session.handle.url);
+    await page.until(METRICS, (value) => /layout \d+ ms/.test(value));
+
+    // Move a node, so the arrangement is the user's and not just ELK's.
+    const [id, screenX, screenY] = (await page.evaluate(FIRST_NODE)).split('|');
+    await page.evaluate(`${LOCK}.click()`);
+    await page.drag(
+      { x: Number(screenX), y: Number(screenY) },
+      { x: Number(screenX) + 130, y: Number(screenY) + 90 },
+    );
+    const moved = await page.evaluate(positionOf(id));
+
+    // And a camera nobody would land on by fitting.
+    await page.evaluate(`
+      (() => {
+        const cy = document.querySelector('.ax-canvas')._cyreg.cy;
+        cy.zoom(1.15);
+        cy.pan({ x: 33, y: 47 });
+      })()
+    `);
+
+    const show = (label: string): string => `
+      [...document.querySelectorAll('.ax-view')]
+        .find((button) => button.textContent === ${JSON.stringify(label)})?.click();
+      ${JSON.stringify(label)}
+    `;
+    await page.evaluate(show('State access'));
+    expect(await page.until(CURRENT_VIEW, (value) => value === 'State access')).toBe(
+      'State access',
+    );
+    await page.until(METRICS, (value) => /layout \d+ ms/.test(value));
+
+    await page.evaluate(show('Protocol map'));
+    expect(await page.until(CURRENT_VIEW, (value) => value === 'Protocol map')).toBe(
+      'Protocol map',
+    );
+
+    // The camera, as it was left.
+    expect(await page.until(PAN, (value) => value === '33|47')).toBe('33|47');
+    expect(await page.evaluate(ZOOM)).toBe('1.15');
+    // And the node still where it was dragged, not back at its ELK position.
+    expect(await page.evaluate(positionOf(id))).toBe(moved);
+    expect(page.consoleErrors.join('\n')).toBe('');
+  }, 120_000);
+
+  /**
    * A drag that ended somewhere the page could not see it.
    *
    * Release the button outside the window — off the top of the screen, over

@@ -243,6 +243,16 @@ export interface GraphCanvasProps {
    * Applied to cytoscape's own selection so both routes light the same box.
    */
   selected?: string | null;
+  /**
+   * Which view this is, as the request that produced it.
+   *
+   * Used as the memory key for the arrangement and the camera, so that leaving
+   * the protocol map for the state-access map and coming back puts you where
+   * you were rather than at a fresh fit. Two requests that differ in any field
+   * are two different graphs and get their own entry; the same request is the
+   * same graph, so its remembered positions still apply to it.
+   */
+  viewKey: string;
   /** Layout finished (ms), is pending (null), or failed (a message). */
   onLayout: (result: number | null | { failed: string }) => void;
 }
@@ -256,6 +266,7 @@ export function GraphCanvas({
   onDrill,
   onPickEdge,
   selected = null,
+  viewKey,
   onLayout,
 }: GraphCanvasProps): JSX.Element {
   const container = useRef<HTMLDivElement | null>(null);
@@ -271,6 +282,25 @@ export function GraphCanvas({
    * when there are no known-good positions to return to.
    */
   const placed = useRef<Record<string, { x: number; y: number }> | null>(null);
+  /*
+   * Where each view was left: its arrangement, and the camera looking at it.
+   *
+   * Switching views wipes the canvas and lays the new graph out from scratch,
+   * which is right the first time and wrong every time after — going to the
+   * state-access map to check one thing and coming back re-fitted the protocol
+   * map and threw away both the pan the user had built up and any node they had
+   * moved. A read of a large protocol is mostly this round trip.
+   *
+   * Unbounded, and deliberately: an entry is two numbers and a position per
+   * node, the keys are the handful of views a session actually visits, and it
+   * lives on a component that is unmounted when the panel closes.
+   */
+  const remembered = useRef(
+    new Map<
+      string,
+      { positions: Record<string, { x: number; y: number }>; zoom: number; pan: { x: number; y: number } }
+    >(),
+  );
   const handlers = useRef({ onPick, onDrill, onPickEdge, onLayout });
   handlers.current = { onPick, onDrill, onPickEdge, onLayout };
   // The mount effect runs once and must not re-run when the theme changes; the
@@ -556,7 +586,33 @@ export function GraphCanvas({
         // rather than undo what the user did to it, and on a graph whose sizes
         // have since changed it could legitimately answer differently.
         placed.current = result.positions;
-        applyPositions(instance, result.positions, { fit: true });
+
+        /*
+         * Back somewhere we have been: the arrangement and the camera as they
+         * were left, rather than a fresh fit.
+         *
+         * ELK still runs, and its answer still becomes what `reset` returns to.
+         * Skipping the worker would be faster, but the status bar would have to
+         * either lie about a layout that did not happen or go blank on a view
+         * that is plainly being drawn.
+         *
+         * Only when every drawn node has a remembered position. A rebuild can
+         * add or rename nodes under the same request, and cytoscape leaves a
+         * node the position map does not mention wherever it already is — which
+         * is its slot in the placeholder grid. A few nodes stranded in a corner
+         * is a worse answer than a re-fit.
+         */
+        const memo = remembered.current.get(viewKey);
+        const complete =
+          memo !== undefined &&
+          elements.nodes.every((node) => memo.positions[node.data.id] !== undefined);
+        if (memo !== undefined && complete) {
+          applyPositions(instance, memo.positions, { fit: false });
+          instance.zoom(memo.zoom);
+          instance.pan(memo.pan);
+        } else {
+          applyPositions(instance, result.positions, { fit: true });
+        }
         // Revealed only now, with everything where it belongs. `layoutstop`
         // fires synchronously for an unanimated layout, so the fit inside has
         // already run by this point.
@@ -587,8 +643,30 @@ export function GraphCanvas({
 
     return () => {
       abandoned = true;
+      /*
+       * On the way out, remember this view.
+       *
+       * `viewKey` is the one captured when the effect ran, so a switch stores
+       * the view being left rather than the one arriving. Positions are read
+       * off cytoscape rather than taken from ELK, so a node the user moved on
+       * purpose is still where they put it when they come back.
+       *
+       * `destroyed()` because unmounting runs the mount effect's cleanup first,
+       * and that destroys the instance this would otherwise read.
+       */
+      if (instance.destroyed() || instance.nodes().empty()) return;
+      const positions: Record<string, { x: number; y: number }> = {};
+      instance.nodes().forEach((node) => {
+        const at = node.position();
+        positions[node.id()] = { x: at.x, y: at.y };
+      });
+      remembered.current.set(viewKey, {
+        positions,
+        zoom: instance.zoom(),
+        pan: { ...instance.pan() },
+      });
     };
-  }, [elements, preset, layoutClient, palette]);
+  }, [elements, preset, layoutClient, palette, viewKey]);
 
   /*
    * §11's inverse navigation, at the end that draws.

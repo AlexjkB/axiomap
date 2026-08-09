@@ -510,6 +510,7 @@ export function App({ bridge, layoutClient, editor }: AppProps): JSX.Element {
             layoutClient={client}
             palette={palette}
             selected={selected}
+            viewKey={key}
             onPick={onPick}
             onDrill={onDrill}
             onPickEdge={onPickEdge}
