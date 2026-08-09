@@ -576,6 +576,64 @@ describe.skipIf(CHROME === undefined)('the graph in a browser', () => {
   }, 120_000);
 
   /**
+   * A selection two of the five views cannot draw still dims them.
+   *
+   * The protocol map is contracts only and the inheritance tree keeps a
+   * function only when it is on one end of an override, so carrying a member
+   * selection back to either handed the canvas an id it could not find and the
+   * dimming quietly switched off — a fully lit graph, which is also what a
+   * broken selection looks like. The stand-in is the member's own contract, and
+   * the assertion is that the ring lands there while the inspector is still
+   * describing the member.
+   */
+  it('anchors the dimming on the contract when the view cannot draw the selection', async () => {
+    await page.goto(session.handle.url);
+    await page.until(METRICS, (value) => /layout \d+ ms/.test(value));
+
+    await page.evaluate(doubleTap('[kind = "Contract"]'));
+    await page.until(CURRENT_VIEW, (value) => value === 'Contract detail');
+    await page.until(METRICS, (value) => /layout \d+ ms/.test(value));
+
+    // A state variable: selects without navigating, and the protocol map draws
+    // no storage at all, so it is exactly the case this is about.
+    const picked = await page.evaluate(tap('[kind = "StateVariable"]'));
+    expect(picked).not.toBe('');
+    // Wait for the inspection to land — it is what names the container.
+    await page.until(INSPECTOR, (value) => value !== '');
+
+    await page.evaluate(`
+      [...document.querySelectorAll('.ax-view')]
+        .find((button) => button.textContent === 'Protocol map')?.click();
+      'switched'
+    `);
+    await page.until(CURRENT_VIEW, (value) => value === 'Protocol map');
+    await page.until(METRICS, (value) => /layout \d+ ms/.test(value));
+
+    const state = await page.until(
+      `
+        (() => {
+          const cy = document.querySelector('.ax-canvas')._cyreg.cy;
+          if (!cy.getElementById(${JSON.stringify(picked)}).empty()) return 'drawn';
+          const ringed = cy.nodes(':selected');
+          if (ringed.length !== 1) return 'ring:' + ringed.length;
+          return [
+            ringed.first().data('kind'),
+            ringed.first().hasClass('ax-dimmed') ? 'anchor-dimmed' : 'anchor-lit',
+            cy.elements('.ax-dimmed').length > 0 ? 'rest-dimmed' : 'rest-lit',
+          ].join('|');
+        })()
+      `,
+      (value) => value !== '' && value !== 'drawn' && !value.startsWith('ring:'),
+    );
+    expect(state).toBe('Contract|anchor-lit|rest-dimmed');
+
+    // …and it says so, rather than letting the ring read as a selection the
+    // user did not make.
+    expect(await page.evaluate(NOTE)).toMatch(/is not drawn in this view — highlighting /);
+    expect(page.consoleErrors.join('\n')).toBe('');
+  }, 120_000);
+
+  /**
    * Clearing the focus puts the graph back.
    *
    * The focus and the selection are two different pieces of state that a click

@@ -347,6 +347,87 @@ describe('App', () => {
     });
   });
 
+  /**
+   * A selection the view does not draw is the ordinary case, not an edge one.
+   *
+   * The protocol map draws contracts and no functions whatsoever, and the
+   * inheritance tree draws only the functions in an override relation — so
+   * clicking a function in contract detail and going back to either of them
+   * left the canvas holding a selection it could not find, and the dimming that
+   * is the whole reason the selection reaches the canvas switched itself off.
+   * A fully lit graph is indistinguishable from a broken one.
+   */
+  it('anchors the dimming on the selection’s contract when the view does not draw it', async () => {
+    const leaf = fn('src/Vault.sol:Vault.pure0()');
+    const { bridge, asked } = bridgeOf(
+      (request) =>
+        Promise.resolve(
+          request.view === 'contract'
+            ? view({
+                view: 'contract',
+                nodes: [
+                  { type: 'node', id: vault.id, node: vault, parent: null },
+                  { type: 'node', id: leaf.id, node: leaf, parent: vault.id, calls: false },
+                ],
+                elements: 2,
+              })
+            : view({
+                nodes: [{ type: 'node', id: vault.id, node: vault, parent: null }],
+                elements: 1,
+              }),
+        ),
+      {
+        inspect: (id) =>
+          Promise.resolve({
+            id,
+            node: id === leaf.id ? leaf : vault,
+            scope: id === leaf.id ? { id: vault.id, name: 'Vault', kind: 'Contract' as const } : null,
+            members: [],
+            incoming: [],
+            outgoing: [],
+          }),
+      },
+    );
+
+    render(<App bridge={bridge} layoutClient={new LayoutClient(idleEngine)} />);
+    await waitFor(() => {
+      expect(canvasProps.length).toBeGreaterThan(0);
+    });
+    const pick = () =>
+      canvasProps.at(-1)?.['onPick'] as (choice: { kind: string; id: string }) => void;
+
+    // The user's route: click the contract on the map, open its detail, click a
+    // function in it, then go back to the map.
+    act(() => {
+      pick()({ kind: 'Contract', id: vault.id });
+    });
+    fireEvent.click(screen.getByText('Contract detail'));
+    await waitFor(() => {
+      expect(asked.at(-1)?.view).toBe('contract');
+    });
+    act(() => {
+      pick()({ kind: 'Function', id: leaf.id });
+    });
+    await waitFor(() => {
+      expect(canvasProps.at(-1)?.['selected']).toBe(leaf.id);
+    });
+
+    fireEvent.click(screen.getByText('Protocol map'));
+    await waitFor(() => {
+      expect(asked.at(-1)?.view).toBe('protocol');
+    });
+
+    // The selection is still the function — the inspector is showing it — and
+    // the canvas is told which drawn node stands in for it.
+    await waitFor(() => {
+      expect(canvasProps.at(-1)?.['selectionScope']).toBe(vault.id);
+    });
+    expect(canvasProps.at(-1)?.['selected']).toBe(leaf.id);
+    // And it says so, rather than letting the ring on Vault read as a selection
+    // the user did not make.
+    expect(screen.getByText(/pure0 is not drawn in this view — highlighting Vault/)).toBeDefined();
+  });
+
   it('asks the host for a clicked node’s source', async () => {
     const { bridge, sliced } = bridgeOf(() =>
       Promise.resolve(

@@ -286,6 +286,43 @@ export function App({ bridge, layoutClient, editor }: AppProps): JSX.Element {
   }, [bridge, selected, generation]);
 
   const preset = PRESETS[state.view];
+  /**
+   * The drawn node that stands in for the selection, when this view does not
+   * draw the selection itself.
+   *
+   * The protocol map draws contracts and no functions at all, and the
+   * inheritance tree draws only the functions on one end of an override — so
+   * the ordinary act of clicking a function in contract detail and going back
+   * to either of them handed the canvas an id it could not find, and the
+   * dimming turned itself off. Nothing was wrong with the graph, which is
+   * exactly the problem: a fully lit graph and a broken selection look alike.
+   *
+   * The container is an answer the tool already has rather than a guess —
+   * `contractView` redirects a member to its own contract for the same reason,
+   * and `inspection.scope` is containment as the engine reports it.
+   *
+   * Guarded three ways, because each one would otherwise light the wrong thing
+   * for a frame or longer: the inspection must be *this* selection's (the
+   * previous one is still in state while the next is in flight), the loaded
+   * view must be the one the toolbar is on, and the container must actually be
+   * drawn — a function whose contract was filtered out of the map has no
+   * stand-in, and no dimming is the honest answer there.
+   */
+  const selectionScope = useMemo(() => {
+    if (selected === null || view === null || view.view !== state.view) return null;
+    if (view.nodes.some((node) => node.id === selected)) return null;
+    if (inspection === null || inspection.id !== selected || inspection.scope === null) return null;
+    const scope = inspection.scope;
+    if (!view.nodes.some((node) => node.id === scope.id)) return null;
+    return {
+      id: scope.id,
+      // Said out loud, because the selection ring is about to land on a node
+      // the user did not click, and an unexplained ring is a claim about what
+      // is selected that the inspector next to it contradicts.
+      note: `${inspection.node.name} is not drawn in this view — highlighting ${scope.name}, where it lives`,
+    };
+  }, [selected, view, state.view, inspection]);
+
   /*
    * The filter, as a set of ids for the canvas to fade.
    *
@@ -312,6 +349,7 @@ export function App({ bridge, layoutClient, editor }: AppProps): JSX.Element {
     [
       refreshed === null ? '' : refreshed.reason,
       view === null ? 'loading…' : view.note,
+      selectionScope?.note ?? '',
       hiding,
     ]
       .filter((part) => part !== '')
@@ -560,6 +598,7 @@ export function App({ bridge, layoutClient, editor }: AppProps): JSX.Element {
             layoutClient={client}
             palette={palette}
             selected={selected}
+            selectionScope={selectionScope?.id ?? null}
             viewKey={key}
             faded={faded}
             onPick={onPick}

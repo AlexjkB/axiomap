@@ -244,6 +244,13 @@ export interface GraphCanvasProps {
    */
   selected?: string | null;
   /**
+   * The drawn node to hang the dimming on when this view does not draw
+   * {@link selected} itself — its containing contract, decided by the app.
+   *
+   * Null when the selection is drawn, and null when nothing stands in for it.
+   */
+  selectionScope?: string | null;
+  /**
    * Which view this is, as the request that produced it.
    *
    * Used as the memory key for the arrangement and the camera, so that leaving
@@ -276,6 +283,7 @@ export function GraphCanvas({
   onDrill,
   onPickEdge,
   selected = null,
+  selectionScope = null,
   viewKey,
   faded,
   onLayout,
@@ -695,7 +703,26 @@ export function GraphCanvas({
       instance.elements(':selected').unselect();
       instance.elements().removeClass(DIMMED);
       if (selected === null) return;
-      const node = instance.getElementById(selected);
+      let node = instance.getElementById(selected);
+      /*
+       * A selection this view does not draw anchors on its contract instead.
+       *
+       * Two of the five views draw no arbitrary function: the protocol map is
+       * contracts only, and the inheritance tree keeps a function only when it
+       * is on one end of an override. Without this, carrying a selection from
+       * contract detail back to either of them found nothing, dimmed nothing,
+       * and left a fully lit graph — which is what a selection that has stopped
+       * working also looks like.
+       *
+       * The app decides what stands in (it is the side holding the inspection
+       * that names the container) and says so in the status bar, so the ring
+       * landing on a contract the user did not click is labelled rather than
+       * inferred. Everything below then runs unchanged: the neighbourhood of
+       * the stand-in is the honest answer to "what is near where this lives".
+       */
+      if (node.empty() && selectionScope !== null) {
+        node = instance.getElementById(selectionScope);
+      }
       if (node.empty()) return;
       node.select();
 
@@ -725,7 +752,7 @@ export function GraphCanvas({
       const lit = near.union(near.ancestors()).union(near.descendants());
       instance.elements().difference(lit).addClass(DIMMED);
     });
-  }, [selected, elements]);
+  }, [selected, selectionScope, elements]);
 
   /*
    * The trait filter, applied to what is already drawn.
