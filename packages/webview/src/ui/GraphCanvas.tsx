@@ -144,22 +144,26 @@ function LockIcon({ locked }: { locked: boolean }): JSX.Element {
 }
 
 /**
- * Put every node where ELK said, and frame the result.
+ * Put every node where ELK said.
  *
- * Extracted because two callers need it to agree exactly: the layout landing
- * for the first time, and the `reset` chip undoing a drag. A second copy of the
- * fit-and-clamp below is a place for the two to drift, and the symptom would be
- * a reset that lands on a subtly different viewport than the one the view
- * opened with.
+ * Extracted because two callers need the positioning to agree exactly: the
+ * layout landing for the first time, and the `reset` chip undoing a drag.
+ *
+ * They differ on the viewport, which is what `fit` is for. A view opening has
+ * no viewport worth keeping and must frame what it just drew; a reset has one
+ * the user chose — they panned and zoomed to the corner they are reading — and
+ * moving it is a second, unasked-for change on top of the one they clicked for.
+ * `fit` is its own chip for anyone who wants both.
  */
 function applyPositions(
   instance: cytoscape.Core,
   positions: Record<string, { x: number; y: number }>,
+  options: { fit: boolean },
 ): void {
   const applied = instance.layout({
     name: 'preset',
     positions,
-    fit: true,
+    fit: options.fit,
     padding: 24,
     animate: false,
   });
@@ -171,6 +175,7 @@ function applyPositions(
    * cost the right-hand edge of the protocol map.
    */
   applied.on('layoutstop', () => {
+    if (!options.fit) return;
     instance.fit(undefined, FIT_PADDING);
     /*
      * Fit zooms *in* on a small graph until it fills the viewport, which turns
@@ -551,7 +556,7 @@ export function GraphCanvas({
         // rather than undo what the user did to it, and on a graph whose sizes
         // have since changed it could legitimately answer differently.
         placed.current = result.positions;
-        applyPositions(instance, result.positions);
+        applyPositions(instance, result.positions, { fit: true });
         // Revealed only now, with everything where it belongs. `layoutstop`
         // fires synchronously for an unanimated layout, so the fit inside has
         // already run by this point.
@@ -675,18 +680,19 @@ export function GraphCanvas({
    * was deliberate and is now regretted. Together they mean a moved node is
    * never a one-way door.
    *
-   * Positions only — the selection, the focus and the view are all untouched,
-   * because "reset the layout" is not "start again". Falls back to a re-fit
-   * when there is nothing recorded, which is a view whose layout failed.
+   * Positions only, and that includes the viewport: where you are looking is
+   * not part of the arrangement, and `fit` is its own chip for anyone who wants
+   * both. The selection, the focus and the view are untouched too, because
+   * "reset the layout" is not "start again".
+   *
+   * Does nothing when there is nothing recorded — a view whose layout failed
+   * never had ELK positions, so there is no arrangement to return to and
+   * re-framing the graph instead would be answering a question nobody asked.
    */
   const reset = useCallback(() => {
     const instance = cy.current;
-    if (instance === null || instance.elements().empty()) return;
-    if (placed.current === null) {
-      instance.fit(undefined, FIT_PADDING);
-      return;
-    }
-    applyPositions(instance, placed.current);
+    if (instance === null || instance.elements().empty() || placed.current === null) return;
+    applyPositions(instance, placed.current, { fit: false });
   }, []);
 
   const refit = useCallback(() => {

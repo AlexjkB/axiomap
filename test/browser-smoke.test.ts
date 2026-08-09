@@ -342,6 +342,14 @@ const PAN = `
   })()
 `;
 
+/** The zoom level, so a reset can be shown not to touch it. */
+const ZOOM = `
+  (() => {
+    const cy = document.querySelector('.ax-canvas')._cyreg.cy;
+    return String(Math.round(cy.zoom() * 100) / 100);
+  })()
+`;
+
 let session: ServeSession;
 let page: Page;
 
@@ -625,6 +633,11 @@ describe.skipIf(CHROME === undefined)('the graph in a browser', () => {
    * one-way door, because the layout is only recomputed when the elements
    * change. Driven through the real chips — unlock, drag, reset — since the
    * whole feature is those three controls agreeing.
+   *
+   * The viewport is asserted alongside the position, because `reset` is the
+   * arrangement and nothing else: `fit` is a separate chip, and a reset that
+   * silently re-framed the graph would move the user away from the corner they
+   * had panned to in order to do the drag they are undoing.
    */
   it('puts a dragged node back where ELK placed it', async () => {
     await page.goto(session.handle.url);
@@ -644,6 +657,21 @@ describe.skipIf(CHROME === undefined)('the graph in a browser', () => {
     // The control: without a real move, "it went back" means nothing.
     expect(moved).not.toBe(laidOut);
 
+    /*
+     * Somewhere deliberately un-fitted, the way a user who panned to a corner
+     * to reach the node they dragged would be. If `reset` re-frames, this is
+     * what changes — and against the default fitted viewport it might not,
+     * since a re-fit would land back on the same numbers.
+     */
+    await page.evaluate(`
+      (() => {
+        const cy = document.querySelector('.ax-canvas')._cyreg.cy;
+        cy.zoom(1.4);
+        cy.pan({ x: 40, y: 25 });
+      })()
+    `);
+    const viewport = await page.evaluate(PAN);
+
     const clicked = await page.evaluate(`
       (() => {
         const chip = [...document.querySelectorAll('.ax-zoom .ax-chip')]
@@ -655,7 +683,11 @@ describe.skipIf(CHROME === undefined)('the graph in a browser', () => {
     `);
     expect(clicked).toBe('reset');
 
+    // The arrangement is back...
     expect(await page.evaluate(positionOf(id))).toBe(laidOut);
+    // ...and the viewport is exactly where it was left.
+    expect(await page.evaluate(PAN)).toBe(viewport);
+    expect(await page.evaluate(ZOOM)).toBe('1.4');
     expect(page.consoleErrors.join('\n')).toBe('');
   }, 120_000);
 
