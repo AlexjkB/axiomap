@@ -143,6 +143,63 @@ function LockIcon({ locked }: { locked: boolean }): JSX.Element {
   );
 }
 
+/**
+ * Put every node where ELK said, and frame the result.
+ *
+ * Extracted because two callers need it to agree exactly: the layout landing
+ * for the first time, and the `reset` chip undoing a drag. A second copy of the
+ * fit-and-clamp below is a place for the two to drift, and the symptom would be
+ * a reset that lands on a subtly different viewport than the one the view
+ * opened with.
+ */
+function applyPositions(
+  instance: cytoscape.Core,
+  positions: Record<string, { x: number; y: number }>,
+): void {
+  const applied = instance.layout({
+    name: 'preset',
+    positions,
+    fit: true,
+    padding: 24,
+    animate: false,
+  });
+  /*
+   * Fit again once it has stopped. A compound node's box is fitted around its
+   * children by cytoscape *after* their positions change, so the fit that runs
+   * with the layout measures a graph whose cluster boxes are still the old size
+   * — and the result is a viewport cropped by however much the boxes grew. It
+   * cost the right-hand edge of the protocol map.
+   */
+  applied.on('layoutstop', () => {
+    instance.fit(undefined, FIT_PADDING);
+    /*
+     * Fit zooms *in* on a small graph until it fills the viewport, which turns
+     * nine contracts into nine billboards — the opposite of §11's "information
+     * density over whitespace", and of its density target, which is about what
+     * is legible at *default* zoom rather than at whatever zoom makes one node
+     * fill a third of the screen.
+     */
+    if (instance.zoom() > MAX_FIT_ZOOM) {
+      instance.zoom({
+        level: MAX_FIT_ZOOM,
+        position: { x: instance.width() / 2, y: instance.height() / 2 },
+      });
+      instance.center();
+    } else if (instance.zoom() < MIN_FIT_ZOOM) {
+      // Anchored top-left rather than centred: the middle of a graph too big to
+      // fit is an arbitrary place to be put down, and the corner is where
+      // reading starts.
+      instance.zoom(MIN_FIT_ZOOM);
+      const box = instance.elements().boundingBox();
+      instance.pan({
+        x: FIT_PADDING - box.x1 * MIN_FIT_ZOOM,
+        y: FIT_PADDING - box.y1 * MIN_FIT_ZOOM,
+      });
+    }
+  });
+  applied.run();
+}
+
 export interface GraphCanvasProps {
   elements: CyElements;
   preset: ViewPreset;
@@ -199,6 +256,16 @@ export function GraphCanvas({
   const container = useRef<HTMLDivElement | null>(null);
   const cy = useRef<cytoscape.Core | null>(null);
   const [locked, setLocked] = useState(LOCKED_BY_DEFAULT);
+  /*
+   * Where ELK put things, kept so a drag can be undone.
+   *
+   * A ref rather than state: nothing renders from it, and putting it in state
+   * would re-render the component on every layout for no visible reason. Null
+   * until the first layout lands, and null again for a view whose layout failed
+   * — `reset` degrades to a re-fit in that case, which is the honest answer
+   * when there are no known-good positions to return to.
+   */
+  const placed = useRef<Record<string, { x: number; y: number }> | null>(null);
   const handlers = useRef({ onPick, onDrill, onPickEdge, onLayout });
   handlers.current = { onPick, onDrill, onPickEdge, onLayout };
   // The mount effect runs once and must not re-run when the theme changes; the
@@ -476,50 +543,17 @@ export function GraphCanvas({
       .then((result) => {
         if (abandoned) return;
         // Step 3: into position, in one paint. Not animated — see step 1.
-        const applied = instance.layout({
-          name: 'preset',
-          positions: result.positions,
-          fit: true,
-          padding: 24,
-          animate: false,
-        });
-        /*
-         * Fit again once it has stopped. A compound node's box is fitted around
-         * its children by cytoscape *after* their positions change, so the fit
-         * that runs with the layout measures a graph whose cluster boxes are
-         * still the old size — and the result is a viewport cropped by however
-         * much the boxes grew. It cost the right-hand edge of the protocol map.
-         */
-        applied.on('layoutstop', () => {
-          instance.fit(undefined, FIT_PADDING);
-          /*
-           * Fit zooms *in* on a small graph until it fills the viewport, which
-           * turns nine contracts into nine billboards — the opposite of §11's
-           * "information density over whitespace", and of its density target,
-           * which is about what is legible at *default* zoom rather than at
-           * whatever zoom makes one node fill a third of the screen.
-           */
-          if (instance.zoom() > MAX_FIT_ZOOM) {
-            instance.zoom({
-              level: MAX_FIT_ZOOM,
-              position: { x: instance.width() / 2, y: instance.height() / 2 },
-            });
-            instance.center();
-          } else if (instance.zoom() < MIN_FIT_ZOOM) {
-            // Anchored top-left rather than centred: the middle of a graph too
-            // big to fit is an arbitrary place to be put down, and the corner
-            // is where reading starts.
-            instance.zoom(MIN_FIT_ZOOM);
-            const box = instance.elements().boundingBox();
-            instance.pan({
-              x: FIT_PADDING - box.x1 * MIN_FIT_ZOOM,
-              y: FIT_PADDING - box.y1 * MIN_FIT_ZOOM,
-            });
-          }
-        });
-        applied.run();
+        //
+        // Kept, so `reset` can put them back. Every drag from here on moves a
+        // node away from a position this is the only remaining record of: the
+        // worker is not asked again on a reset, because re-running ELK is both
+        // slower and a *different question* — it would re-lay-out the graph
+        // rather than undo what the user did to it, and on a graph whose sizes
+        // have since changed it could legitimately answer differently.
+        placed.current = result.positions;
+        applyPositions(instance, result.positions);
         // Revealed only now, with everything where it belongs. `layoutstop`
-        // fires synchronously for an unanimated layout, so the fit above has
+        // fires synchronously for an unanimated layout, so the fit inside has
         // already run by this point.
         element.style.visibility = 'visible';
         handlers.current.onLayout(result.ms);
@@ -633,6 +667,28 @@ export function GraphCanvas({
     });
   }, []);
 
+  /*
+   * Put the graph back the way ELK drew it.
+   *
+   * The lock exists because a stray drag silently corrupts a laid-out graph;
+   * this is the other half of that argument, for the case where the dragging
+   * was deliberate and is now regretted. Together they mean a moved node is
+   * never a one-way door.
+   *
+   * Positions only — the selection, the focus and the view are all untouched,
+   * because "reset the layout" is not "start again". Falls back to a re-fit
+   * when there is nothing recorded, which is a view whose layout failed.
+   */
+  const reset = useCallback(() => {
+    const instance = cy.current;
+    if (instance === null || instance.elements().empty()) return;
+    if (placed.current === null) {
+      instance.fit(undefined, FIT_PADDING);
+      return;
+    }
+    applyPositions(instance, placed.current);
+  }, []);
+
   const refit = useCallback(() => {
     const instance = cy.current;
     if (instance === null || instance.elements().empty()) return;
@@ -660,6 +716,14 @@ export function GraphCanvas({
         </button>
         <button type="button" className="ax-chip" title="Fit the graph to the viewport" onClick={refit}>
           fit
+        </button>
+        <button
+          type="button"
+          className="ax-chip"
+          title="Put every node back where the layout placed it"
+          onClick={reset}
+        >
+          reset
         </button>
         {/* The glyph flips where the word could not: an open and a closed
             padlock are the same width and unambiguous about which state is

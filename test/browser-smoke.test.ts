@@ -619,6 +619,47 @@ describe.skipIf(CHROME === undefined)('the graph in a browser', () => {
   }, 120_000);
 
   /**
+   * `reset` puts a dragged node back where the layout placed it.
+   *
+   * The lock's other half: a node moved on purpose and regretted is otherwise a
+   * one-way door, because the layout is only recomputed when the elements
+   * change. Driven through the real chips — unlock, drag, reset — since the
+   * whole feature is those three controls agreeing.
+   */
+  it('puts a dragged node back where ELK placed it', async () => {
+    await page.goto(session.handle.url);
+    await page.until(METRICS, (value) => /layout \d+ ms/.test(value));
+
+    const [id, screenX, screenY, modelX, modelY] = (await page.evaluate(FIRST_NODE)).split('|');
+    expect(id).not.toBe('');
+    const laidOut = `${modelX}|${modelY}`;
+
+    // Unlock, then drag it somewhere it does not belong.
+    await page.evaluate(`${LOCK}.click()`);
+    await page.drag(
+      { x: Number(screenX), y: Number(screenY) },
+      { x: Number(screenX) + 140, y: Number(screenY) + 100 },
+    );
+    const moved = await page.evaluate(positionOf(id));
+    // The control: without a real move, "it went back" means nothing.
+    expect(moved).not.toBe(laidOut);
+
+    const clicked = await page.evaluate(`
+      (() => {
+        const chip = [...document.querySelectorAll('.ax-zoom .ax-chip')]
+          .find((button) => button.textContent === 'reset');
+        if (chip === undefined) return 'no reset chip';
+        chip.click();
+        return 'reset';
+      })()
+    `);
+    expect(clicked).toBe('reset');
+
+    expect(await page.evaluate(positionOf(id))).toBe(laidOut);
+    expect(page.consoleErrors.join('\n')).toBe('');
+  }, 120_000);
+
+  /**
    * A drag that ended somewhere the page could not see it.
    *
    * Release the button outside the window — off the top of the screen, over
