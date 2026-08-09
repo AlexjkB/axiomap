@@ -18,7 +18,8 @@ repositories worth reading are in.
 - **An inspector** on every node: attributes, callers and callees, access control,
   reentrancy shape, review state, imported Slither findings, and an inline source preview.
 - **CodeLens** above every contract and function: callers, external calls, writes, whether
-  anything guards it, and whether your review of it is stale.
+  anything guards it, and whether your review of it is stale. Off until you turn it on —
+  see Settings.
 - **Review state** in `.axiomap/review.json`, designed to be committed and shared across an
   audit team.
 
@@ -32,7 +33,16 @@ repositories worth reading are in.
 
 ## Settings
 
-Two, and both are editor behaviour: `axiomap.codeLens.enabled` and `axiomap.followCursor`.
+Two, and both are editor behaviour:
+
+| Setting | Default | What it does |
+|---|---|---|
+| `axiomap.codeLens.enabled` | `false` | Draws the CodeLens line above contracts and functions. |
+| `axiomap.followCursor` | `false` | Opens the inspector on whatever node the cursor is inside, while the panel is open. |
+
+Both start off. They are the only two things Axiomap does *outside* its own panel, and
+they cost something on every Solidity file you open whether or not you are using the
+graph — so they are opted into rather than switched off.
 
 Everything about **the project** — which files are included, what counts as an access
 control modifier, the render cap — lives in `axiomap.config.json` beside the code, where it

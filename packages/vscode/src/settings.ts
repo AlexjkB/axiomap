@@ -42,9 +42,27 @@ export interface AxiomapSettings {
   followCursor: boolean;
 }
 
+/**
+ * Both off.
+ *
+ * These are the only two things this extension does *outside* its own panel,
+ * and they write into an editor the user opened to read Solidity in: a lens
+ * above every contract and every function, and an inspector that opens itself
+ * as the cursor moves. On a file with forty members that is forty lines of
+ * chrome nobody asked for, and a panel that reacts to typing.
+ *
+ * The panel is the product and it is opened deliberately (`ctrl+alt+g`). An
+ * in-editor surface is a different bargain — it costs something on every file
+ * whether or not the graph is being used — so it is the one the user opts into
+ * rather than the one they discover and go looking for the switch to.
+ *
+ * `package.json` carries the same two values, because the manifest is what VS
+ * Code reads and this is what an unset key falls back to;
+ * `test/vscode-public-api.test.ts` asserts they agree.
+ */
 export const SETTING_DEFAULTS: AxiomapSettings = {
-  codeLensEnabled: true,
-  followCursor: true,
+  codeLensEnabled: false,
+  followCursor: false,
 };
 
 /**

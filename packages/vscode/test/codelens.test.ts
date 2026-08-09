@@ -10,7 +10,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
 
-import { afterEach, describe, expect, it } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import { Uri, state, workspace } from 'vscode';
 
 import type { FileLens } from '@axiomap/core';
@@ -125,9 +125,29 @@ describe('AxiomapLensProvider', () => {
     return { uri: Uri.file(file), getText: () => text };
   }
 
+  /*
+   * The lens ships off (see `settings.ts`), so every case below that is about
+   * what a lens *looks like* has to turn it on first. Left implicit, they would
+   * all pass by drawing nothing — which is what three of them assert.
+   */
+  beforeEach(() => {
+    workspace.settings = { [CODE_LENS_ENABLED]: true };
+  });
+
   afterEach(() => {
     workspace.settings = {};
     state.root = '';
+  });
+
+  it('draws nothing until the setting is turned on', async () => {
+    state.root = MINIMAL;
+    const session = AxiomapSession.open(MINIMAL);
+    await session.ready();
+    const provider = new AxiomapLensProvider(() => session);
+
+    // Unset, not set to false: the default is the case a fresh install is in.
+    workspace.settings = {};
+    expect(await provider.provideCodeLenses(document() as never)).toEqual([]);
   });
 
   it('draws nothing until something has loaded the graph', async () => {
@@ -172,7 +192,7 @@ describe('AxiomapLensProvider', () => {
     }
   });
 
-  it('draws nothing when the setting is off', async () => {
+  it('draws nothing when the setting is switched off', async () => {
     state.root = MINIMAL;
     const session = AxiomapSession.open(MINIMAL);
     await session.ready();

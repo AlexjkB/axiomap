@@ -70,12 +70,12 @@
       "properties": {
         "axiomap.codeLens.enabled": {
           "type": "boolean",
-          "default": true,
+          "default": false,
           "description": "Show the Axiomap CodeLens above contracts and functions. The counts come from a graph that is already loaded; turning this off does not change how the graph is built."
         },
         "axiomap.followCursor": {
           "type": "boolean",
-          "default": true,
+          "default": false,
           "description": "Highlight the graph node the editor's cursor is inside, while the graph panel is open. Highlighting only — it never moves the graph's view. Turn it off to stop the inspector opening as you type."
         }
       }

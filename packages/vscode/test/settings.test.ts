@@ -19,19 +19,27 @@ import {
 } from '../src/settings.js';
 
 describe('reading the settings', () => {
-  it('defaults both on', () => {
+  /*
+   * Both off, and asserted rather than left to the manifest: these are the only
+   * two things the extension does outside its own panel, and an in-editor
+   * surface that arrives switched on is one the user has to go and find the
+   * switch for. Stated here so flipping either back is a deliberate edit.
+   */
+  it('defaults both off', () => {
     expect(readSettings(() => undefined)).toEqual(SETTING_DEFAULTS);
-    expect(SETTING_DEFAULTS).toEqual({ codeLensEnabled: true, followCursor: true });
+    expect(SETTING_DEFAULTS).toEqual({ codeLensEnabled: false, followCursor: false });
   });
 
+  // Set to the opposite of the default, so a `readSettings` that ignored its
+  // argument entirely would fail rather than agree by coincidence.
   it('takes a boolean at face value', () => {
     const values: Record<string, unknown> = {
-      [CODE_LENS_ENABLED]: false,
-      [FOLLOW_CURSOR]: false,
+      [CODE_LENS_ENABLED]: true,
+      [FOLLOW_CURSOR]: true,
     };
     expect(readSettings((key) => values[key])).toEqual({
-      codeLensEnabled: false,
-      followCursor: false,
+      codeLensEnabled: true,
+      followCursor: true,
     });
   });
 
@@ -45,9 +53,10 @@ describe('reading the settings', () => {
   });
 
   it('reads them per resource, through the editor’s own configuration', () => {
-    workspace.settings = { [CODE_LENS_ENABLED]: false };
+    workspace.settings = { [CODE_LENS_ENABLED]: true };
     try {
-      expect(settingsFor()).toEqual({ codeLensEnabled: false, followCursor: true });
+      // The one that was set, and the one that was not.
+      expect(settingsFor()).toEqual({ codeLensEnabled: true, followCursor: false });
     } finally {
       workspace.settings = {};
     }

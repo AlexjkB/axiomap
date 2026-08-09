@@ -84,10 +84,10 @@ describe('the extension’s public surface, which Phase 9 freezes', () => {
     // disagreeing is a setting that does one thing until somebody toggles it
     // twice.
     for (const key of keys) {
-      expect(manifest.contributes.configuration.properties[key]?.default).toBe(true);
+      expect(manifest.contributes.configuration.properties[key]?.default).toBe(false);
     }
-    expect(source).toContain('codeLensEnabled: true');
-    expect(source).toContain('followCursor: true');
+    expect(source).toContain('codeLensEnabled: false');
+    expect(source).toContain('followCursor: false');
   });
 
   it('has no setting that names a field of axiomap.config.json (§13)', () => {

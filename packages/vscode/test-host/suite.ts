@@ -143,9 +143,20 @@ suite('the packaged extension, in an extension host', function () {
     const extension = vscode.extensions.getExtension(EXTENSION_ID);
     assert.ok(extension !== undefined, `${EXTENSION_ID} is not installed in this window`);
     await extension.activate();
+    /*
+     * The lens ships off (`settings.ts`), so the cases below that are about
+     * what a lens looks like turn it on for the window first. Without this they
+     * would pass by drawing nothing, which is what one of them asserts.
+     */
+    await vscode.workspace
+      .getConfiguration('axiomap')
+      .update('codeLens.enabled', true, vscode.ConfigurationTarget.Workspace);
   });
 
-  suiteTeardown(() => {
+  suiteTeardown(async () => {
+    await vscode.workspace
+      .getConfiguration('axiomap')
+      .update('codeLens.enabled', undefined, vscode.ConfigurationTarget.Workspace);
     // `.axiomap/` is written into the fixture by the run itself.
     fs.rmSync(path.join(workspaceRoot(), '.axiomap'), { recursive: true, force: true });
   });
@@ -411,7 +422,9 @@ suite('the packaged extension, in an extension host', function () {
       });
       assert.ok(editor.document.lineAt(editor.selection.active.line).text.includes('function quote'));
     } finally {
-      await config.update('codeLens.enabled', undefined, vscode.ConfigurationTarget.Workspace);
+      // Back to what `suiteSetup` established, not to unset — unset is off now,
+      // and a later test in this suite still expects lenses.
+      await config.update('codeLens.enabled', true, vscode.ConfigurationTarget.Workspace);
     }
   });
 });
