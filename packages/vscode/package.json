@@ -42,6 +42,11 @@
   },
   "displayName": "Axiomap",
   "publisher": "axiomap",
+  "icon": "icon.png",
+  "galleryBanner": {
+    "color": "#0f1319",
+    "theme": "dark"
+  },
   "categories": [
     "Visualization",
     "Programming Languages",

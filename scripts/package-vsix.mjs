@@ -273,7 +273,13 @@ async function main() {
   cpSync(join(REPO_ROOT, 'LICENSE'), join(STAGE, 'LICENSE'));
   cpSync(notices, join(STAGE, 'THIRD-PARTY-NOTICES.md'));
   cpSync(join(VSCODE_PKG, 'README.md'), join(STAGE, 'README.md'));
-  step('LICENSE, THIRD-PARTY-NOTICES.md, README.md');
+  // The manifest's `icon` field names it; a missing file fails `vsce package`
+  // rather than shipping a listing with the default placeholder tile.
+  cpSync(
+    requireFile(join(VSCODE_PKG, 'icon.png'), 'Render it: python3 packages/vscode/icon.svg -> icon.png'),
+    join(STAGE, 'icon.png'),
+  );
+  step('LICENSE, THIRD-PARTY-NOTICES.md, README.md, icon.png');
 
   /*
    * Without this file `vsce` falls back to the nearest `.gitignore` — which in
@@ -330,6 +336,7 @@ function verifyStage() {
     [`${VENDOR_DIR}/web-tree-sitter/web-tree-sitter.cjs`, 'the bundles’ relative require'],
     [`${VENDOR_DIR}/web-tree-sitter/web-tree-sitter.wasm`, 'its glue locates this by __dirname'],
     ['THIRD-PARTY-NOTICES.md', '§7 Phase 9: elkjs is EPL-2.0 and is redistributed here'],
+    ['icon.png', 'the manifest’s `icon` field, and the Marketplace listing’s tile'],
   ];
   for (const [path, why] of required) {
     if (!existsSync(join(STAGE, path))) fail(`staged tree is missing ${path} — ${why}`);
