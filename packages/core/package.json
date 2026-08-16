@@ -37,7 +37,7 @@
   },
   "dependencies": {
     "graphology": "^0.26.0",
-    "web-tree-sitter": "^0.26.11",
+    "web-tree-sitter": "^0.26.12",
     "xxhash-wasm": "^1.1.0",
     "zod": "^4.4.3"
   },

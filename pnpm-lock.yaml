@@ -102,8 +102,8 @@ importers:
         specifier: ^0.26.0
         version: 0.26.0(graphology-types@0.24.8)
       web-tree-sitter:
-        specifier: ^0.26.11
-        version: 0.26.11
+        specifier: ^0.26.12
+        version: 0.26.12
       xxhash-wasm:
         specifier: ^1.1.0
         version: 1.1.0
@@ -3707,8 +3707,8 @@ packages:
     resolution: {integrity: sha512-o8qghlI8NZHU1lLPrpi2+Uq7abh4GGPpYANlalzWxyWteJOCsr/P+oPBA49TOLu5FTZO4d3F9MnWJfiMo4BkmA==}
     engines: {node: '>=18'}
 
-  web-tree-sitter@0.26.11:
-    resolution: {integrity: sha512-Q5Dm3YTIXSXuH6FxX6RuzX2Qwpc4DPGiYMU87Wg5Z8OIStiQFiUex4zMDc0vBTw78EphaYJacncJghCHzbZptg==}
+  web-tree-sitter@0.26.12:
+    resolution: {integrity: sha512-fvqTNZQBGUgUgfP0mHw+iHf9Yf6bRQrp0A3pSf2v/hSKxkT1beCoIWoLVmlPL7O6dmySfSb/t1aJoJvrgTRStw==}
 
   webidl-conversions@8.0.1:
     resolution: {integrity: sha512-BMhLD/Sw+GbJC21C/UgyaZX41nPt8bUTg+jWyDeg7e7YN4xOM05YPSIXceACnXVtqyEw/LMClUQMtMZ+PGGpqQ==}
@@ -7445,7 +7445,7 @@ snapshots:
     dependencies:
       xml-name-validator: 5.0.0
 
-  web-tree-sitter@0.26.11: {}
+  web-tree-sitter@0.26.12: {}
 
   webidl-conversions@8.0.1: {}
 
